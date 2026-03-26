@@ -1,6 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
-    plugins: [react()]
+    // плагины которые использует Vite
+    plugins: [react()],
+    resolve: {
+        // алиасы для импортов — @ означает папку src
+        alias: {
+            '@': path.resolve(__dirname, './src')
+        }
+    }
 })

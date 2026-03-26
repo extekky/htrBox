@@ -1,24 +1,25 @@
 {
-  "name": "clearfront",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build"
-  },
-  "author": "Stas",
-  "license": "ISC",
-  "dependencies": {
-    "@tanstack/react-query": "^5.95.2",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "vite": "^8.0.3"
-  },
-  "devDependencies": {
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "typescript": "^6.0.2"
-  }
+    "name": "clearfront",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "author": "Stas",
+    "license": "ISC",
+    "dependencies": {
+        "@tanstack/react-query": "^5.95.2",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "vite": "^8.0.3"
+    },
+    "devDependencies": {
+        "@types/node": "^25.5.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "typescript": "^6.0.2"
+    }
 }

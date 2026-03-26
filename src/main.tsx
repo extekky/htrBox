@@ -1,8 +1,22 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <div>Привет</div>
-  </React.StrictMode>
-)
+import { App } from "./App";
+import { queryClient } from "./queryClient";
+
+// import "./index.css";
+
+
+const rootElement = document.getElementById("root");
+
+if (rootElement) {
+    createRoot(rootElement).render(
+        <QueryClientProvider client={queryClient}>
+            <App />
+            {/* {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />} */}
+        </QueryClientProvider>
+    );
+} else {
+    console.error("Root element (#root) not found in the document");
+}
