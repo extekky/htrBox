@@ -112,8 +112,8 @@ async def hysteria_auth(request: Request):
     Hysteria sends:  {"auth": "username:hyPassword", ...}
 
     Checks (in order):
-      1. IP not blocked by rate limiter
-      2. Valid JSON body with "auth" field
+      1. Valid JSON body with "auth" field
+      2. Username not blocked by rate limiter
       3. User exists in database            — record_failure on miss
       4. User is not banned (allowed flag)  — no record_failure: banned by admin, not brute-force
       5. Subscription is active (active flag) — no record_failure: same reasoning
@@ -129,16 +129,7 @@ async def hysteria_auth(request: Request):
     Returns {"ok": true, "id": username} on success,
             {"ok": false, "msg": "..."} on any failure.
     """
-    client_ip = request.client.host
-
-    if is_blocked(client_ip):
-        secs = remaining_block_seconds(client_ip)
-        logger.warning("Auth rejected: IP %s is blocked - %ds remaining", client_ip, secs)
-
-        return HysteriaAuthResponse(
-            ok  = False, 
-            msg = f"Too many failed attempts. Try again in {secs} seconds.",
-        )
+    client_ip = request.client.host if request.client else None
 
     logger.debug("Hysteria auth request from IP %s", client_ip)
 
@@ -151,7 +142,6 @@ async def hysteria_auth(request: Request):
             body_str = body_bytes.decode("utf-8")
         except UnicodeDecodeError:
             logger.error("Request body is not valid UTF-8")
-
             return HysteriaAuthResponse(
                 ok  = False,
                 msg = "Invalid request encoding",
@@ -161,22 +151,19 @@ async def hysteria_auth(request: Request):
             body = json.loads(body_str)
         except json.JSONDecodeError as e:
             logger.error("JSON decode error: %s", e)
-
             return HysteriaAuthResponse(
                 ok  = False,
                 msg = "Invalid JSON",
             )
 
     except HTTPException:
-
         return HysteriaAuthResponse(
-            ok  = False, 
-            msg = "Request too large", 
+            ok  = False,
+            msg = "Request too large",
         )
-    
+
     except Exception as e:
         logger.exception("Unexpected error reading request body: %s", e)
-
         return HysteriaAuthResponse(
             ok  = False,
             msg = "Cannot read request body",
@@ -186,9 +173,8 @@ async def hysteria_auth(request: Request):
     auth = body.get("auth")
     if not auth or not isinstance(auth, str):
         logger.warning("Auth rejected: missing or non-string 'auth' field")
-
         return HysteriaAuthResponse(
-            ok  = False, 
+            ok  = False,
             msg = "Missing or invalid auth field",
         )
 
@@ -196,7 +182,6 @@ async def hysteria_auth(request: Request):
     parts = auth.split(":", 1)
     if len(parts) != 2:
         logger.warning("Auth rejected: 'auth' field is not in 'username:password' format")
-
         return HysteriaAuthResponse(
             ok  = False,
             msg = "Invalid auth format",
@@ -204,6 +189,21 @@ async def hysteria_auth(request: Request):
 
     username, hy_password = parts
     logger.debug("Authenticating user: %r", username)
+
+    # --- Username-based rate limit check ---
+    # Requests to /auth come from the Hysteria server, not directly from clients,
+    # so all requests share the same client IP. Blocking by IP would lock out
+    # all users at once. We block by username instead.
+    if is_blocked(username):
+        secs = remaining_block_seconds(username)
+        logger.warning(
+            "Auth rejected: username %r is blocked - %ds remaining (from IP %s)",
+            username, secs, client_ip,
+        )
+        return HysteriaAuthResponse(
+            ok  = False,
+            msg = f"Too many failed attempts. Try again in {secs} seconds.",
+        )
 
     # --- Database lookup and validation ---
     try:
@@ -219,8 +219,7 @@ async def hysteria_auth(request: Request):
                 # Record failure so that enumerating non-existent usernames is
                 # rate-limited the same way as wrong passwords.
                 logger.warning("Auth rejected: user %r not found", username)
-                record_failure(client_ip)
-
+                record_failure(username)
                 return HysteriaAuthResponse(
                     ok  = False,
                     msg = "Invalid credentials",
@@ -231,7 +230,6 @@ async def hysteria_auth(request: Request):
             # an admin action, not a brute-force attempt.
             if not row["allowed"]:
                 logger.warning("Auth rejected: user %r is blocked by admin", username)
-
                 return HysteriaAuthResponse(
                     ok  = False,
                     msg = "Invalid credentials",
@@ -240,7 +238,6 @@ async def hysteria_auth(request: Request):
             # Profile active check — same reasoning as allowed check above.
             if not row["active"]:
                 logger.warning("Auth rejected: user %r profile is inactive", username)
-
                 return HysteriaAuthResponse(
                     ok  = False,
                     msg = "Invalid credentials",
@@ -264,6 +261,7 @@ async def hysteria_auth(request: Request):
                         with conn.cursor() as upd:
                             upd.execute("UPDATE users SET active = FALSE WHERE username = %s", (username,))
 
+                        conn.commit()
                         return HysteriaAuthResponse(
                             ok  = False,
                             msg = "Invalid credentials",
@@ -278,24 +276,22 @@ async def hysteria_auth(request: Request):
             # password regardless of which earlier check would have failed.
             if hy_password != row["hyPassword"]:
                 logger.warning("Auth rejected: password mismatch for user %r from IP %s", username, client_ip)
-                record_failure(client_ip)
-
+                record_failure(username)
                 return HysteriaAuthResponse(
-                    ok  = False, 
+                    ok  = False,
                     msg = "Invalid credentials",
                 )
 
-            record_success(client_ip)
+            record_success(username)
             logger.info("Hysteria auth success: user %r from IP %s", username, client_ip)
 
             return HysteriaAuthResponse(
-                ok = True, 
+                ok = True,
                 id = username,
             )
 
     except Exception as e:
         logger.exception("Database error during hysteria auth: %s", e)
-
         return HysteriaAuthResponse(
             ok  = False,
             msg = "Internal server error",
@@ -326,7 +322,11 @@ async def login(body: LoginRequest, request: Request, response: Response):
                          Hysteria will reject VPN connections until the
                          subscription is paid (active=True).
     """
-    client_ip = request.client.host
+    client_ip = request.client.host if request.client else None
+
+    if client_ip is None:
+        logger.warning("Login rejected: could not determine client IP")
+        raise HTTPException(403, "Cannot determine client IP")
 
     if is_blocked(client_ip):
         secs = remaining_block_seconds(client_ip)

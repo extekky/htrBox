@@ -4,11 +4,17 @@ rate_limiter.py - In-memory brute-force protection for auth endpoints.
 Two independent rate-limit mechanisms are provided:
 
   Auth failure tracker (brute-force protection):
-    - Tracks failed authentication attempts per IP address.
-    - After RT_MAX_FAILURES consecutive failures, the IP is blocked
+    - Tracks failed authentication attempts per key (IP address or username).
+    - After RT_MAX_FAILURES consecutive failures, the key is blocked
       for RT_BLOCK_DURATION seconds.
     - The entry is removed automatically when the block expires or when
-      the IP successfully authenticates, giving it a clean slate.
+      the key successfully authenticates, giving it a clean slate.
+    - Use IP-based keys for endpoints where requests come directly from
+      clients (e.g. /auth/login).
+    - Use username-based keys for endpoints where requests come from a
+      trusted server on behalf of a user (e.g. /auth - Hysteria server auth),
+      since all such requests share the same IP and blocking by IP would
+      affect all users at once.
 
   Sliding-window request limiter (volume cap):
     - Counts all requests from an IP within a rolling time window.
@@ -20,12 +26,12 @@ Two independent rate-limit mechanisms are provided:
 Cleanup:
   - A background daemon thread runs every _CLEANUP_INTERVAL seconds and
     removes stale entries from both stores.
-  - Auth store: removes IPs whose block has expired and that haven't been
+  - Auth store: removes keys whose block has expired and that haven't been
     seen for longer than _STALE_ENTRY_TTL seconds.
   - Sliding window store: evicts timestamps older than 1 hour from active
     entries, then removes entries not seen for _STALE_ENTRY_TTL seconds.
   - This prevents unbounded memory growth when the service runs for a long
-    time and sees many unique IPs.
+    time and sees many unique keys.
 
 Both auth-failure thresholds are configurable via environment variables
 (see config.py: RT_MAX_FAILURES, RT_BLOCK_DURATION).
@@ -53,6 +59,8 @@ administrators.
      Rate limiting by client IP is ineffective if the attacker rotates IPs
      or operates behind a residential proxy network. This is a fundamental
      limitation of IP-based rate limiting, not specific to this implementation.
+     For Hysteria auth, username-based keys are used instead to avoid this
+     problem entirely.
 """
 
 import logging
@@ -74,10 +82,10 @@ logger = logging.getLogger(__name__)
 # No need to run this very often - once every few minutes is enough.
 _CLEANUP_INTERVAL = 300  # 5 minutes
 
-# An unblocked entry is considered stale and removed if the IP hasn't been
+# An unblocked entry is considered stale and removed if the key hasn't been
 # seen (no failures, no successes) for this many seconds.
 # Should be comfortably longer than RT_BLOCK_DURATION so that
-# a blocked IP still has its entry around when it tries again after the block.
+# a blocked key still has its entry around when it tries again after the block.
 _STALE_ENTRY_TTL = max(RT_BLOCK_DURATION * 3, 900)  # at least 15 min
 
 
@@ -86,9 +94,9 @@ _STALE_ENTRY_TTL = max(RT_BLOCK_DURATION * 3, 900)  # at least 15 min
 # ---------------------------------------------------------------------------
 
 class _RateLimitEntry(TypedDict):
-    failures: int
+    failures:      int
     blocked_until: float | None
-    last_seen: float
+    last_seen:     float
 
 
 _store: dict[str, _RateLimitEntry] = {}
@@ -110,15 +118,15 @@ def _cleanup_stale_entries() -> None:
 
     Auth failure store (_store):
       - Removes entries where the block has expired (or was never set)
-        AND the IP hasn't been seen for _STALE_ENTRY_TTL seconds.
+        AND the key hasn't been seen for _STALE_ENTRY_TTL seconds.
       - Entries with an active block are kept so that is_blocked() and
         remaining_block_seconds() continue to work until the block expires.
 
     Sliding window store (_sliding_store):
       - First evicts individual timestamps older than 1 hour from every entry
         (regardless of whether the entry itself will be deleted), so stale
-        request history doesn't accumulate for IPs that went quiet.
-      - Then removes the entire entry if the IP hasn't been seen for
+        request history doesn't accumulate for keys that went quiet.
+      - Then removes the entire entry if the key hasn't been seen for
         _STALE_ENTRY_TTL seconds.
 
     Called by the background cleanup thread every _CLEANUP_INTERVAL seconds.
@@ -131,12 +139,12 @@ def _cleanup_stale_entries() -> None:
     # 1. Auth failure store
     with _lock:
         stale = [
-            ip for ip, entry in _store.items()
+            key for key, entry in _store.items()
             if entry.get("last_seen", 0) < cutoff
             and not ((entry.get("blocked_until") or 0) > now)
         ]
-        for ip in stale:
-            del _store[ip]
+        for key in stale:
+            del _store[key]
 
     if stale:
         logger.debug("Rate limiter cleanup: removed %d stale entries", len(stale))
@@ -144,15 +152,15 @@ def _cleanup_stale_entries() -> None:
     # 2. Sliding window store
     with _sliding_lock:
         stale_sliding = []
-        for ip, entry in _sliding_store.items():
+        for key, entry in _sliding_store.items():
             if entry.get("timestamps"):
                 entry["timestamps"] = [t for t in entry["timestamps"] if t > now - 3600]
 
             if entry.get("last_seen", 0) < cutoff:
-                stale_sliding.append(ip)
+                stale_sliding.append(key)
 
-        for ip in stale_sliding:
-            del _sliding_store[ip]
+        for key in stale_sliding:
+            del _sliding_store[key]
 
     if stale_sliding:
         logger.debug("Rate limiter cleanup: removed %d stale sliding window entries", len(stale_sliding))
@@ -205,16 +213,16 @@ def start_cleanup() -> None:
 # Public API
 # ---------------------------------------------------------------------------
 
-def is_blocked(ip: str) -> bool:
+def is_blocked(key: str) -> bool:
     """
-    Check whether an IP is currently blocked.
+    Check whether a key (IP or username) is currently blocked.
 
     Uses a single _now() snapshot to avoid a race between the active-block
     check and the expiry-reset check within the same lock acquisition.
-    If the block has expired, removes the entry so the IP starts fresh.
+    If the block has expired, removes the entry so the key starts fresh.
     """
     with _lock:
-        entry = _store.get(ip)
+        entry = _store.get(key)
         if not entry:
             return False
 
@@ -224,24 +232,24 @@ def is_blocked(ip: str) -> bool:
         if blocked_until and now < blocked_until:
             return True  # Block is still active
 
-        # Block has expired - clean up so the IP gets a fresh start
+        # Block has expired - clean up so the key gets a fresh start
         if blocked_until and now >= blocked_until:
-            logger.info("Rate limiter: block for IP %s has expired, resetting counter", ip)
-            _store.pop(ip, None)
+            logger.info("Rate limiter: block for key %r has expired, resetting counter", key)
+            _store.pop(key, None)
 
         return False
 
 
-def remaining_block_seconds(ip: str) -> int:
+def remaining_block_seconds(key: str) -> int:
     """
     Return the number of seconds remaining in an active block.
 
-    Returns 0 if the IP is not blocked or the block has already expired.
+    Returns 0 if the key is not blocked or the block has already expired.
     Intended for external callers (e.g. to populate a Retry-After header);
     not used internally — block checks go through _check_and_record_failure().
     """
     with _lock:
-        entry = _store.get(ip)
+        entry = _store.get(key)
         if not entry:
             return 0
 
@@ -252,9 +260,9 @@ def remaining_block_seconds(ip: str) -> int:
         return 0
 
 
-def _check_and_record_failure(ip: str) -> tuple[bool, bool]:
+def _check_and_record_failure(key: str) -> tuple[bool, bool]:
     """
-    Atomically check whether an IP is blocked and, if not, record a failure.
+    Atomically check whether a key is blocked and, if not, record a failure.
 
     This combines the previously separate is_blocked() + record_failure() calls
     into a single lock acquisition, eliminating the race condition where two
@@ -262,12 +270,12 @@ def _check_and_record_failure(ip: str) -> tuple[bool, bool]:
 
     Returns:
         (was_blocked, newly_blocked)
-        was_blocked   - True if the IP was already blocked before this call.
-        newly_blocked - True if this failure pushed the IP over the threshold.
+        was_blocked   - True if the key was already blocked before this call.
+        newly_blocked - True if this failure pushed the key over the threshold.
     """
     with _lock:
         now = _now()
-        entry = _store.get(ip)
+        entry = _store.get(key)
 
         # Check for active block first
         if entry:
@@ -276,65 +284,66 @@ def _check_and_record_failure(ip: str) -> tuple[bool, bool]:
                 return True, False  # Already blocked
             # Expired block - reset
             if blocked_until and now >= blocked_until:
-                logger.info("Rate limiter: block for IP %s has expired, resetting counter", ip)
-                _store.pop(ip, None)
+                logger.info("Rate limiter: block for key %r has expired, resetting counter", key)
+                _store.pop(key, None)
                 entry = None
 
         # Record the failure
         if entry is None:
-            entry = _store.setdefault(ip, {"failures": 0, "blocked_until": None, "last_seen": now})
+            entry = _store.setdefault(key, {"failures": 0, "blocked_until": None, "last_seen": now})
 
         entry["failures"] += 1
         entry["last_seen"] = now
         failures = entry["failures"]
 
         logger.warning(
-            "Rate limiter: failed auth attempt from IP %s (%d / %d)",
-            ip, failures, RT_MAX_FAILURES,
+            "Rate limiter: failed auth attempt for key %r (%d / %d)",
+            key, failures, RT_MAX_FAILURES,
         )
 
         # Trigger block only once - don't overwrite an existing blocked_until
         if failures >= RT_MAX_FAILURES and not entry["blocked_until"]:
             entry["blocked_until"] = now + RT_BLOCK_DURATION
             logger.warning(
-                "Rate limiter: IP %s is now blocked for %d seconds "
+                "Rate limiter: key %r is now blocked for %d seconds "
                 "after %d consecutive failed attempts",
-                ip, RT_BLOCK_DURATION, failures,
+                key, RT_BLOCK_DURATION, failures,
             )
             return False, True
 
         return False, False
 
 
-def record_failure(ip: str) -> bool:
+def record_failure(key: str) -> bool:
     """
-    Record a failed authentication attempt for the given IP.
+    Record a failed authentication attempt for the given key (IP or username).
 
     Delegates to _check_and_record_failure() for an atomic check-and-increment.
-    If the IP is already blocked, the call is a no-op (counter is not
+    If the key is already blocked, the call is a no-op (counter is not
     incremented a second time while a block is active) and returns False.
 
     Otherwise increments the failure counter. If the counter reaches
-    RT_MAX_FAILURES, the IP is blocked for RT_BLOCK_DURATION
+    RT_MAX_FAILURES, the key is blocked for RT_BLOCK_DURATION
     seconds and True is returned.
 
     Returns:
         True  - if this failure triggered a new block.
-        False - if the IP was already blocked, or is counted but not yet blocked.
+        False - if the key was already blocked, or is counted but not yet blocked.
     """
-    _, newly_blocked = _check_and_record_failure(ip)
+    _, newly_blocked = _check_and_record_failure(key)
     return newly_blocked
 
 
-def record_success(ip: str) -> None:
+def record_success(key: str) -> None:
     """
-    Remove the failure entry for an IP after a successful authentication,
-    giving it a clean slate regardless of how many failures were recorded.
+    Remove the failure entry for a key (IP or username) after a successful
+    authentication, giving it a clean slate regardless of how many failures
+    were recorded.
     """
     with _lock:
-        if ip in _store:
-            logger.info("Rate limiter: successful auth from IP %s - counter cleared", ip)
-            _store.pop(ip, None)
+        if key in _store:
+            logger.info("Rate limiter: successful auth for key %r - counter cleared", key)
+            _store.pop(key, None)
 
 
 # ---------------------------------------------------------------------------
@@ -395,9 +404,12 @@ def rate_limit(limit: int, window_seconds: int, endpoint_key: str = ""):
                     request.url.path is used automatically.
     """
     def _dep(request: Request) -> None:
-        ip  = request.client.host
-        key = f"{endpoint_key or request.url.path}:{ip}"
-
+        if request.client is None:
+            raise HTTPException(
+                status_code = 403,
+                detail      = "Cannot determine client IP",
+            )
+        key = f"{endpoint_key or request.url.path}:{request.client.host}"
         if not _check_rate_limit(key, limit, window_seconds):
             raise HTTPException(
                 status_code = 429,
