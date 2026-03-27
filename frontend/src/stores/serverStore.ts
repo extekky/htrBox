@@ -10,10 +10,14 @@ interface ServerStore {
     // Выбранный пользователем сервер
     selectedServer: ServerPublicResponse | null;
 
+    // Список активных серверов, загружается при инициализации
+    servers: ServerPublicResponse[];
+
     // Карта serverId -> URL подключения (Hysteria2 / другой протокол)
     urlMap: Record<string, string>;
 
     setSelectedServer: (server: ServerPublicResponse | null) => void;
+    setServers: (servers: ServerPublicResponse[]) => void;
     setUrlMap: (map: Record<string, string>) => void;
     clearServer: () => void;
 }
@@ -26,6 +30,7 @@ export const useServerStore = create<ServerStore>()(
     persist(
         (set) => ({
             selectedServer: null,
+            servers: [],
             urlMap: {},
 
             /**
@@ -33,6 +38,12 @@ export const useServerStore = create<ServerStore>()(
              * Передай null чтобы сбросить выбор.
              */
             setSelectedServer: (server) => set({ selectedServer: server }),
+
+            /**
+             * Сохранить список активных серверов.
+             * Вызывается из initServerData после загрузки с бэкенда.
+             */
+            setServers: (servers) => set({ servers }),
 
             /**
              * Сохранить карту URL подключений для всех серверов.
@@ -44,7 +55,7 @@ export const useServerStore = create<ServerStore>()(
              * Сбросить выбранный сервер и все URL подключений.
              * Вызывается при выходе из аккаунта (clearAuth).
              */
-            clearServer: () => set({ selectedServer: null, urlMap: {} }),
+            clearServer: () => set({ selectedServer: null, servers: [], urlMap: {} }),
         }),
         {
             // Ключ в localStorage
@@ -53,6 +64,7 @@ export const useServerStore = create<ServerStore>()(
             // Персистим только данные, но не методы
             partialize: (state) => ({
                 selectedServer: state.selectedServer,
+                servers: state.servers,
                 urlMap: state.urlMap,
             }),
         },
@@ -70,6 +82,7 @@ export const selectSelectedServer    = (s: ServerStore) => s.selectedServer;
 export const selectSetSelectedServer = (s: ServerStore) => s.setSelectedServer;
 export const selectClearServer       = (s: ServerStore) => s.clearServer;
 export const selectUrlMap            = (s: ServerStore) => s.urlMap;
+export const selectServers           = (s: ServerStore) => s.servers;
 
 /**
  * Фабрика селектора — возвращает URL подключения для конкретного сервера.

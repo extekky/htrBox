@@ -1,4 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+    useQuery,
+    useMutation,
+    useQueryClient,
+} from "@tanstack/react-query";
+
+import { generateUrl } from "@/api/hysteria";
+import { useServerStore } from "@/stores/serverStore";
 
 import {
     getServers,
@@ -29,10 +36,12 @@ export const SERVER_KEYS = {
 // Запросы
 // -------------------------------------------------------------
 
-/** Возвращает публичный (пользовательский) список серверов.
+/**
+ * Возвращает публичный (пользовательский) список серверов.
  * Только основные поля: id, country, city, active.
- *Отсортирован по стране и городу в алфавитном порядке.
- *Используется на пользовательских страницах (например, выбор сервера в профиле). */
+ * Отсортирован по стране и городу в алфавитном порядке.
+ * Используется на пользовательских страницах (например, выбор сервера в профиле).
+ */
 export function useServers() {
     return useQuery<ServerPublicResponse[]>({
         queryKey: SERVER_KEYS.list,
@@ -41,17 +50,18 @@ export function useServers() {
             [...data].sort((a, b) =>
                 `${a.country} ${a.city}`.localeCompare(`${b.country} ${b.city}`),
             ),
+        // refetchInterval: 30_000,
         // staleTime наследуется из глобальной конфигурации queryClient (~30с)
     });
 }
 
-// -------------------------------------------------------------
-// Возвращает полный список серверов для администратора со всеми полями.
-// Включает чувствительные данные: ip, port, hysteria_url, label и др.
-// Отсортирован по стране и городу в алфавитном порядке.
-//
-// Используется в панели администратора / таблице управления серверами.
-// -------------------------------------------------------------
+/**
+ * Возвращает полный список серверов для администратора со всеми полями.
+ * Включает чувствительные данные: ip, port, hysteria_url, label и др.
+ * Отсортирован по стране и городу в алфавитном порядке.
+ *
+ * Используется в панели администратора / таблице управления серверами.
+ */
 export function useServersAdmin() {
     return useQuery<ServerAdminResponse[]>({
         queryKey: SERVER_KEYS.admin,
@@ -68,9 +78,10 @@ export function useServersAdmin() {
 // Мутации
 // -------------------------------------------------------------
 
-// Создаёт новый сервер.
-// После успешного выполнения инвалидирует публичный и админский списки.
-// -------------------------------------------------------------
+/**
+ * Создаёт новый сервер.
+ * После успешного выполнения инвалидирует публичный и админский списки.
+ */
 export function useCreateServer() {
     const queryClient = useQueryClient();
 
@@ -87,10 +98,10 @@ export function useCreateServer() {
     });
 }
 
-// -------------------------------------------------------------
-// Обновляет существующий сервер по ID.
-// После успешного выполнения инвалидирует оба списка.
-// -------------------------------------------------------------
+/**
+ * Обновляет существующий сервер по ID.
+ * После успешного выполнения инвалидирует оба списка.
+ */
 export function useUpdateServer() {
     const queryClient = useQueryClient();
 
@@ -107,10 +118,10 @@ export function useUpdateServer() {
     });
 }
 
-// -------------------------------------------------------------
-// Удаляет сервер по ID с оптимистичным удалением из админского списка.
-// При ошибке выполняет откат, после завершения инвалидирует оба списка.
-// -------------------------------------------------------------
+/**
+ * Удаляет сервер по ID с оптимистичным удалением из админского списка.
+ * При ошибке выполняет откат, после завершения инвалидирует оба списка.
+ */
 export function useDeleteServer() {
     const queryClient = useQueryClient();
 
@@ -148,4 +159,49 @@ export function useDeleteServer() {
             queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
         },
     });
+}
+
+/**
+ * Инициализирует данные серверов для текущего пользователя при входе в приложение.
+ * Если активные серверы отсутствуют, функция завершает выполнение без обновления состояния.
+ */
+export async function initServerData(username: string): Promise<void> {
+    const { setSelectedServer, setUrlMap, setServers, selectedServer } = useServerStore.getState();
+
+    // Получаем список всех серверов и оставляем только те, что помечены как активные
+    const allServers = await getServers() as ServerPublicResponse[];
+    const active = allServers.filter((s) => s.active);
+
+    // Если активных серверов нет — затираем старые данные - поэтому закомменировано 
+    // if (active.length === 0) return;
+
+    // Сохраняет список серверов в store
+    setServers(active);
+
+    // Запускаем параллельную генерацию URL для всех активных серверов.
+    // Используем Promise.allSettled, чтобы ошибка на одном сервере не блокировала остальные.
+    const results = await Promise.allSettled(
+        active.map((s) => generateUrl(username, s.id)),
+    );
+
+    // Формируем карту соответствия { [serverId]: connectionUrl }
+    const urlMap: Record<string, string> = {};
+    results.forEach((result, i) => {
+        if (result.status === "fulfilled") {
+            // Сопоставляем результат с исходным сервером по индексу массива active
+            urlMap[active[i].id] = result.value.url;
+        }
+    });
+
+    // Сохраняем полученную карту URL в глобальный store
+    setUrlMap(urlMap);
+
+    // Логика автоматического выбора сервера:
+    // Проверяем, существует ли ранее выбранный сервер и остался ли он в списке активных
+    const isPersistedValid = selectedServer && active.some((s) => s.id === selectedServer.id);
+
+    if (!isPersistedValid) {
+        // Если сохраненный сервер невалиден или отсутствует — выбираем первый из списка активных
+        setSelectedServer(active[0]);
+    }
 }

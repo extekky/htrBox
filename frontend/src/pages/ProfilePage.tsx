@@ -1,25 +1,18 @@
-/**
- * @file        src/pages/ProfilePage.tsx
- * @description User profile page.
- *              All date comparisons use UTC (backend stores TIMESTAMPTZ).
- */
-
 import { useMemo } from "react";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, ServerOff } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 
-// import { ConnectionCard } from "@/components/profile/ConnectionCard";
+import { ConnectionCard } from "@/components/common/ConnectionCard";
 // import { OnboardingGuide } from "@/components/common/OnboardingGuide";
 import { ProgressBar } from "@/components/common/ProgressBar";
-// import { ServerSelector } from "@/components/servers/ServerSelector";
+import { ServerSelector } from "@/components/common/ServerSelector";
 
 import { pickAvatar } from "@/lib/avatars";
 
 import { useMe } from "@/hooks/useUsers";
-import { useServers } from "@/hooks/useServers";
 
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -48,12 +41,12 @@ import {
 
 export function ProfilePage() {
     const { data: me, isLoading: meLoading, isError: meError } = useMe();
-    const { data: servers = [], isLoading: srvLoading } = useServers();
 
     const user = useAuthStore((s) => s.user);
     const selectedServer = useServerStore(selectSelectedServer);
     const setSelectedServer = useServerStore(selectSetSelectedServer);
-
+    const servers = useServerStore((s) => s.servers);
+    console.log(servers);
     const activeServers = useMemo(
         () => servers.filter((s) => s.active),
         [servers],
@@ -214,7 +207,7 @@ export function ProfilePage() {
                     {/* {!expiresAt && <OnboardingGuide />} */}
 
                     {/* ── Connection string + server selector ───────────────── */}
-                    {/* {isActive && (
+                    {isActive && (
                         <Card className="overflow-hidden">
                             <ConnectionCard />
 
@@ -225,16 +218,22 @@ export function ProfilePage() {
                                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         Сервер
                                     </p>
-                                    {!srvLoading && (
-                                        <span className="text-[11px] text-muted-foreground">
-                                            {activeServers.length} доступно
-                                        </span>
-                                    )}
+                                    <span className="text-[11px] text-muted-foreground">
+                                        {activeServers.length} доступно
+                                    </span>
                                 </div>
 
-                                {srvLoading ? (
-                                    <div className="flex justify-center py-4">
-                                        <Spinner className="size-5" />
+                                {activeServers.length === 0 ? (
+                                    <div className="flex flex-col items-center gap-2 py-6 text-center">
+                                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted text-muted-foreground">
+                                            <ServerOff size={18} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium text-foreground">Нет доступных серверов</p>
+                                            <p className="text-xs text-muted-foreground px-4">
+                                                Активные серверы временно недоступны
+                                            </p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <ServerSelector
@@ -245,7 +244,7 @@ export function ProfilePage() {
                                 )}
                             </div>
                         </Card>
-                    )} */}
+                    )}
 
                 </div>
             </div>

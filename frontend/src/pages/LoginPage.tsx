@@ -7,8 +7,8 @@ import { Loader2, Eye, EyeOff, UserPlus } from "lucide-react";
 import { login } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "@/hooks/useToast";
-// import { useSessionRestore } from "@/hooks/useSessionRestore";
-// import { initServerData }    from "@/hooks/useServerInit";
+import { useSessionRestore } from "@/hooks/useSessionRestore";
+import { initServerData } from "@/hooks/useServers";
 import { ApiRequestError } from "@/api/client";
 import { loginSchema, type LoginFormValues } from "@/lib/validators";
 import { cn } from "@/lib/cn";
@@ -60,6 +60,9 @@ export function LoginPage() {
     // Она сохраняет токен и данные пользователя после успешного входа.
     const setAuth = useAuthStore((s) => s.setAuth);
     const { error: toastError } = useToast();
+
+    const { restoring } = useSessionRestore();
+
     // Видно ли сейчас поле пароля (true = текст, false = точки)
     const [showPassword, setShowPassword] = useState(false);
 
@@ -78,6 +81,11 @@ export function LoginPage() {
 
             // Сохраняем токен и пользователя в глобальном состоянии
             setAuth(result.access_token, result.user);
+
+            // Предварительная выборка серверов и URL-адресов подключений перед переходом
+            if (result.user.role !== "admin") {
+                await initServerData(result.user.username);
+            }
 
             // Редиректим: администратора — в /admin, остальных — в /profile
             navigate(result.user.role === "admin" ? "/admin" : "/profile");
@@ -104,6 +112,17 @@ export function LoginPage() {
                 console.error("Неизвестная ошибка:", err);
             }
         }
+    }
+
+    if (restoring) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <Loader2 size={28} className="animate-spin" />
+                    <span className="text-sm">Восстановление сессии...</span>
+                </div>
+            </div>
+        );
     }
 
     return (
