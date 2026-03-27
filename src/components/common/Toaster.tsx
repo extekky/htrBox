@@ -50,7 +50,7 @@ function ToastItem({
     title,
     description,
     variant = "default",
-    duration = 5000,
+    duration = 3000,
     onRemove,
 }: ToastItemProps) {
     return (
@@ -123,7 +123,7 @@ export function Toaster() {
                     title={toast.title}
                     description={toast.description}
                     variant={toast.variant ?? "default"}
-                    duration={toast.duration ?? 5000}
+                    duration={toast.duration ?? 3000}
                     onRemove={remove}
                 />
             ))}
