@@ -1,4 +1,7 @@
-# Use the official Python image
+# =============================================
+# Base
+# =============================================
+
 FROM python:3.11-slim
 
 # Setup the working directory inside the container

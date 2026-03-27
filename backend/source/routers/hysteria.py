@@ -65,16 +65,18 @@ def _get_active_servers(conn) -> list:
         )
         return cur.fetchall()
 
-
+# The system is in a state (no servers) incompatible with the 
+# execution of the request. This is not a temporary unavailability, 
+# it is a lack of configuration that the administrator must add.
 def _require_servers(servers: list) -> None:
     """
-    Raise 503 if no active servers are available.
+    Raise 409 if no active servers are available.
     Used at the start of every endpoint that must communicate with Hysteria.
     """
     if not servers:
         logger.error("Request rejected: no active servers with hysteria_url in database")
         raise HTTPException(
-            503,
+            409,
             "No active servers configured. Add a server via POST /servers before using this endpoint.",
         )
 
@@ -221,7 +223,7 @@ def generate_connection_url(
         if not srv:
             if requested_server_id:
                 raise HTTPException(404, f"Server '{requested_server_id}' not found or inactive")
-            raise HTTPException(503, "No active servers configured.")
+            raise HTTPException(409, "No active servers configured.")
 
     srv          = dict(srv)
     host         = srv.get("domain") or srv["ip"]
