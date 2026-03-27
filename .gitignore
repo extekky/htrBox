@@ -1,23 +1,23 @@
-# Dependencies
+# Зависимости
 node_modules/
 
-# Build output
+# Результат сборки
 dist/
 
-# Environment files — never commit real secrets
+# Файлы окружения
 .env
 .env.local
 .env.production
 
-# Editor
+# Редакторы кода
 .vscode/
 .idea/
 *.swp
 
-# OS
+# Операционная система
 .DS_Store
 Thumbs.db
 
-# Logs
+# Логи
 *.log
 npm-debug.log*
