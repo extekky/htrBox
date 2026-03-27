@@ -3,7 +3,7 @@ import { Switch, Route, Redirect } from "wouter";
 import { useAuthStore } from "@/stores/authStore";
 
 import { LoginPage } from "@/pages/LoginPage";
-// import { RegisterPage } from "@/pages/RegisterPage";
+import { RegisterPage } from "@/pages/RegisterPage";
 // import { AdminOverviewPage } from "@/pages/AdminOverviewPage";
 // import { UsersPage } from "@/pages/UsersPage";
 // import { ServersPage } from "@/pages/ServersPage";
@@ -80,9 +80,9 @@ export function AppRouter() {
         <PublicOnlyRoute component={LoginPage} />
       </Route>
 
-      {/* <Route path="/register">
+      <Route path="/register">
         <PublicOnlyRoute component={RegisterPage} />
-      </Route> */}
+      </Route>
 
       {/* Admin-only routes */}
       {/* <Route path="/admin">
