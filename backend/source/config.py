@@ -37,9 +37,11 @@ Rate limiting variables (all optional):
 
 import os
 import logging
+from typing import cast, Literal
 
 logger = logging.getLogger(__name__)
 
+SameSiteType = Literal["lax", "strict", "none"]
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -96,6 +98,13 @@ def _optional_bool(name: str, default: bool) -> bool:
     return default
 
 
+def _optional_samesite(key: str, default: SameSiteType) -> SameSiteType:
+    val = os.getenv(key, default).lower()
+    if val not in ("lax", "strict", "none"):
+        raise ValueError(f"{key} must be 'lax', 'strict' or 'none', got {val!r}")
+    return cast(SameSiteType, val)
+
+
 # ---------------------------------------------------------------------------
 # Database (PostgreSQL)
 # ---------------------------------------------------------------------------
@@ -131,7 +140,7 @@ JWT_REFRESH_TTL_DAYS   = _optional_int("JWT_REFRESH_TTL_DAYS", 30)
 # ---------------------------------------------------------------------------
 
 COOKIE_SECURE    = _optional_bool("COOKIE_SECURE", True)
-COOKIE_SAMESITE  = _optional("COOKIE_SAMESITE", "strict")
+COOKIE_SAMESITE = _optional_samesite("COOKIE_SAMESITE", "strict")
 
 
 # ---------------------------------------------------------------------------
