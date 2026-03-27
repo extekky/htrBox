@@ -1,0 +1,37 @@
+# Node.js
+node_modules
+
+# Build output
+dist
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Docker
+Dockerfile
+.dockerignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs
+.cache
+.tmp
+
+# Test
+coverage

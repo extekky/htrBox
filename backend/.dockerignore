@@ -1,0 +1,43 @@
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache and bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Development and tests
+pytest.ini
+requirements-dev.txt
+requirements-test.txt
+tests/
+test_*.py
+*_test.py
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Logs
+*.log
+logs/
+*.tmp
+*.bak
+
+# Docker
+Dockerfile
+.dockerignore

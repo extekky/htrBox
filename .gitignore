@@ -1,23 +1,93 @@
-# Зависимости
+# Node.js dependencies
+# -------------------------------------------------------------
+
+# Node.js modules
 node_modules/
+# Yarn lock file (if using Yarn)
+yarn-error.log
+.pnp/
+.pnp.js
 
-# Результат сборки
+# Build artifacts
+# -------------------------------------------------------------
+
+# Production build output
 dist/
+build/
+# Webpack build output
+.next/
+.nuxt/
+# Vite build output
+.vite/
+# Storybook build output
+storybook-static/
 
-# Файлы окружения
-.env
+# Environment variables
+# -------------------------------------------------------------
+
+# Local environment variables (should not be committed)
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging.local
+# Environment variables for specific environments (e.g., production, staging)
 .env.production
+.env.staging
 
-# Редакторы кода
+# Editor and IDE specific files
+# -------------------------------------------------------------
+
+# Visual Studio Code
 .vscode/
+# IntelliJ IDEA / WebStorm
 .idea/
+# Vim swap files
 *.swp
+*.swo
+# Emacs backup files
+*~
+# Sublime Text project files
+*.sublime-project
+*.sublime-workspace
+# Atom editor files
+.atom/
 
-# Операционная система
+# Operating System files
+# -------------------------------------------------------------
+
+# macOS system files
 .DS_Store
+# Windows thumbnail cache
 Thumbs.db
+# Linux temporary files
+*.bak
+*.tmp
 
-# Логи
+# Logs and temporary files
+# -------------------------------------------------------------
+
+# Generic log files
 *.log
+# npm debug logs
 npm-debug.log*
+# Test coverage reports
+coverage/
+# Temporary files
+*.tmp
+
+# Miscellaneous
+# -------------------------------------------------------------
+
+# Editor config files (if not shared)
+.editorconfig
+# ESLint cache
+.eslintcache
+# Prettier cache
+.prettiercache
+# Jest cache
+.jest/
+# TypeScript build cache
+.tsbuildinfo
+# Dependency caches
+.cache/
