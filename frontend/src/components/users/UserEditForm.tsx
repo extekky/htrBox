@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import {
     RefreshCw, Shield, ShieldOff, KeyRound,
-    Copy, Check, Settings, Loader2, AlertTriangle,
+    Check, Copy, Settings, Loader2, AlertTriangle,
 } from "lucide-react";
 
 import { Modal } from "@/components/ui/Modal";
 import { FormLabel } from "@/components/ui/FormLabel";
+import { FormField } from "@/components/ui/FormField";
+import { ModalActions } from "@/components/ui/ModalActions";
 import { ToggleCard } from "@/components/ui/ToggleCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
@@ -17,19 +18,13 @@ import {
     useSetRole,
     useRegenerateHy,
 } from "@/hooks/useUsers";
-
 import { useToast } from "@/hooks/useToast";
-import {
-    updateUserSchema,
-    type UpdateUserFormValues,
-} from "@/lib/validators";
-
+import { updateUserSchema, type UpdateUserFormValues } from "@/lib/validators";
 import {
     toInputDatetimeLocal,
     fromInputDatetimeLocal,
     toGB,
 } from "@/lib/formatters";
-
 import { DEFAULT_TRAFFIC_LIMIT_GB } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import type { UserResponse } from "@/api/types";
@@ -37,8 +32,7 @@ import type { UserResponse } from "@/api/types";
 type Tab = "main" | "access";
 
 // -------------------------------------------------------------
-// Вкладка доступа
-// Управление ролью пользователя и паролем Hysteria.
+// Вкладка «Доступ» — роль и Hysteria-пароль
 // -------------------------------------------------------------
 
 function AccessTab({ user }: { user: UserResponse }) {
@@ -51,19 +45,17 @@ function AccessTab({ user }: { user: UserResponse }) {
     const [newHyPass, setNewHyPass] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
-    /** Переключает роль пользователя между admin и user. */
     function handleRoleToggle() {
         const newRole = user.role === "admin" ? "user" : "admin";
         setRole(
             { username: user.username, data: { role: newRole } },
             {
-                onSuccess: () => { success(`Роль изменена -> ${newRole}`, user.username); setConfirmRole(false); },
+                onSuccess: () => { success(`Роль изменена → ${newRole}`, user.username); setConfirmRole(false); },
                 onError: (e) => { error("Ошибка смены роли", e.message); setConfirmRole(false); },
             },
         );
     }
 
-    /** Запрашивает генерацию нового пароля Hysteria. */
     function handleRegen() {
         regenerateHy(user.username, {
             onSuccess: (data) => {
@@ -75,7 +67,6 @@ function AccessTab({ user }: { user: UserResponse }) {
         });
     }
 
-    /** Копирует новый пароль в буфер обмена. */
     function copyHyPass() {
         if (!newHyPass) return;
         navigator.clipboard.writeText(newHyPass).then(() => {
@@ -100,7 +91,10 @@ function AccessTab({ user }: { user: UserResponse }) {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-foreground">
-                            Роль: <span className={isAdmin ? "text-amber-500" : "text-muted-foreground"}>{user.role}</span>
+                            Роль:{" "}
+                            <span className={isAdmin ? "text-amber-500" : "text-muted-foreground"}>
+                                {user.role}
+                            </span>
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                             {isAdmin ? "Полный доступ к панели" : "Обычный пользователь"}
@@ -118,7 +112,7 @@ function AccessTab({ user }: { user: UserResponse }) {
                 </button>
             </div>
 
-            {/* Регенерация пароля Hysteria */}
+            {/* Регенерация Hysteria-пароля */}
             <div className="flex flex-col gap-2.5 p-3.5 rounded-xl border border-border bg-muted/20">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -143,30 +137,31 @@ function AccessTab({ user }: { user: UserResponse }) {
                     </button>
                 </div>
 
-                {/* Отображение нового пароля */}
                 {newHyPass && (
-                    <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-                        <code className="flex-1 text-xs font-mono text-foreground break-all leading-relaxed">
-                            {newHyPass}
-                        </code>
-                        <button
-                            type="button"
-                            onClick={copyHyPass}
-                            className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        >
-                            {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
-                        </button>
-                    </div>
-                )}
-                {newHyPass && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                        <AlertTriangle size={11} />
-                        Сохраните пароль — он больше не будет показан
-                    </p>
+                    <>
+                        <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+                            <code className="flex-1 text-xs font-mono text-foreground break-all leading-relaxed">
+                                {newHyPass}
+                            </code>
+                            <button
+                                type="button"
+                                onClick={copyHyPass}
+                                className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                            >
+                                {copied
+                                    ? <Check size={13} className="text-emerald-500" />
+                                    : <Copy size={13} />
+                                }
+                            </button>
+                        </div>
+                        <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                            <AlertTriangle size={11} />
+                            Сохраните пароль — он больше не будет показан
+                        </p>
+                    </>
                 )}
             </div>
 
-            {/* Диалоги подтверждения */}
             <ConfirmDialog
                 open={confirmRole}
                 onClose={() => setConfirmRole(false)}
@@ -195,7 +190,7 @@ function AccessTab({ user }: { user: UserResponse }) {
 }
 
 // -------------------------------------------------------------
-// Основное модальное окно редактирования
+// Модальное окно редактирования пользователя
 // -------------------------------------------------------------
 
 interface UserEditModalProps {
@@ -228,7 +223,6 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
     const allowed = watch("allowed");
     const active = watch("active");
 
-    /** Обрабатывает отправку формы обновления данных пользователя. */
     function onSubmit(values: UpdateUserFormValues) {
         const data: UpdateUserFormValues = {
             allowed: values.allowed,
@@ -263,26 +257,12 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
             title="Редактировать пользователя"
             footer={
                 tab === "main" ? (
-                    <>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="h-9 px-4 rounded-lg text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-                        >
-                            Отмена
-                        </button>
-                        <button
-                            type="submit"
-                            form="user-edit-form"
-                            disabled={isPending}
-                            className="h-9 px-4 rounded-lg text-sm font-medium inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 disabled:opacity-50 transition-colors"
-                        >
-                            {isPending && (
-                                <span className="h-3.5 w-3.5 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                            )}
-                            Сохранить
-                        </button>
-                    </>
+                    <ModalActions
+                        formId="user-edit-form"
+                        label="Сохранить"
+                        onCancel={onClose}
+                        loading={isPending}
+                    />
                 ) : (
                     <button
                         type="button"
@@ -296,15 +276,14 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
         >
             <div className="flex flex-col gap-4">
 
-                {/* Карточка идентификации пользователя */}
+                {/* Карточка пользователя с мини-баром трафика */}
                 <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground">{user.username}</p>
                         <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
                     </div>
-                    {/* Мини-бар трафика */}
                     <div className="flex flex-col items-end gap-1">
-                        <span className="text-xs font-mono text-muted-foreground">
+                        <span className="text-xs font-mono text-muted-foreground tabular-nums">
                             {usedGb.toFixed(2)} / {DEFAULT_TRAFFIC_LIMIT_GB} GB
                         </span>
                         <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
@@ -339,11 +318,14 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                     ))}
                 </div>
 
-                {/* Содержимое вкладок */}
+                {/* Основная вкладка */}
                 {tab === "main" && (
-                    <form id="user-edit-form" onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
-
-                        {/* Переключатели статуса */}
+                    <form
+                        id="user-edit-form"
+                        onSubmit={handleSubmit(onSubmit)}
+                        noValidate
+                        className="flex flex-col gap-4"
+                    >
                         <div className="flex flex-col gap-2">
                             <ToggleCard
                                 label="Разрешён"
@@ -361,46 +343,31 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
 
                         <div className="h-px bg-border" />
 
-                        {/* Дата истечения */}
                         <div className="flex flex-col gap-1.5">
-                            <FormLabel>Истекает</FormLabel>
+                            <FormLabel htmlFor="user-edit-expires">Истекает</FormLabel>
                             <input
+                                id="user-edit-expires"
                                 {...register("expires_at")}
                                 type="datetime-local"
-                                className={cn(
-                                    "h-9 w-full rounded-lg border border-border bg-input px-3 text-sm text-foreground",
-                                    "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors",
-                                )}
+                                className="h-9 w-full rounded-lg border border-border bg-input px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
                             />
                             {errors.expires_at && (
                                 <p className="text-xs text-destructive">{errors.expires_at.message}</p>
                             )}
                         </div>
 
-                        {/* Сброс пароля */}
-                        <div className="flex flex-col gap-1.5">
-                            <FormLabel>Смена пароля (новый)</FormLabel>
-                            <input
-                                {...register("password")}
-                                type="password"
-                                autoComplete="new-password"
-                                placeholder="Оставьте пустым, чтобы не менять"
-                                className={cn(
-                                    "h-9 w-full rounded-lg border bg-input px-3 text-sm text-foreground",
-                                    "placeholder:text-muted-foreground/40",
-                                    "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors",
-                                    errors.password ? "border-destructive" : "border-border",
-                                )}
-                            />
-                            {errors.password && (
-                                <p className="text-xs text-destructive">{errors.password.message}</p>
-                            )}
-                        </div>
+                        <FormField
+                            label="Новый пароль"
+                            type="password"
+                            placeholder="Оставьте пустым, чтобы не менять"
+                            autoComplete="new-password"
+                            error={errors.password?.message}
+                            {...register("password")}
+                        />
                     </form>
                 )}
 
                 {tab === "access" && <AccessTab user={user} />}
-
             </div>
         </Modal>
     );

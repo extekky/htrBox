@@ -141,11 +141,10 @@ export const createServerSchema = z.object({
         .number({ error: "Порт должен быть числом" })
         .int("Порт должен быть целым числом")
         .min(1, "Порт: 1–65535")
-        .max(65535, "Порт: 1–65535")
-        .default(443),
+        .max(65535, "Порт: 1–65535"),
     label: z.string().max(64, "Не более 64 символов").optional().or(z.literal("")),
     protocol: z.string().max(32).optional().or(z.literal("")),
-    active: z.boolean().default(true),
+    active: z.boolean(),
     hysteria_url: z
         .string()
         .max(512, "Не более 512 символов")
