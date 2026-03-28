@@ -58,21 +58,21 @@ services:
     networks:
       - vpn_net
 
-  # hysteria:
-  #   image: tobyxdd/hysteria:v2.7.0
-  #   container_name: hysteria
-  #   env_file:
-  #     - .env.Hysteria
-  #   volumes:
-  #     - ./hysteria/config.dev.yaml:/etc/hysteria/config.yaml:ro
-  #     - ./hysteria/certs/server.crt:/etc/hysteria/certs/server.crt:ro
-  #     - ./hysteria/certs/server.key:/etc/hysteria/certs/server.key:ro
-  #   command: server -c /etc/hysteria/config.yaml
-  #   ports:
-  #     - "443:443/udp"
-  #     - "8080:8080"
-  #   networks:
-  #     - vpn_net
+  hysteria:
+    image: tobyxdd/hysteria:v2.7.0
+    container_name: hysteria
+    env_file:
+      - ./hysteria/.env
+    volumes:
+      - ./hysteria/config.dev.yaml:/etc/hysteria/config.yaml:ro
+      - ./hysteria/certs/server.crt:/etc/hysteria/certs/server.crt:ro
+      - ./hysteria/certs/server.key:/etc/hysteria/certs/server.key:ro
+    command: server -c /etc/hysteria/config.yaml
+    ports:
+      - "443:443/udp"
+      - "8080:8080"
+    networks:
+      - vpn_net
 
 networks:
   vpn_net:
