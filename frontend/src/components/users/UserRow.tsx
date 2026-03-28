@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, CheckCircle2 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/CheckBox";
 import { ProgressBar } from "@/components/common/ProgressBar";
@@ -116,9 +116,10 @@ export function UserRow({
 
             {/* Бейджи статуса */}
             <td className="px-4 py-3.5">
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
                     <StatusBadge type="allowed" value={user.allowed} />
                     <StatusBadge type="active" value={user.active} />
+                    {user.role === "admin" && <CheckCircle2 size={15} className="text-amber-500" />}
                 </div>
             </td>
 
