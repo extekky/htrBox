@@ -1,0 +1,30 @@
+listen: :443
+
+tls:
+    cert: /etc/hysteria/certs/server.crt
+    key: /etc/hysteria/certs/server.key
+
+# Аутентификация через Backend на Yandex Cloud
+auth:
+    type: http
+    http:
+        url: http://backend:8000/auth
+
+masquerade:
+    type: proxy
+    proxy:
+        url: https://bing.com
+        rewriteHost: true
+
+quic:
+    initStreamReceiveWindow: 8388608
+    maxStreamReceiveWindow: 8388608
+    initConnReceiveWindow: 20971520
+    maxConnReceiveWindow: 20971520
+
+# Traffic stats API - backend опрашивает этот endpoint
+# secret не берётся из .env.Hysteria так как не поддреживается
+# передача через переменную окружения
+trafficStats:
+    listen: :8080 # Внешний порт для API
+    secret: stasik

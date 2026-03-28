@@ -91,3 +91,6 @@ coverage/
 .tsbuildinfo
 # Dependency caches
 .cache/
+
+# Ignore any other files or directories
+other

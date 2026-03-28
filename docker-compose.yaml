@@ -9,74 +9,74 @@
 # =============================================
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: postgres
-    environment:
-      POSTGRES_DB: vpn
-      POSTGRES_USER: vpn
-      POSTGRES_PASSWORD: vpn
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - vpn_net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vpn -d vpn"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-    ports:
-      - "5432:5432"
+    postgres:
+        image: postgres:16-alpine
+        container_name: postgres
+        environment:
+            POSTGRES_DB: vpn
+            POSTGRES_USER: vpn
+            POSTGRES_PASSWORD: vpn
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - vpn_net
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U vpn -d vpn"]
+            interval: 5s
+            timeout: 3s
+            retries: 3
+        ports:
+            - "5432:5432"
 
-  backend:
-    container_name: backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    environment:
-      - DOCKER_ENV=true
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    networks:
-      - vpn_net
+    backend:
+        container_name: backend
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        environment:
+            - DOCKER_ENV=true
+        depends_on:
+            postgres:
+                condition: service_healthy
+        ports:
+            - "8000:8000"
+        env_file:
+            - .env
+        networks:
+            - vpn_net
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: dev
-    ports:
-      - "5173:5173"
-    depends_on:
-      - backend
-    networks:
-      - vpn_net
+    frontend:
+        container_name: frontend
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+            target: dev
+        ports:
+            - "5173:5173"
+        depends_on:
+            - backend
+        networks:
+            - vpn_net
 
-  hysteria:
-    image: tobyxdd/hysteria:v2.7.0
-    container_name: hysteria
-    env_file:
-      - ./hysteria/.env
-    volumes:
-      - ./hysteria/config.dev.yaml:/etc/hysteria/config.yaml:ro
-      - ./hysteria/certs/server.crt:/etc/hysteria/certs/server.crt:ro
-      - ./hysteria/certs/server.key:/etc/hysteria/certs/server.key:ro
-    command: server -c /etc/hysteria/config.yaml
-    ports:
-      - "443:443/udp"
-      - "8080:8080"
-    networks:
-      - vpn_net
+    hysteria:
+        image: tobyxdd/hysteria:v2.7.0
+        container_name: hysteria
+        env_file:
+            - ./hysteria/.env
+        volumes:
+            - ./hysteria/config.yaml:/etc/hysteria/config.yaml:ro
+            - ./hysteria/certs/server.crt:/etc/hysteria/certs/server.crt:ro
+            - ./hysteria/certs/server.key:/etc/hysteria/certs/server.key:ro
+        command: server -c /etc/hysteria/config.yaml
+        ports:
+            - "443:443/udp"
+            - "8080:8080"
+        networks:
+            - vpn_net
 
 networks:
-  vpn_net:
-    driver: bridge
+    vpn_net:
+        driver: bridge
 
 volumes:
-  postgres_data:
+    postgres_data:
