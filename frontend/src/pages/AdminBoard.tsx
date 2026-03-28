@@ -10,7 +10,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Spinner } from "@/components/ui/Spinner";
 import { useUsers } from "@/hooks/useUsers";
 import { useServersAdmin } from "@/hooks/useServers";
-import { KpiCard } from "@/components/admin/KpiCard"
+import { KpiCard } from "@/components/dashboard/KpiCard"
 import { useOnlineUsers } from "@/hooks/useHysteria";
 import { daysUntil } from "@/lib/formatters";
 import { cn } from "@/lib/cn";
@@ -19,7 +19,7 @@ import {
     SectionCard,
     SectionRow,
     SectionEmpty
-} from "@/components/admin/SectionCard"
+} from "@/components/dashboard/SectionCard"
 
 // -------------------------------------------------------------
 // Компонент панели администратора

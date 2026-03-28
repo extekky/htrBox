@@ -51,11 +51,15 @@ function fnv1a(str: string): number {
 // Публичное API — детерминированный выбор аватара
 // -------------------------------------------------------------
 
+interface AvatarProps {
+    size?: "sm" | "md" | "lg";
+}
+
 /**
  * Возвращает компонент аватара, который всегда одинаков для одного username.
  * Корректно обрабатывает null/undefined (возвращает первый аватар).
  */
-export function pickAvatar(username: string | null | undefined): ComponentType {
+export function pickAvatar(username: string | null | undefined): ComponentType<AvatarProps> {
     const input = username ?? "";
     const hash = fnv1a(input);
     const index = hash % AVATARS.length;

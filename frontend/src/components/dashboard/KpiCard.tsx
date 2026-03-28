@@ -36,7 +36,7 @@ const ACCENT_MAP = {
  */
 export function KpiCard({ label, value, sub, icon: Icon, accent = "default" }: KpiProps) {
     const c = ACCENT_MAP[accent];
-    
+
     return (
         <div className={cn(
             "relative rounded-2xl border p-5 flex flex-col gap-3 overflow-hidden transition-all duration-200 hover:shadow-md",
@@ -50,7 +50,7 @@ export function KpiCard({ label, value, sub, icon: Icon, accent = "default" }: K
                     <Icon size={15} />
                 </div>
             </div>
-            
+
             <div>
                 <p className={cn("text-3xl font-black tabular-nums leading-none", c.val)}>
                     {value}

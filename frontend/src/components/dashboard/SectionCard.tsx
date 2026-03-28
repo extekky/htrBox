@@ -28,7 +28,7 @@ export function SectionCard({ title, badge, action, children }: SectionCardProps
                 </div>
                 {action}
             </div>
-            
+
             {/* Контент секции с разделителями между дочерними элементами */}
             <div className="flex-1 divide-y divide-border/40">
                 {children}

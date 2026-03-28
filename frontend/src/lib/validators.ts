@@ -67,8 +67,8 @@ export type RegisterFormValues = z.infer<typeof registerSchema>;
 export const createUserSchema = z.object({
     username: usernameSchema,
     password: passwordSchema,
-    allowed: z.boolean().default(true),
-    active: z.boolean().default(true),
+    allowed: z.boolean(),
+    active: z.boolean(),
     expires_at: expiresAtSchema,
 });
 
