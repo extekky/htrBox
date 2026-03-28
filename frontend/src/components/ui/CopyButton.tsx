@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
-const RESET_DELAY_MS = 2000;
+const RESET_DELAY_MS = 1000;
 
 // -------------------------------------------------------------
 // Вспомогательная функция для работы с буфером обмена
@@ -163,7 +163,7 @@ function BlockCopyButton({
                     Скопировано!
                 </>
             ) : (
-                <>В
+                <>
                     <Copy size={16} />
                     {label}
                 </>

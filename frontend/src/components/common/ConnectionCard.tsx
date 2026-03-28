@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link2, Copy, Check, RefreshCw } from "lucide-react";
+import { Link2, RefreshCw } from "lucide-react";
 
 import { useServerStore, selectSelectedServer, selectUrlMap } from "@/stores/serverStore";
 import { useAuthStore, selectUser } from "@/stores/authStore";
 import { initServerData } from "@/hooks/useServers";
 import { ApiRequestError } from "@/api/client";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/cn";
 
@@ -22,8 +23,6 @@ import { cn } from "@/lib/cn";
  * - Если данные доступны: отображается URL и кнопка копирования.
  */
 export function ConnectionCard() {
-    // Состояние для временной смены текста/иконки кнопки после успешного копирования
-    const [copied, setCopied] = useState(false);
     // Состояние индикации процесса обновления данных серверов
     const [refreshing, setRefreshing] = useState(false);
 
@@ -58,23 +57,6 @@ export function ConnectionCard() {
         } finally {
             setRefreshing(false);
         }
-    }
-
-    /**
-     * Обработчик копирования URL в буфер обмена.
-     */
-    function handleCopy() {
-        if (!connectionUrl) return;
-        
-        navigator.clipboard
-            .writeText(connectionUrl)
-            .then(() => {
-                // Устанавливаем состояние "скопировано" на 2 секунды для визуального фидбека
-                setCopied(true);
-                success("Скопировано");
-                setTimeout(() => setCopied(false), 2000);
-            })
-            .catch(() => error("Ошибка", "Не удалось скопировать"));
     }
 
     return (
@@ -145,23 +127,11 @@ export function ConnectionCard() {
                         </code>
                     </div>
 
-                    {/* Кнопка копирования с динамическим стилем */}
-                    <button
-                        onClick={handleCopy}
-                        className={cn(
-                            "w-full h-9 rounded-xl text-sm font-medium",
-                            "flex items-center justify-center gap-2",
-                            "border transition-all duration-150 active:scale-[0.98]",
-                            copied
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                                : "bg-transparent text-primary border-border/60 hover:bg-primary/8",
-                        )}
-                    >
-                        {copied
-                            ? <><Check size={12} />Скопировано</>
-                            : <><Copy size={12} />Скопировать ключ</>
-                        }
-                    </button>
+                    <CopyButton
+                        variant="block"
+                        text={connectionUrl}
+                        label="Скопировать ключ"
+                    />
                 </>
             )}
         </div>
