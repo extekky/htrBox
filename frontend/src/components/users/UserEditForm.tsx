@@ -37,7 +37,15 @@ type Tab = "main" | "access" | "traffic";
 // Вкладка «Доступ» — роль и Hysteria-пароль
 // -------------------------------------------------------------
 
-function AccessTab({ user }: { user: UserResponse }) {
+function AccessTab({
+    user,
+    register,
+    errors,
+}: {
+    user: UserResponse;
+    register: any;
+    errors: any;
+}) {
     const { mutate: setRole, isPending: rolePending } = useSetRole();
     const { mutate: regenerateHy, isPending: regenPending } = useRegenerateHy();
     const { success, error } = useToast();
@@ -163,6 +171,18 @@ function AccessTab({ user }: { user: UserResponse }) {
                     </>
                 )}
             </div>
+
+            <div className="h-px bg-border" />
+
+            {/* Новый пароль */}
+            <FormInput
+                label="Новый пароль"
+                type="password"
+                placeholder="Оставьте пустым, чтобы не менять"
+                autoComplete="new-password"
+                error={errors.password?.message}
+                {...register("password")}
+            />
 
             <ConfirmDialog
                 open={confirmRole}
@@ -425,20 +445,12 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                                 <p className="text-xs text-destructive">{errors.expires_at.message}</p>
                             )}
                         </div>
-
-                        {/* Новый пароль — глазик добавляется автоматически */}
-                        <FormInput
-                            label="Новый пароль"
-                            type="password"
-                            placeholder="Оставьте пустым, чтобы не менять"
-                            autoComplete="new-password"
-                            error={errors.password?.message}
-                            {...register("password")}
-                        />
                     </form>
                 )}
 
-                {tab === "access" && <AccessTab user={user} />}
+                {tab === "access" && (
+                    <AccessTab user={user} register={register} errors={errors} />
+                )}
                 {tab === "traffic" && <TrafficTab user={user} />}
             </div>
         </Modal>

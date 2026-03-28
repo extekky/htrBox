@@ -233,7 +233,15 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
                         </p>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    // Добавлены minHeight и initialDimension в ResponsiveContainer.
+                    // Проблема библиотеки при использовании height="100%"
+                    // на первом рендере, когда реальные размеры контейнера ещё не посчитаны.
+                    <ResponsiveContainer
+                        width="100%"
+                        height="100%"
+                        minHeight={160}
+                        initialDimension={{ width: 300, height: 176 }}
+                    >
                         <AreaChart
                             data={data}
                             margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
