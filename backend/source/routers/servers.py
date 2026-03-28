@@ -139,16 +139,20 @@ def update_server(
     _: object = Depends(require_admin),
 ):
     """Update one or more fields on an existing server. Admin only."""
+    # Use model_fields_set to distinguish "field explicitly sent as null"
+    # from "field not included in the request at all".
+    # is not None would skip null values, preventing domain/hysteria_url reset.
+    sent = body.model_fields_set
     updates, params = [], []
-    if body.country      is not None: updates.append("country = %s");      params.append(body.country)
-    if body.city         is not None: updates.append("city = %s");         params.append(body.city)
-    if body.ip           is not None: updates.append("ip = %s");           params.append(body.ip)
-    if body.domain       is not None: updates.append("domain = %s");       params.append(body.domain)
-    if body.port         is not None: updates.append("port = %s");         params.append(body.port)
-    if body.label        is not None: updates.append("label = %s");        params.append(body.label)
-    if body.protocol     is not None: updates.append("protocol = %s");     params.append(body.protocol)
-    if body.hysteria_url is not None: updates.append("hysteria_url = %s"); params.append(body.hysteria_url)
-    if body.active       is not None: updates.append("active = %s");       params.append(bool(body.active))
+    if "country"      in sent: updates.append("country = %s");      params.append(body.country)
+    if "city"         in sent: updates.append("city = %s");         params.append(body.city)
+    if "ip"           in sent: updates.append("ip = %s");           params.append(body.ip)
+    if "domain"       in sent: updates.append("domain = %s");       params.append(body.domain)
+    if "port"         in sent: updates.append("port = %s");         params.append(body.port)
+    if "label"        in sent: updates.append("label = %s");        params.append(body.label)
+    if "protocol"     in sent: updates.append("protocol = %s");     params.append(body.protocol)
+    if "hysteria_url" in sent: updates.append("hysteria_url = %s"); params.append(body.hysteria_url)
+    if "active"       in sent: updates.append("active = %s");       params.append(bool(body.active))
 
     if not updates:
         raise HTTPException(400, "Nothing to update")
