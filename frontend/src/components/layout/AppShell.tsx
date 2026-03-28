@@ -248,23 +248,36 @@ export function AppShell({ children }: AppShellProps) {
     // Определяем мобильный режим для переключения между TopHeader и BottomBar
     const isMobile = useIsMobile();
 
+    // Получаем текущий путь
+    const [location] = useLocation();
+
+    // Список всех известных путей (включая главную)
+    const KNOWN_PATHS = ["/", ...NAV_ITEMS.map(item => item.href)];
+
+    // Проверяем, является ли текущий путь известным.
+    // Если путь не найден в списке и не начинается с известных путей (для вложенных роутов),
+    // считаем это страницей 404.
+    const isNotFound = !KNOWN_PATHS.some(path => 
+        location === path || (path !== "/" && location.startsWith(path + "/"))
+    );
+
     return (
         <div className="flex flex-col min-h-screen bg-background">
-            <TopHeader />
+            {/* Скрываем шапку на странице 404 */}
+            {!isNotFound && <TopHeader />}
 
             <main
                 className={cn(
                     "flex-1 flex flex-col min-h-0 overflow-x-hidden",
-                    // На мобильных добавляем отступ снизу, чтобы контент
-                    // не перекрывался фиксированной нижней панелью навигации
-                    isMobile && "pb-20",
+                    // На мобильных добавляем отступ снизу, только если виден BottomBar
+                    isMobile && !isNotFound && "pb-20",
                 )}
             >
                 {children}
             </main>
 
-            {/* Нижняя панель навигации — только на мобильных устройствах */}
-            {isMobile && <BottomBar />}
+            {/* Нижняя панель навигации — только на мобильных и не на 404 */}
+            {isMobile && !isNotFound && <BottomBar />}
         </div>
     );
 }

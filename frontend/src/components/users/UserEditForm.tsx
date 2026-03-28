@@ -50,7 +50,7 @@ function AccessTab({ user }: { user: UserResponse }) {
         setRole(
             { username: user.username, data: { role: newRole } },
             {
-                onSuccess: () => { success(`Роль изменена → ${newRole}`, user.username); setConfirmRole(false); },
+                onSuccess: () => { success(`Роль изменена -> ${newRole}`, user.username); setConfirmRole(false); },
                 onError: (e) => { error("Ошибка смены роли", e.message); setConfirmRole(false); },
             },
         );

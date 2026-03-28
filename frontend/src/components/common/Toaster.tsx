@@ -5,19 +5,23 @@ import { useToastStore } from "@/stores/toastStore";
 import type { ToastItem, ToastVariant } from "@/stores/toastStore";
 import { cn } from "@/lib/cn";
 
+const DEFAULT_TOAST_DURATION = 3000;
+
 // -------------------------------------------------------------
-// Стили по вариантам
+// Стили по вариантам — фон, рамка, цвет текста
+// Палитра совпадает с токенами из getAccountStatus (@/lib/utils)
 // -------------------------------------------------------------
 
 const VARIANT_ROOT: Record<ToastVariant, string> = {
-    default: "bg-card text-card-foreground border-border",
-    destructive: "bg-destructive/10 border-destructive/30 text-destructive-foreground",
-    success: "bg-emerald-500/10 border-emerald-500/30 text-emerald-foreground",
+    default: "bg-card border-border text-white",
+    destructive: "bg-red-500/10 border-red-500/20 text-white",
+    success: "bg-emerald-500/10 border-emerald-500/20 text-white",
 };
 
+// Прогресс-бар внизу тоста
 const VARIANT_PROGRESS: Record<ToastVariant, string> = {
     default: "bg-muted-foreground/50",
-    destructive: "bg-destructive",
+    destructive: "bg-red-500",
     success: "bg-emerald-500",
 };
 
@@ -50,7 +54,7 @@ function ToastItem({
     title,
     description,
     variant = "default",
-    duration = 3000,
+    duration = DEFAULT_TOAST_DURATION,
     onRemove,
 }: ToastItemProps) {
     return (
@@ -61,7 +65,7 @@ function ToastItem({
                 // Базовые стили
                 "group relative w-full overflow-hidden rounded-lg border p-4 shadow-lg",
                 // Анимации входа / выхода (Radix data-state)
-                "data-[state=open]:animate-in  data-[state=open]:fade-in",
+                "data-[state=open]:animate-in data-[state=open]:fade-in",
                 "data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full",
                 "data-[state=closed]:animate-out data-[state=closed]:fade-out-80",
                 "data-[state=closed]:slide-out-to-right-full",
@@ -71,12 +75,14 @@ function ToastItem({
             {/* Прогресс-бар (требует @keyframes shrink в глобальных стилях) */}
             <div
                 className={cn(
-                    "absolute bottom-0 left-0 h-1 origin-left animate-shrink",
+                    "absolute bottom-0 left-0 h-1 w-full origin-left animate-shrink",
                     VARIANT_PROGRESS[variant],
                 )}
+                style={{ "--toast-duration": `${duration}ms` } as React.CSSProperties}
             />
 
             <div className="flex items-start justify-between gap-3">
+
                 {/* Текстовый блок */}
                 <div className="grid flex-1 gap-1">
                     {title && (
@@ -85,7 +91,7 @@ function ToastItem({
                         </ToastPrimitives.Title>
                     )}
                     {description && (
-                        <ToastPrimitives.Description className="text-sm leading-relaxed text-muted-foreground">
+                        <ToastPrimitives.Description className="text-sm leading-relaxed opacity-80">
                             {description}
                         </ToastPrimitives.Description>
                     )}
@@ -95,13 +101,14 @@ function ToastItem({
                 <ToastPrimitives.Close
                     aria-label="Закрыть уведомление"
                     className={cn(
-                        "rounded-md p-1.5 text-muted-foreground opacity-70",
+                        "rounded-md p-1.5 opacity-60",
                         "transition-opacity hover:opacity-100 focus:opacity-100",
                         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                     )}
                 >
                     <X className="h-4 w-4" />
                 </ToastPrimitives.Close>
+
             </div>
         </ToastPrimitives.Root>
     );
@@ -123,7 +130,7 @@ export function Toaster() {
                     title={toast.title}
                     description={toast.description}
                     variant={toast.variant ?? "default"}
-                    duration={toast.duration ?? 3000}
+                    duration={toast.duration ?? DEFAULT_TOAST_DURATION}
                     onRemove={remove}
                 />
             ))}

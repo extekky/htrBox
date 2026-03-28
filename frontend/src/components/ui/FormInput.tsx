@@ -57,7 +57,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         const isPassword = type === "password";
         const resolvedType = isPassword && showPassword ? "text" : type;
 
-        // Правый слот: кастомный → глазик → ничего
+        // Правый слот: кастомный -> глазик -> ничего
         const rightContent =
             rightSlot !== undefined ? rightSlot : isPassword ? (
                 <button

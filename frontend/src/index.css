@@ -44,14 +44,12 @@
 :root {
     --radius: 0.75rem;
 
-    /* Мягкий голубовато-синий — комфортный и современный */
     --primary: oklch(0.68 0.15 240);
     --primary-foreground: oklch(0.98 0.01 0);
 
     --sidebar-primary: oklch(0.68 0.15 240);
     --sidebar-primary-foreground: oklch(0.98 0.01 0);
 
-    /* Очень светлый фон с лёгким теплым оттенком */
     --background: oklch(0.985 0.005 80);
     --foreground: oklch(0.22 0.015 260);
 
@@ -127,6 +125,33 @@
 }
 
 /* ---------------------------------------------------------------
+   Base resets
+   --------------------------------------------------------------- */
+
+@layer base {
+    * {
+        @apply border-border;
+        box-sizing: border-box;
+    }
+
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+
+    /* Плавные переходы цвета на интерактивных элементах */
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    a[href]:not([aria-disabled="true"]),
+    select:not(:disabled),
+    input:not(:disabled) {
+        cursor: pointer;
+        transition: color 0.15s ease, background-color 0.15s ease,
+            border-color 0.15s ease, opacity 0.15s ease;
+    }
+}
+
+/* ---------------------------------------------------------------
    Utilities
    --------------------------------------------------------------- */
 
@@ -161,19 +186,11 @@
     .card-auth {
         @apply bg-card/50 shadow-xl shadow-black/20;
     }
-}
-
-/* ---------------------------------------------------------------
-   Components
-   --------------------------------------------------------------- */
-
-/* @layer components {
-    .btn-primary {
-        @apply bg-primary text-primary-foreground font-medium px-5 py-2.5 rounded-lg transition-all duration-300 hover:scale-[1.03] hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100;
-    }
 
     .sidebar-nav-item {
-        @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-0.5;
+        @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+        transition: background-color 0.15s ease, color 0.15s ease,
+            transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .sidebar-nav-item[data-active="true"],
@@ -181,48 +198,17 @@
         @apply bg-primary/10 text-primary;
         box-shadow: 0 0 10px 2px oklch(0.68 0.15 240 / 0.20);
     }
-
-    .alert-beta {
-        @apply bg-amber-100/70 border border-amber-300/50 text-amber-800 px-5 py-3 rounded-lg shadow-sm;
-    }
-
-    .container {
-        @apply mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-7xl;
-    }
-} */
-
-/* ---------------------------------------------------------------
-   Base resets
-   --------------------------------------------------------------- */
-/* 
-@layer base {
-    * {
-        @apply border-border;
-        box-sizing: border-box;
-    }
-
-    body {
-        @apply bg-background text-foreground antialiased;
-        font-feature-settings: "rlig" 1, "calt" 1;
-    }
-
-    button:not(:disabled),
-    [role="button"]:not([aria-disabled="true"]),
-    a[href]:not([aria-disabled="true"]),
-    select:not(:disabled),
-    input:not(:disabled) {
-        @apply cursor-pointer transition-colors;
-    }
-} */
+}
 
 /* ---------------------------------------------------------------
    Animations
    --------------------------------------------------------------- */
-/* 
+
+/* Появление страницы при смене маршрута — используется классом animate-fade-in */
 @keyframes fade-in {
     from {
         opacity: 0;
-        transform: translateY(3px);
+        transform: translateY(4px);
     }
 
     to {
@@ -232,9 +218,42 @@
 }
 
 .animate-fade-in {
-    animation: fade-in 0.25s ease-out;
-} */
-/* 
+    animation: fade-in 0.2s ease-out both;
+}
+
+/* Появление карточек / модалей снизу */
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-up {
+    animation: slide-up 0.2s ease-out both;
+}
+
+/* Прогресс-бар тоста — сжимается за duration мс (задаётся через style) */
+@keyframes shrink {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+.animate-shrink {
+    animation: shrink var(--toast-duration, 3000ms) linear forwards;
+}
+
+/* Медленное мерцание для второстепенных индикаторов */
 @keyframes pulse-slow {
 
     0%,
@@ -249,4 +268,19 @@
 
 .animate-pulse-slow {
     animation: pulse-slow 5s ease-in-out infinite;
-} */
+}
+
+/* ---------------------------------------------------------------
+   Уважаем настройку «уменьшить движение» (доступность)
+   --------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

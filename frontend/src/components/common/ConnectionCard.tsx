@@ -75,7 +75,7 @@ export function ConnectionCard() {
     return (
         <div className="p-4.5 flex flex-col gap-3">
 
-            {/* ── Заголовок карточки ────────────────────────────────────────── */}
+            {/* -- Заголовок карточки ------------------------------------------ */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                     {/* Иконка ссылки в стилизованном контейнере */}
@@ -105,7 +105,7 @@ export function ConnectionCard() {
                 </button>
             </div>
 
-            {/* ── Информация о выбранном сервере ────────────────────────────── */}
+            {/* -- Информация о выбранном сервере ------------------------------ */}
             {selectedServer && (
                 <div className="inline-flex items-center gap-1.5 self-start px-2 py-1 rounded-full bg-muted/50 border border-border/60">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -115,7 +115,7 @@ export function ConnectionCard() {
                 </div>
             )}
 
-            {/* ── Основная область контента (URL или Состояния) ─────────────── */}
+            {/* -- Основная область контента (URL или Состояния) --------------- */}
             {!selectedServer ? (
                 // Состояние: Сервер еще не выбран
                 <div className="flex items-center justify-center h-10 rounded-xl border border-dashed border-border text-sm text-muted-foreground">
