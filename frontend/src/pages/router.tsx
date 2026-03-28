@@ -49,6 +49,21 @@ function PrivateRoute({ component: Component }: RouteGuardProps) {
 }
 
 // -------------------------------------------------------------
+// UserOnlyRoute — только для обычных пользователей
+// Незалогиненных -> /login, администраторов -> /admin
+// -------------------------------------------------------------
+
+function UserOnlyRoute({ component: Component }: RouteGuardProps) {
+    const token = useAuthStore((s) => s.token);
+    const user = useAuthStore((s) => s.user);
+
+    if (!token || !user) return <Redirect to="/login" />;
+    if (user.role === "admin") return <Redirect to="/admin" />;
+
+    return <Component />;
+}
+
+// -------------------------------------------------------------
 // PublicOnlyRoute — только для незалогиненных (/login, /register)
 // Авторизованных редиректит по роли:
 //   admin       -> /admin
@@ -98,16 +113,16 @@ export function AppRouter() {
 
             {/* -- Приватные маршруты (любой авторизованный) ------- */}
             <Route path="/profile">
-                <PrivateRoute component={ProfilePage} />
+                <UserOnlyRoute component={ProfilePage} />
             </Route>
             <Route path="/settings">
                 <PrivateRoute component={SettingsPage} />
             </Route>
             <Route path="/manual">
-                <PrivateRoute component={ManualPage} />
+                <UserOnlyRoute component={ManualPage} />
             </Route>
             <Route path="/chekavo">
-                <PrivateRoute component={ChekavoPage} />
+                <UserOnlyRoute component={ChekavoPage} />
             </Route>
 
             {/* -- Корень: редирект по статусу авторизации и роли -- */}

@@ -40,7 +40,7 @@ export function ServerSelector({ servers, selectedServerId, onSelect }: ServerSe
                             "w-full flex items-center gap-3 rounded-xl px-3 py-2.5",
                             "text-left border transition-all duration-110",
                             isSelected
-                                ? "bg-primary/6 border-primary/25"
+                                ? "bg-primary/20 border-primary/40"
                                 : "border-transparent hover:bg-muted/50 hover:border-border/50",
                         )}
                     >

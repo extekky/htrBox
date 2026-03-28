@@ -33,6 +33,8 @@ interface NavItem {
     icon: React.ComponentType<{ size?: number; className?: string }>;
     /** Если true — пункт виден только администраторам. */
     adminOnly?: boolean;
+    /** Если true — пункт скрыт для администраторов. */
+    userOnly?: boolean;
 }
 
 // -------------------------------------------------------------
@@ -43,10 +45,10 @@ const NAV_ITEMS: NavItem[] = [
     { label: "Дашборд", href: "/admin", icon: LayoutDashboard, adminOnly: true },
     { label: "Польз.", href: "/users", icon: Users, adminOnly: true },
     { label: "Серверы", href: "/servers", icon: Server, adminOnly: true },
-    { label: "Профиль", href: "/profile", icon: User },
+    { label: "Профиль", href: "/profile", icon: User, userOnly: true },
     { label: "Настройки", href: "/settings", icon: Settings },
-    { label: "Правила", href: "/manual", icon: BookOpen },
-    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle },
+    { label: "Правила", href: "/manual", icon: BookOpen, userOnly: true },
+    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle, userOnly: true },
 ];
 
 // -------------------------------------------------------------
@@ -101,7 +103,9 @@ function DesktopNav() {
     const isAdmin = useAuthStore(selectIsAdmin);
 
     // Оставляем только те пункты, которые доступны текущей роли
-    const visibleItems = NAV_ITEMS.filter((i) => !i.adminOnly || isAdmin);
+    const visibleItems = NAV_ITEMS.filter((i) =>
+        (!i.adminOnly || isAdmin) && (!i.userOnly || !isAdmin)
+    );
 
     return (
         <nav className="hidden md:flex items-center gap-0.5 ml-6">

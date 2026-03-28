@@ -13,16 +13,17 @@ interface NavItem {
     href: string;
     icon: React.ComponentType<{ size?: number; className?: string }>;
     adminOnly?: boolean; // если true — пункт виден только администраторам
+    userOnly?: boolean;  // если true — пункт скрыт для администраторов
 }
 
 const NAV_ITEMS: NavItem[] = [
     { label: "Дашборд", href: "/admin", icon: LayoutDashboard, adminOnly: true },
     { label: "Польз.", href: "/users", icon: Users, adminOnly: true },
     { label: "Серверы", href: "/servers", icon: Server, adminOnly: true },
-    { label: "Профиль", href: "/profile", icon: User },
+    { label: "Профиль", href: "/profile", icon: User, userOnly: true },
     { label: "Настройки", href: "/settings", icon: Settings },
-    { label: "Правила", href: "/manual", icon: BookOpen },
-    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle },
+    { label: "Правила", href: "/manual", icon: BookOpen, userOnly: true },
+    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle, userOnly: true },
 ];
 
 // ---------------------------------------------------------------------------
@@ -46,8 +47,10 @@ function MobileBottomBar() {
     const [location] = useLocation();
     const isAdmin = useAuthStore(selectIsAdmin);
 
-    // Фильтруем пункты — adminOnly скрываем от обычных пользователей
-    const visibleItems = NAV_ITEMS.filter((i) => !i.adminOnly || isAdmin);
+    // Фильтруем пункты — adminOnly скрываем от обычных пользователей, userOnly от админов
+    const visibleItems = NAV_ITEMS.filter((i) =>
+        (!i.adminOnly || isAdmin) && (!i.userOnly || !isAdmin)
+    );
 
     return (
         <nav

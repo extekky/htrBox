@@ -82,19 +82,20 @@ export function ConnectionCard() {
                     title="Обновить ключи"
                     aria-label="Обновить ключи"
                     className={cn(
-                        "flex items-center justify-center w-7 h-7 rounded-lg",
-                        "border border-border/60 text-muted-foreground",
+                        "flex items-center justify-center px-3 h-8 rounded-lg gap-2",
+                        "border border-primary/40 bg-primary/12 text-primary",
                         "hover:bg-muted/60 hover:text-foreground",
                         "transition-colors disabled:opacity-40",
                     )}
                 >
                     <RefreshCw size={12} className={cn(refreshing && "animate-spin")} />
+                    <span className="text-xs font-medium">Обновить</span>
                 </button>
             </div>
 
             {/* -- Информация о выбранном сервере ------------------------------ */}
             {selectedServer && (
-                <div className="inline-flex items-center gap-1.5 self-start px-2 py-1 rounded-full bg-muted/50 border border-border/60">
+                <div className="inline-flex items-center gap-1.5 self-start px-2 py-1 rounded-full bg-muted border border-border">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                     <span className="text-xs text-foreground font-medium">{selectedServer.country}</span>
                     <span className="text-xs text-muted-foreground">—</span>

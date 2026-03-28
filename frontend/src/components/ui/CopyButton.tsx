@@ -153,7 +153,7 @@ function BlockCopyButton({
         disabled:opacity-50 disabled:cursor-not-allowed
         ${copied
                     ? "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300"
-                    : "border-primary/20 bg-primary/10 text-primary hover:bg-primary/15"
+                    : "border-primary/40 bg-primary/20 text-primary hover:bg-primary/28"
                 }
       `}
         >
