@@ -6,13 +6,14 @@ import { Loader2, UserPlus } from "lucide-react";
 import { login } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "@/hooks/useToast";
-import { useSessionRestore } from "@/hooks/useSessionRestore";
+import { useRestore } from "@/hooks/useRestore";
 import { initServerData } from "@/hooks/useServers";
 import { ApiRequestError } from "@/api/client";
 import { loginSchema, type LoginFormValues } from "@/lib/validators";
 import { cn } from "@/lib/cn";
 import { Card, CardContent } from "@/components/ui/Card";
 import { FormInput } from "@/components/ui/FormInput";
+// import { Shader } from "@/components/common/Shader";
 
 export function LoginPage() {
     // navigate(path) — программный переход на другую страницу
@@ -23,7 +24,7 @@ export function LoginPage() {
     const setAuth = useAuthStore((s) => s.setAuth);
     const { error: toastError, success: toastSuccess } = useToast();
 
-    const { restoring } = useSessionRestore();
+    const { restoring } = useRestore();
 
     const {
         register,
@@ -85,6 +86,7 @@ export function LoginPage() {
     return (
         // Центрируем карточку на весь экран
         <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-background">
+            {/* <Shader /> */}
             <div className="relative z-10 w-full max-w-sm mx-4 animate-fade-in">
 
                 {/* Заголовок над карточкой */}

@@ -24,7 +24,7 @@ const RESTORE_TIMEOUT_MS = 5_000;
  * - Использует флаг `cancelled` для предотвращения обновления состояния размонтированного компонента.
  * - Ограничен таймаутом, чтобы пользователь не "завис" на экране загрузки при сетевых сбоях.
  */
-export function useSessionRestore(): { restoring: boolean } {
+export function useRestore(): { restoring: boolean } {
     // Флаг процесса восстановления — пока true, приложение показывает Splash Screen
     const [restoring, setRestoring] = useState(true);
 
