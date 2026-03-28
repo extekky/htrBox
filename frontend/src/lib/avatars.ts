@@ -34,15 +34,14 @@ export const AVATARS: ComponentType[] = [
 ];
 
 // -------------------------------------------------------------
-// Хэш FNV-1a 32-bit 
-// (не криптографический, отлично подходит для коротких строк)
+// Хэш djb2
 // -------------------------------------------------------------
 
-function fnv1a(str: string): number {
-    let hash = 0x811c9dc5 >>> 0;
+function djb2(str: string): number {
+    let hash = 5381;
     for (let i = 0; i < str.length; i++) {
-        hash ^= str.charCodeAt(i);
-        hash = (hash * 0x01000193) >>> 0; // беззнаковое умножение 32-bit
+        hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+        hash = hash >>> 0; // беззнаковый 32-bit
     }
     return hash;
 }
@@ -60,8 +59,7 @@ interface AvatarProps {
  * Корректно обрабатывает null/undefined (возвращает первый аватар).
  */
 export function pickAvatar(username: string | null | undefined): ComponentType<AvatarProps> {
-    const input = username ?? "";
-    const hash = fnv1a(input);
-    const index = hash % AVATARS.length;
+    const input = `av:${username ?? ""}`;
+    const index = djb2(input) % AVATARS.length;
     return AVATARS[index];
 }

@@ -11,7 +11,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 // import { SettingsPage } from "@/pages/SettingsPage";
 // import { ManualPage } from "@/pages/ManualPage";
 // import { NotFoundPage } from "@/pages/NotFoundPage";
-// import { ChekavPage } from "@/pages/ChekavPage";
+import { ChekavoPage } from "@/pages/ChekavoPage";
 
 // ---------------------------------------------------------------------------
 // Route Guards
@@ -110,9 +110,9 @@ export function AppRouter() {
         <PrivateRoute component={ManualPage} />
       </Route> */}
 
-      {/* <Route path="/chekav">
-        <PrivateRoute component={ChekavPage} />
-      </Route> */}
+      <Route path="/chekavo">
+        <PrivateRoute component={ChekavoPage} />
+      </Route>
 
       {/* Root — smart redirect based on auth & role */}
       <Route path="/">

@@ -59,7 +59,7 @@ export function LoginPage() {
     // Берём функцию setAuth из глобального хранилища Zustand.
     // Она сохраняет токен и данные пользователя после успешного входа.
     const setAuth = useAuthStore((s) => s.setAuth);
-    const { error: toastError } = useToast();
+    const { error: toastError, success: toastSuccess } = useToast();
 
     const { restoring } = useSessionRestore();
 
@@ -81,9 +81,10 @@ export function LoginPage() {
 
             // Сохраняем токен и пользователя в глобальном состоянии
             setAuth(result.access_token, result.user);
+            toastSuccess("Добро пожаловать", result.user.username);
 
             // Предварительная выборка серверов и URL-адресов подключений перед переходом
-            if (result.user.role !== "admin") {
+            if (result.user.role !== "admin" && result.user.active) {
                 await initServerData(result.user.username);
             }
 

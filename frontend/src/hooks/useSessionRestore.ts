@@ -66,7 +66,7 @@ export function useSessionRestore(): { restoring: boolean } {
                 queryClient.setQueryData(USER_KEYS.me, user);
 
                 // Если пользователь не админ — инициализируем ключи серверов
-                if (user.role !== "admin") {
+                if (user.role !== "admin" && user.active) {
                     await initServerData(user.username);
                     if (cancelled) return;
                 }

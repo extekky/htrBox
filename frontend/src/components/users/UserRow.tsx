@@ -87,7 +87,17 @@ export function UserRow({
             {/* Имя пользователя и аватар */}
             <td className="px-4 py-3.5">
                 <div className="flex items-center gap-2.5">
-                    <InitialsAvatar name={user.username} />
+                    {/* <InitialsAvatar name={user.username} /> */}
+                    {(() => {
+                        const Avatar = pickAvatar(user.username);
+                        return (
+                            <div className="w-7 h-7 shrink-0 overflow-hidden relative">
+                                <div className="absolute scale-50 origin-top-left">
+                                    <Avatar />
+                                </div>
+                            </div>
+                        );
+                    })()}
                     <span className="text-sm font-medium text-foreground truncate max-w-45">
                         {user.username}
                     </span>

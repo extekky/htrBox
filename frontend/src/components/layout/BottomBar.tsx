@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
     { label: "Профиль", href: "/profile", icon: User },
     { label: "Настройки", href: "/settings", icon: Settings },
     { label: "Правила", href: "/manual", icon: BookOpen },
-    { label: "ЧеКаво", href: "/chekav", icon: HelpCircle },
+    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle },
 ];
 
 // ---------------------------------------------------------------------------

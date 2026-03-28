@@ -328,14 +328,14 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                     >
                         <div className="flex flex-col gap-2">
                             <ToggleCard
-                                label="Разрешён"
-                                description={allowed ? "Может подключаться к VPN" : "Подключение к VPN запрещено"}
+                                label= "Доступ к сервису"
+                                description={allowed ? "Не забанен" : "Будет забанен"}
                                 checked={!!allowed}
                                 onChange={(v) => setValue("allowed", v)}
                             />
                             <ToggleCard
-                                label="Активен"
-                                description={active ? "Подписка активна, VPN доступен" : "Подписка неактивна, VPN недоступен"}
+                                label="Подписка"
+                                description={active ? "Будет активирована" : "Будет отключена"}
                                 checked={!!active}
                                 onChange={(v) => setValue("active", v)}
                             />

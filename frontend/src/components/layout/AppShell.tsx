@@ -40,13 +40,13 @@ interface NavItem {
 // -------------------------------------------------------------
 
 const NAV_ITEMS: NavItem[] = [
-    { label: "Дашборд", href: "/admin",    icon: LayoutDashboard, adminOnly: true },
-    { label: "Польз.",  href: "/users",    icon: Users,           adminOnly: true },
-    { label: "Серверы", href: "/servers",  icon: Server,          adminOnly: true },
-    { label: "Профиль", href: "/profile",  icon: User },
+    { label: "Дашборд", href: "/admin", icon: LayoutDashboard, adminOnly: true },
+    { label: "Польз.", href: "/users", icon: Users, adminOnly: true },
+    { label: "Серверы", href: "/servers", icon: Server, adminOnly: true },
+    { label: "Профиль", href: "/profile", icon: User },
     { label: "Настройки", href: "/settings", icon: Settings },
-    { label: "Правила", href: "/manual",   icon: BookOpen },
-    { label: "ЧеКаво",  href: "/chekav",  icon: HelpCircle },
+    { label: "Правила", href: "/manual", icon: BookOpen },
+    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle },
 ];
 
 // -------------------------------------------------------------
@@ -68,11 +68,11 @@ function UserAvatarButton() {
     const user = useAuthStore((s) => s.user);
 
     // Подбираем компонент аватара по имени пользователя (детерминировано)
-    const Avatar = user ? pickAvatar(user.username) : null;
+    // const Avatar = user ? pickAvatar(user.username) : null;
 
     return (
         <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-border bg-muted flex items-center justify-center">
-            {Avatar ? (
+            {/* {Avatar ? (
                 // Масштабируем аватар, чтобы он красиво вписался в круглый контейнер
                 <div className="scale-[0.72] w-[140%] h-[140%] -translate-x-1">
                     <Avatar />
@@ -82,7 +82,10 @@ function UserAvatarButton() {
                 <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
                     {user?.username?.[0]?.toUpperCase() ?? "?"}
                 </div>
-            )}
+            )} */}
+            <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
+                {user?.username?.[0]?.toUpperCase() ?? "?"}
+            </div>
         </div>
     );
 }

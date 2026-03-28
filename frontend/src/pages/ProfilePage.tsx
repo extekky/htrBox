@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 
 import { ConnectionCard } from "@/components/common/ConnectionCard";
-// import { OnboardingGuide } from "@/components/common/OnboardingGuide";
+import { Guide } from "@/components/common/Guilde";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { ServerSelector } from "@/components/common/ServerSelector";
 
@@ -204,7 +204,7 @@ export function ProfilePage() {
                     )}
 
                     {/* ── Onboarding guide ───────────────────────────────────── */}
-                    {/* {!expiresAt && <OnboardingGuide />} */}
+                    {!expiresAt && <Guide />}
 
                     {/* ── Connection string + server selector ───────────────── */}
                     {isActive && (

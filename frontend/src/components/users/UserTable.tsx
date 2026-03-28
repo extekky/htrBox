@@ -19,13 +19,7 @@ import type { UserResponse } from "@/api/types";
 // Вспомогательные компоненты
 // -------------------------------------------------------------
 
-interface ThProps {
-    children?: React.ReactNode;
-    className?: string;
-}
-
-/** Ячейка заголовка таблицы с общими стилями. */
-function Th({ children, className }: ThProps) {
+function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
     return (
         <th
             className={cn(
@@ -38,12 +32,61 @@ function Th({ children, className }: ThProps) {
     );
 }
 
-// -------------------------------------------------------------
-// Интерфейсы
-// -------------------------------------------------------------
+function SkeletonRow() {
+    return (
+        <tr className="animate-pulse">
+            <td className="pl-4 pr-2 py-4 w-10">
+                <div className="w-4 h-4 rounded bg-muted" />
+            </td>
+            <td className="px-4 py-4">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-muted shrink-0" />
+                    <div className="h-4 w-36 rounded bg-muted" />
+                </div>
+            </td>
+            <td className="px-4 py-4">
+                <div className="flex flex-col gap-1.5">
+                    <div className="h-3 w-24 rounded bg-muted" />
+                    <div className="h-2 w-32 rounded bg-muted" />
+                </div>
+            </td>
+            <td className="px-4 py-4">
+                <div className="flex gap-1.5">
+                    <div className="h-5 w-16 rounded-full bg-muted" />
+                    <div className="h-5 w-16 rounded-full bg-muted" />
+                </div>
+            </td>
+            <td className="px-4 py-4">
+                <div className="h-4 w-20 rounded bg-muted" />
+            </td>
+            <td className="px-4 py-4" />
+        </tr>
+    );
+}
 
-interface UserTableProps {
-    onEdit: (user: UserResponse) => void;
+function EmptyState({ search, statusFilter }: { search: string; statusFilter: StatusFilter }) {
+    const isFiltered = search !== "" || statusFilter !== "all";
+    return (
+        <tr>
+            <td colSpan={6}>
+                <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50">
+                        <Users size={28} className="text-muted-foreground/60" />
+                    </div>
+                    <div>
+                        <p className="text-base font-medium text-foreground">
+                            {isFiltered ? "Нет совпадений" : "Нет пользователей"}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {isFiltered
+                                ? "Измените запрос или фильтр"
+                                : "Создайте первого пользователя"}
+                        </p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    );
 }
 
 // -------------------------------------------------------------
@@ -58,8 +101,6 @@ function matchesFilter(user: UserResponse, filter: StatusFilter, search: string)
     if (search && !user.username.toLowerCase().includes(searchLower)) {
         return false;
     }
-
-    if (filter === "all") return true;
 
     switch (filter) {
         case "active":
@@ -78,16 +119,24 @@ function matchesFilter(user: UserResponse, filter: StatusFilter, search: string)
 }
 
 // -------------------------------------------------------------
-// Основной компонент таблицы пользователей
+// Интерфейсы
+// -------------------------------------------------------------
+
+interface UserTableProps {
+    onEdit: (user: UserResponse) => void;
+}
+
+// -------------------------------------------------------------
+// Основной компонент
 // -------------------------------------------------------------
 
 /**
  * Таблица управления пользователями.
- * 
- * - Отображает список пользователей с фильтрацией и поиском.
- * - Поддерживает одиночный и массовый выбор (через чекбоксы).
- * - Позволяет редактировать, удалять и принудительно отключать (кикать) пользователей.
- * - Включает диалоги подтверждения для опасных действий.
+ *
+ * - Всегда отображает заголовки колонок (в том числе при пустом списке).
+ * - Показывает скелетон во время загрузки.
+ * - Поддерживает одиночный и массовый выбор через чекбоксы.
+ * - Позволяет редактировать, удалять и кикать пользователей.
  */
 export function UserTable({ onEdit }: UserTableProps) {
     // Данные и API-мутации
@@ -113,6 +162,8 @@ export function UserTable({ onEdit }: UserTableProps) {
         [users, statusFilter, search],
     );
 
+    const allSelected = filteredUsers.length > 0 && selectedUsernames.size === filteredUsers.length;
+
     // -------------------------------------------------------------
     // Обработчики выбора
     // -------------------------------------------------------------
@@ -120,24 +171,16 @@ export function UserTable({ onEdit }: UserTableProps) {
     const toggleSelection = (username: string) => {
         setSelectedUsernames((prev) => {
             const next = new Set(prev);
-            if (next.has(username)) {
-                next.delete(username);
-            } else {
-                next.add(username);
-            }
+            next.has(username) ? next.delete(username) : next.add(username);
             return next;
         });
     };
 
     const toggleAll = () => {
-        if (selectedUsernames.size === filteredUsers.length && filteredUsers.length > 0) {
-            setSelectedUsernames(new Set());
-        } else {
-            setSelectedUsernames(new Set(filteredUsers.map((u) => u.username)));
-        }
+        setSelectedUsernames(
+            allSelected ? new Set() : new Set(filteredUsers.map((u) => u.username)),
+        );
     };
-
-    const allSelected = filteredUsers.length > 0 && selectedUsernames.size === filteredUsers.length;
 
     // -------------------------------------------------------------
     // Обработчики действий
@@ -170,10 +213,29 @@ export function UserTable({ onEdit }: UserTableProps) {
         });
     };
 
+    function renderBody() {
+        if (isLoading) {
+            return Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />);
+        }
+        if (filteredUsers.length === 0) {
+            return <EmptyState search={search} statusFilter={statusFilter} />;
+        }
+        return filteredUsers.map((user) => (
+            <UserRow
+                key={user.username}
+                user={user}
+                selected={selectedUsernames.has(user.username)}
+                onToggleSelect={toggleSelection}
+                onEdit={onEdit}
+                onDelete={(username) => setDeleteTarget(username)}
+            />
+        ));
+    }
+
     return (
         <div className="flex flex-col animate-fade-in">
 
-            {/* Панель инструментов (поиск, фильтры, массовые действия) */}
+            {/* Панель инструментов */}
             <CardContent className="p-4 border-b border-border/60">
                 <UserTableToolbar
                     total={users.length}
@@ -188,76 +250,30 @@ export function UserTable({ onEdit }: UserTableProps) {
                 />
             </CardContent>
 
-            {/* Область контента (таблица или заглушка) */}
-            {isLoading ? (
-                // Скелетон загрузки
-                <div className="divide-y divide-border/40">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="px-4 py-4 animate-pulse">
-                            <div className="flex items-center gap-4">
-                                <div className="w-4 h-4 rounded bg-muted shrink-0" />
-                                <div className="h-4 w-36 rounded bg-muted" />
-                                <div className="h-3 w-24 rounded bg-muted ml-6" />
-                                <div className="flex gap-1.5 ml-auto">
-                                    <div className="h-5 w-16 rounded-full bg-muted" />
-                                    <div className="h-5 w-16 rounded-full bg-muted" />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            ) : filteredUsers.length === 0 ? (
-                // Состояние «Пусто»
-                <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                    <div className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50">
-                        <Users size={28} className="text-muted-foreground/60" />
-                    </div>
-                    <div>
-                        <p className="text-base font-medium text-foreground">
-                            {search || statusFilter !== "all" ? "Нет совпадений" : "Нет пользователей"}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {search || statusFilter !== "all"
-                                ? "Измените запрос или фильтр"
-                                : "Создайте первого пользователя"}
-                        </p>
-                    </div>
-                </div>
-            ) : (
-                // Таблица с данными
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-225">
-                        <thead className="border-b border-border/60 bg-muted/30 sticky top-0 z-10">
-                            <tr>
-                                <th className="pl-4 pr-2 py-3.5 w-10">
-                                    <Checkbox
-                                        checked={allSelected}
-                                        onCheckedChange={toggleAll}
-                                        aria-label="Выбрать всех пользователей"
-                                    />
-                                </th>
-                                <Th>Пользователь</Th>
-                                <Th>Трафик</Th>
-                                <Th>Статус</Th>
-                                <Th>Истекает</Th>
-                                <Th className="text-right pr-5">Действия</Th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/40">
-                            {filteredUsers.map((user) => (
-                                <UserRow
-                                    key={user.username}
-                                    user={user}
-                                    selected={selectedUsernames.has(user.username)}
-                                    onToggleSelect={toggleSelection}
-                                    onEdit={onEdit}
-                                    onDelete={(username) => setDeleteTarget(username)}
+            {/* Таблица — всегда рендерится, включая заголовки */}
+            <div className="overflow-x-auto">
+                <table className="w-full min-w-225">
+                    <thead className="border-b border-border/60 bg-muted/30 sticky top-0 z-10">
+                        <tr>
+                            <th className="pl-4 pr-2 py-3.5 w-10">
+                                <Checkbox
+                                    checked={allSelected}
+                                    onCheckedChange={toggleAll}
+                                    aria-label="Выбрать всех пользователей"
                                 />
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                            </th>
+                            <Th>Пользователь</Th>
+                            <Th>Трафик</Th>
+                            <Th>Статус</Th>
+                            <Th>Истекает</Th>
+                            <Th className="text-right pr-5">Действия</Th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40">
+                        {renderBody()}
+                    </tbody>
+                </table>
+            </div>
 
             {/* Диалог подтверждения удаления */}
             <ConfirmDialog
