@@ -16,7 +16,11 @@ from fastapi import (
     Depends, 
     HTTPException,
 )
-
+from rate_limiter import rate_limit
+from config import (
+    RT_SERVERS_REQ, 
+    RT_SERVERS_WIN,
+)
 from auth_jwt import optional_user, require_admin
 from database import get_db
 from routers.deps import DICT_CURSOR
@@ -33,7 +37,14 @@ logger = logging.getLogger(__name__)
 # GET /servers
 # ---------------------------------------------------------------------------
 
-@router.get("")
+@router.get(
+        "", 
+        response_model=list[ServerPublicResponse] | list[ServerAdminResponse],
+        dependencies=[rate_limit(
+            RT_SERVERS_REQ, 
+            RT_SERVERS_WIN,
+        )]
+)
 def list_servers(current_user=Depends(optional_user)):
     """
     Return the list of servers.

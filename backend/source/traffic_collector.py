@@ -19,7 +19,7 @@ Runs as a daemon thread, waking up every TRAFFIC_POLL_INTERVAL seconds
   3. Compare each counter against the last known value stored in traffic_last.
      Compute the delta (bytes used since the previous poll).
   4. Convert the delta to GB and upsert it into traffic_5m at the current
-     5-minute bucket boundary (e.g. 14:07:42 → bucket 14:05:00+00:00).
+     5-minute bucket boundary (e.g. 14:07:42 -> bucket 14:05:00+00:00).
      Multiple polls that fall in the same bucket are accumulated (summed).
   5. Add the delta to users.usedTraffic - the all-time lifetime counter.
   6. Update traffic_last with the new cumulative value for the next poll.
@@ -35,7 +35,7 @@ Hysteria resets its in-memory counters to 0 on restart. Without special
 handling this would make the delta negative, which would incorrectly
 subtract traffic from the user's total.
 
-Detection: if current_total < last_known_total → counter was reset.
+Detection: if current_total < last_known_total -> counter was reset.
 Recovery:  treat current_total as the full delta for this tick
            (we lose traffic that accumulated before the restart but
            avoid corrupting the lifetime counter with a negative value).
