@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
     RefreshCw, Shield, ShieldOff, KeyRound,
     Check, Copy, Settings, Loader2, AlertTriangle,
+    Activity, RotateCcw,
 } from "lucide-react";
 
 import { Modal } from "@/components/ui/Modal";
@@ -17,6 +18,7 @@ import {
     useUpdateUser,
     useSetRole,
     useRegenerateHy,
+    useResetTraffic,
 } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/useToast";
 import { updateUserSchema, type UpdateUserFormValues } from "@/lib/validators";
@@ -29,7 +31,7 @@ import { DEFAULT_TRAFFIC_LIMIT_GB } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import type { UserResponse } from "@/api/types";
 
-type Tab = "main" | "access";
+type Tab = "main" | "access" | "traffic";
 
 // -------------------------------------------------------------
 // Вкладка «Доступ» — роль и Hysteria-пароль
@@ -190,6 +192,72 @@ function AccessTab({ user }: { user: UserResponse }) {
 }
 
 // -------------------------------------------------------------
+// Вкладка «Трафик» — сброс счётчика
+// -------------------------------------------------------------
+
+function TrafficTab({ user }: { user: UserResponse }) {
+    const { mutate: resetTraffic, isPending } = useResetTraffic();
+    const { success, error } = useToast();
+
+    const [confirmReset, setConfirmReset] = useState(false);
+
+    const usedGb = toGB(user.usedTraffic);
+    const trafficPct = Math.min(100, (usedGb / DEFAULT_TRAFFIC_LIMIT_GB) * 100);
+
+    function handleReset() {
+        resetTraffic(user.username, {
+            onSuccess: () => {
+                success("Трафик сброшен", user.username);
+                setConfirmReset(false);
+            },
+            onError: (e) => {
+                error("Ошибка сброса трафика", e.message);
+                setConfirmReset(false);
+            },
+        });
+    }
+
+    return (
+        <div className="flex flex-col gap-3">
+
+            {/* Кнопка сброса */}
+            <div className="flex items-center justify-between p-3.5 rounded-xl border border-destructive/20 bg-destructive/5">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-destructive/10 text-destructive">
+                        <RotateCcw size={15} />
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-foreground">Сбросить счётчик</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                            Обнулить траффик пользователя. Исторические данные графика сохранятся.
+                        </p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setConfirmReset(true)}
+                    disabled={isPending}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 disabled:opacity-50 transition-colors"
+                >
+                    {isPending ? <Loader2 size={12} className="animate-spin" /> : <RotateCcw size={12} />}
+                    Сбросить
+                </button>
+            </div>
+
+            <ConfirmDialog
+                open={confirmReset}
+                onClose={() => setConfirmReset(false)}
+                onConfirm={handleReset}
+                title="Сбросить трафик?"
+                description={`Счётчик трафика «${user.username}» будет обнулён. Исторические данные графика сохранятся.`}
+                confirmLabel="Сбросить"
+                loading={isPending}
+            />
+        </div>
+    );
+}
+
+// -------------------------------------------------------------
 // Модальное окно редактирования пользователя
 // -------------------------------------------------------------
 
@@ -248,6 +316,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
     const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
         { id: "main", label: "Основное", icon: <Settings size={13} /> },
         { id: "access", label: "Доступ", icon: <Shield size={13} /> },
+        { id: "traffic", label: "Трафик", icon: <Activity size={13} /> },
     ];
 
     return (
@@ -370,6 +439,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                 )}
 
                 {tab === "access" && <AccessTab user={user} />}
+                {tab === "traffic" && <TrafficTab user={user} />}
             </div>
         </Modal>
     );
