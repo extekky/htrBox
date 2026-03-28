@@ -93,7 +93,7 @@ function HysteriaSection({ username }: { username: string }) {
                 onClose={() => setConfirmOpen(false)}
                 onConfirm={handleRegenerate}
                 title="Обновить Hysteria-пароль?"
-                description="Текущая VPN-сессия будет прервана.\nПосле генерации потребуется заново скопировать строку подключения."
+                description="Текущая VPN-сессия будет прервана. После генерации потребуется заново скопировать строку подключения."
                 confirmLabel="Сгенерировать"
                 variant="destructive"
                 loading={isPending}
@@ -285,7 +285,7 @@ function AccountPasswordSection({ username, isAdmin }: { username: string; isAdm
                 onClose={() => setConfirmOpen(false)}
                 onConfirm={handleConfirm}
                 title="Сменить пароль аккаунта?"
-                description="Все активные сессии будут отозваны.\nПосле смены пароля потребуется войти заново."
+                description="Все активные сессии будут отозваны. После смены пароля потребуется войти заново."
                 confirmLabel="Сменить пароль"
                 variant="destructive"
                 loading={isPending}

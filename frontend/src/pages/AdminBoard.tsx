@@ -37,7 +37,7 @@ export function AdminBoard() {
     // Загрузка данных из хуков
     const { data: users = [], isLoading: usersLoading, isError: usersError } = useUsers();
     const { data: servers = [], isLoading: serversLoading, isError: serversError } = useServersAdmin();
-    const { data: online = {} } = useOnlineUsers();
+    const { data: online = {}, isError: onlineError } = useOnlineUsers();
 
     const isLoading = usersLoading || serversLoading;
     const isError = usersError || serversError;
@@ -163,7 +163,9 @@ export function AdminBoard() {
                             </Link>
                         }
                     >
-                        {onlineCount === 0 ? (
+                        {onlineError ? (
+                            <SectionEmpty label="Нет активных серверов" />
+                        ) : onlineCount === 0 ? (
                             <SectionEmpty label="Никого нет онлайн" />
                         ) : (
                             Object.entries(online).map(([username, info]) => (

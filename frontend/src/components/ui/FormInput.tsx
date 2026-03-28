@@ -35,8 +35,8 @@ import { cn } from "@/lib/cn";
 
 export interface FormInputProps
     extends React.InputHTMLAttributes<HTMLInputElement> {
-    /** Текст метки над полем. */
-    label: string;
+    /** Текст метки над полем. Если не передан — лейбл не рендерится. */
+    label?: string;
     /** Сообщение об ошибке валидации. Подсвечивает рамку красным. */
     error?: string;
     /** Иконка слева внутри поля (необязательно). */
@@ -51,7 +51,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         const [showPassword, setShowPassword] = useState(false);
 
         // Генерируем id из label, если не передан явно
-        const fieldId = id ?? label.toLowerCase().replace(/\s+/g, "-");
+        const fieldId = id ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : Math.random().toString(36).slice(2));
 
         // Для password-поля подменяем тип и добавляем кнопку-глазик
         const isPassword = type === "password";
@@ -79,7 +79,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         return (
             <div className="flex flex-col gap-1.5">
                 {/* Метка над полем */}
-                <FormLabel htmlFor={fieldId}>{label}</FormLabel>
+                {label && <FormLabel htmlFor={fieldId}>{label}</FormLabel>}
 
                 {/* Обёртка для инпута + иконки/кнопки */}
                 <div className="relative">

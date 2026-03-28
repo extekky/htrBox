@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -46,6 +47,32 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
     });
 
     const active = watch("active");
+    const ip = watch("ip");
+    const domain = watch("domain");
+    const port = watch("port");
+    const hysteriaUrl = watch("hysteria_url");
+
+    // Выводим состояние TLS из текущего значения hysteria_url
+    const useTls = hysteriaUrl?.startsWith("https://") ?? false;
+
+    // Автоматическое построение hysteria_url при изменении ip, домена, порта или TLS-переключателя
+    useEffect(() => {
+        const host = domain?.trim() || ip?.trim() || "";
+        const scheme = useTls ? "https" : "http";
+        if (host && port) {
+            setValue("hysteria_url", `${scheme}://${host}:${port}`);
+        }
+        // eslint-disable-next-line реагирует на перехваты/исчерпывающие проверки
+    }, [ip, domain, port, useTls]);
+
+    function toggleTls() {
+        const current = watch("hysteria_url") ?? "";
+        if (current.startsWith("https://")) {
+            setValue("hysteria_url", current.replace(/^https:\/\//, "http://"));
+        } else {
+            setValue("hysteria_url", current.replace(/^http:\/\//, "https://"));
+        }
+    }
 
     function onSubmit(values: UpdateServerFormValues) {
         updateServer(
@@ -53,8 +80,10 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
                 id: server.id,
                 data: {
                     ...values,
-                    domain: values.domain || null,
-                    hysteria_url: values.hysteria_url || null,
+                    // Explicitly send null when domain is empty so the server
+                    // clears the field — an empty string would be ignored.
+                    domain: values.domain?.trim() || null,
+                    hysteria_url: values.hysteria_url?.trim() || null,
                 },
             },
             {
@@ -143,14 +172,33 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
                     />
                 </div>
 
-                {/* Hysteria URL — моноширинный инпут, используем FormInput с className */}
-                <FormInput
-                    label="Hysteria URL (внутренний)"
-                    placeholder="http://1.2.3.4:8080"
-                    error={errors.hysteria_url?.message}
-                    className="font-mono"
-                    {...register("hysteria_url")}
-                />
+                {/* Hysteria URL — формируется автоматически */}
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-muted-foreground">
+                            Hysteria URL (внутренний)
+                        </span>
+                        <button
+                            type="button"
+                            onClick={toggleTls}
+                            className={[
+                                "text-[11px] font-semibold px-2.5 py-0.5 rounded-lg border transition-colors",
+                                useTls
+                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20"
+                                    : "bg-muted text-muted-foreground border-border hover:bg-muted/80",
+                            ].join(" ")}
+                        >
+                            {useTls ? "TLS ✓" : "Использовать TLS"}
+                        </button>
+                    </div>
+                    <FormInput
+                        placeholder="формируется автоматически"
+                        error={errors.hysteria_url?.message}
+                        className="font-mono bg-muted/50 text-muted-foreground cursor-default"
+                        readOnly
+                        {...register("hysteria_url")}
+                    />
+                </div>
 
                 {/* Активен */}
                 <ToggleCard
