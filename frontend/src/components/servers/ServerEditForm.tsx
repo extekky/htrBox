@@ -2,8 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Modal } from "@/components/ui/Modal";
-import { FormLabel } from "@/components/ui/FormLabel";
-import { FormField } from "@/components/ui/FormField";
+import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { ToggleCard } from "@/components/ui/ToggleCard";
 
@@ -89,13 +88,13 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
             >
                 {/* Страна / Город */}
                 <div className="grid grid-cols-2 gap-3">
-                    <FormField
+                    <FormInput
                         label="Страна"
                         placeholder="Россия"
                         error={errors.country?.message}
                         {...register("country")}
                     />
-                    <FormField
+                    <FormInput
                         label="Город"
                         placeholder="Москва"
                         error={errors.city?.message}
@@ -104,7 +103,7 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
                 </div>
 
                 {/* IP */}
-                <FormField
+                <FormInput
                     label="IP-адрес"
                     placeholder="1.2.3.4"
                     error={errors.ip?.message}
@@ -113,13 +112,13 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
 
                 {/* Домен / Порт */}
                 <div className="grid grid-cols-2 gap-3">
-                    <FormField
+                    <FormInput
                         label="Домен (необязательно)"
                         placeholder="vpn.example.com"
                         error={errors.domain?.message}
                         {...register("domain")}
                     />
-                    <FormField
+                    <FormInput
                         label="Порт"
                         type="number"
                         placeholder="443"
@@ -130,13 +129,13 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
 
                 {/* Название / Протокол */}
                 <div className="grid grid-cols-2 gap-3">
-                    <FormField
+                    <FormInput
                         label="Название"
                         placeholder="VPN"
                         error={errors.label?.message}
                         {...register("label")}
                     />
-                    <FormField
+                    <FormInput
                         label="Протокол"
                         placeholder="hysteria2"
                         error={errors.protocol?.message}
@@ -144,19 +143,14 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
                     />
                 </div>
 
-                {/* Hysteria URL */}
-                <div className="flex flex-col gap-1.5">
-                    <FormLabel htmlFor="server-edit-hy-url">Hysteria URL (внутренний)</FormLabel>
-                    <input
-                        id="server-edit-hy-url"
-                        {...register("hysteria_url")}
-                        placeholder="http://1.2.3.4:8080"
-                        className="h-9 w-full rounded-lg border border-border bg-input px-3 text-sm font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
-                    />
-                    {errors.hysteria_url && (
-                        <p className="text-xs text-destructive">{errors.hysteria_url.message}</p>
-                    )}
-                </div>
+                {/* Hysteria URL — моноширинный инпут, используем FormInput с className */}
+                <FormInput
+                    label="Hysteria URL (внутренний)"
+                    placeholder="http://1.2.3.4:8080"
+                    error={errors.hysteria_url?.message}
+                    className="font-mono"
+                    {...register("hysteria_url")}
+                />
 
                 {/* Активен */}
                 <ToggleCard

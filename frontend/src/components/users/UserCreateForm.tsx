@@ -5,7 +5,7 @@ import { CheckCircle2, KeyRound, AlertTriangle } from "lucide-react";
 
 import { Modal } from "@/components/ui/Modal";
 import { FormLabel } from "@/components/ui/FormLabel";
-import { FormField } from "@/components/ui/FormField";
+import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { ToggleCard } from "@/components/ui/ToggleCard";
@@ -146,7 +146,8 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                 noValidate
                 className="flex flex-col gap-4"
             >
-                <FormField
+                {/* Имя пользователя */}
+                <FormInput
                     label="Имя пользователя"
                     placeholder="username"
                     autoFocus
@@ -155,7 +156,8 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                     {...register("username")}
                 />
 
-                <FormField
+                {/* Пароль — глазик добавляется автоматически */}
+                <FormInput
                     label="Пароль"
                     type="password"
                     placeholder="••••••••"
@@ -164,6 +166,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                     {...register("password")}
                 />
 
+                {/* Дата истечения — нативный datetime-local */}
                 <div className="flex flex-col gap-1.5">
                     <FormLabel htmlFor="user-expires">Истекает (необязательно)</FormLabel>
                     <input
@@ -175,6 +178,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                     />
                 </div>
 
+                {/* Тоглы доступа */}
                 <div className="flex flex-col gap-2">
                     <ToggleCard
                         label="Разрешён"

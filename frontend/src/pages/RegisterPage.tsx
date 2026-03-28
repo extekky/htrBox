@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 
 import { register as registerUser } from "@/api/users";
 import { login } from "@/api/auth";
@@ -12,44 +11,7 @@ import { ApiRequestError } from "@/api/client";
 import { registerSchema, type RegisterFormValues } from "@/lib/validators";
 import { cn } from "@/lib/cn";
 import { Card, CardContent } from "@/components/ui/Card";
-
-// Вспомогательный компонент: поле ввода
-// Выносим повторяющийся блок «label + input + ошибка» в отдельный компонент,
-// чтобы не дублировать одинаковый JSX несколько раз.
-interface FieldProps {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-}
-
-function Field({ label, error, children }: FieldProps) {
-    return (
-        <div className="flex flex-col gap-1.5">
-            {/* Подпись над полем */}
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {label}
-            </label>
-
-            {/* Само поле (передаётся снаружи через children) */}
-            {children}
-
-            {/* Текст ошибки — показывается только если она есть */}
-            {error && <p className="text-xs text-destructive">{error}</p>}
-        </div>
-    );
-}
-
-// Общие CSS-классы для <input>
-// Выносим в константу, чтобы не копировать одну и ту же строку дважды.
-const inputCls = (hasError: boolean) =>
-    cn(
-        "w-full h-10 px-3 rounded-lg bg-input border text-sm text-foreground",
-        "placeholder:text-muted-foreground/40",
-        "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring",
-        "transition-colors",
-        // Если есть ошибка — красная рамка, иначе — обычная
-        hasError ? "border-destructive focus:ring-destructive" : "border-border",
-    );
+import { FormInput } from "@/components/ui/FormInput";
 
 export function RegisterPage() {
     // navigate(path) — программный переход на другую страницу
@@ -59,10 +21,6 @@ export function RegisterPage() {
     // Она сохраняет токен и данные пользователя после успешного входа.
     const setAuth = useAuthStore((s) => s.setAuth);
     const { error: toastError, success: toastSuccess } = useToast();
-
-    // Видно ли сейчас поле пароля (true = текст, false = точки)
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const {
         register,
@@ -148,64 +106,34 @@ export function RegisterPage() {
                         >
 
                             {/* Поле: имя пользователя */}
-                            <Field label="Пользователь" error={errors.username?.message}>
-                                <input
-                                    {...register("username")}
-                                    type="text"
-                                    autoComplete="username"      // браузер может автоматически подставлять данные
-                                    autoFocus                    // фокус при открытии страницы
-                                    placeholder="username"
-                                    className={inputCls(!!errors.username)}
-                                />
-                            </Field>
+                            <FormInput
+                                label="Пользователь"
+                                autoComplete="username"     // браузер может автоматически подставлять данные
+                                autoFocus                   // фокус при открытии страницы
+                                placeholder="username"
+                                error={errors.username?.message}
+                                {...register("username")}
+                            />
 
-                            {/* Поле: пароль (с кнопкой показать/скрыть) */}
-                            <Field label="Пароль" error={errors.password?.message}>
-                                <div className="relative">
-                                    <input
-                                        {...register("password")}
-                                        type={showPassword ? "text" : "password"}
-                                        autoComplete="new-password"
-                                        placeholder="••••••••"
-                                        className={cn(inputCls(!!errors.password), "pr-10")} // pr-10 — место под кнопку
-                                    />
+                            {/* Поле: пароль — FormInput сам добавит кнопку-глазик */}
+                            <FormInput
+                                label="Пароль"
+                                type="password"
+                                autoComplete="new-password"
+                                placeholder="••••••••"
+                                error={errors.password?.message}
+                                {...register("password")}
+                            />
 
-                                    {/* Кнопка-глазик: переключает видимость пароля */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword((v) => !v)}
-                                        tabIndex={-1}  // не попадает в Tab-навигацию
-                                        aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                    >
-                                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                                    </button>
-                                </div>
-                            </Field>
-
-                            {/* Поле: подтверждение пароля (с кнопкой показать/скрыть) */}
-                            <Field label="Подтверждение" error={errors.confirm_password?.message}>
-                                <div className="relative">
-                                    <input
-                                        {...register("confirm_password")}
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        autoComplete="new-password"
-                                        placeholder="••••••••"
-                                        className={cn(inputCls(!!errors.confirm_password), "pr-10")} // pr-10 — место под кнопку
-                                    />
-
-                                    {/* Кнопка-глазик: переключает видимость подтверждения */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword((v) => !v)}
-                                        tabIndex={-1}  // не попадает в Tab-навигацию
-                                        aria-label={showConfirmPassword ? "Скрыть пароль" : "Показать пароль"}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                    >
-                                        {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                                    </button>
-                                </div>
-                            </Field>
+                            {/* Поле: подтверждение пароля — тоже с глазиком */}
+                            <FormInput
+                                label="Подтверждение"
+                                type="password"
+                                autoComplete="new-password"
+                                placeholder="••••••••"
+                                error={errors.confirm_password?.message}
+                                {...register("confirm_password")}
+                            />
 
                             {/* Кнопка отправки */}
                             <button

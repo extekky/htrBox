@@ -8,7 +8,7 @@ import {
 
 import { Modal } from "@/components/ui/Modal";
 import { FormLabel } from "@/components/ui/FormLabel";
-import { FormField } from "@/components/ui/FormField";
+import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { ToggleCard } from "@/components/ui/ToggleCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
@@ -216,7 +216,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
             allowed: user.allowed,
             active: user.active,
             password: "",
-            expires_at: toInputDatetimeLocal(user.expires_at) || undefined,
+            expires_at: toInputDatetimeLocal(user.expires_at) || toInputDatetimeLocal(new Date().toISOString()),
         },
     });
 
@@ -328,7 +328,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                     >
                         <div className="flex flex-col gap-2">
                             <ToggleCard
-                                label= "Доступ к сервису"
+                                label="Доступ к сервису"
                                 description={allowed ? "Не забанен" : "Будет забанен"}
                                 checked={!!allowed}
                                 onChange={(v) => setValue("allowed", v)}
@@ -343,6 +343,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
 
                         <div className="h-px bg-border" />
 
+                        {/* Дата истечения — нативный datetime-local */}
                         <div className="flex flex-col gap-1.5">
                             <FormLabel htmlFor="user-edit-expires">Истекает</FormLabel>
                             <input
@@ -356,7 +357,8 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                             )}
                         </div>
 
-                        <FormField
+                        {/* Новый пароль — глазик добавляется автоматически */}
+                        <FormInput
                             label="Новый пароль"
                             type="password"
                             placeholder="Оставьте пустым, чтобы не менять"

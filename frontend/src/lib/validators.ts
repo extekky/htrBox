@@ -99,7 +99,7 @@ export const changePasswordSchema = z
         password: z.string().optional().or(z.literal("")), // текущий пароль (только для пользователя)
         new_password: passwordSchema,
         confirm_password: z.string().min(1, "Подтвердите пароль"),
-        apply_hy: z.boolean().optional().default(false),
+        apply_hy: z.boolean().default(false),
     })
     .refine((data) => data.new_password === data.confirm_password, {
         message: "Пароли не совпадают",

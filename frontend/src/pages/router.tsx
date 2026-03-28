@@ -8,7 +8,7 @@ import { AdminBoard } from "@/pages/AdminBoard";
 import { UserManage } from "@/pages/UsersPage";
 import { ServersPage } from "@/pages/ServersPage";
 import { ProfilePage } from "@/pages/ProfilePage";
-// import { SettingsPage } from "@/pages/SettingsPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 // import { ManualPage } from "@/pages/ManualPage";
 // import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ChekavoPage } from "@/pages/ChekavoPage";
@@ -102,9 +102,9 @@ export function AppRouter() {
         <PrivateRoute component={ProfilePage} />
       </Route>
 
-      {/* <Route path="/settings">
+      <Route path="/settings">
         <PrivateRoute component={SettingsPage} />
-      </Route> */}
+      </Route>
 
       {/* <Route path="/manual">
         <PrivateRoute component={ManualPage} />
