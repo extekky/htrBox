@@ -254,11 +254,6 @@ export function ManualPage() {
                     {/* -- Баннер бета-тестирования -- */}
                     {/* Бета-баннер — те же токены что в Warning-баннере ProfilePage */}
                     <div className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
-                        {/* Пульсирующий индикатор */}
-                        <span className="relative flex h-2 w-2 shrink-0">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-70" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
-                        </span>
                         <span className="text-sm text-amber-500">
                             Сервис на стадии тестирования — возможны временные неполадки
                         </span>

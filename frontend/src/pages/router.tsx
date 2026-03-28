@@ -136,7 +136,7 @@ export function AppRouter() {
                 )}
             </Route>
 
-            {/* -- 404 — раскомментировать когда будет готова страница -- */}
+            {/* -- 404 - страница не найдена -- */}
             <Route component={NotFoundPage} />
 
         </Switch>

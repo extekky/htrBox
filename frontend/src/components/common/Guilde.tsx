@@ -326,7 +326,7 @@ export function Guide() {
 
                 {/* Шаг 3 — получить ключ */}
                 {platform && (
-                    <Step number={3} icon={<Copy size={15} />} title="Получить ключ подключения">
+                    <Step number={3} icon={<Copy size={15} />} title="Скопировать ключ">
                         <InfoBlock>
                             <p>
                                 Ключ подключения — это адрес сервера и Ваши данные доступа, упакованные в одну строку.
@@ -339,8 +339,7 @@ export function Guide() {
                             </p>
                             <p className="flex flex-wrap items-center gap-1.5">
                                 После выбора нажмите{" "}
-                                <Badge icon={<Copy size={11} />}>Получить ключ</Badge>
-                                {" "}и скопируйте его.
+                                <Badge icon={<Copy size={11} />}>Скопировать ключ</Badge>.
                             </p>
                         </InfoBlock>
                     </Step>
