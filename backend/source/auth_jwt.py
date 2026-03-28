@@ -36,6 +36,7 @@ import hashlib
 import logging
 import secrets
 from dataclasses import dataclass
+from typing import cast
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -51,6 +52,7 @@ from config import (
     JWT_SECRET,
 )
 from database import get_db
+from schemas import UserRow
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +241,7 @@ def get_current_user(
 
 def require_user(
     current_user: UserTokenData = Depends(get_current_user),
-):
+) -> UserRow:
     """
     FastAPI dependency — extends get_current_user with a live DB check.
 
@@ -284,12 +286,12 @@ def require_user(
             row = dict(row)
             row["active"] = False
 
-    return row
+    return cast(UserRow, row)
 
 
 def require_admin(
-    user_row=Depends(require_user),
-):
+    user_row: UserRow = Depends(require_user),
+) -> UserRow:
     """
     FastAPI dependency — extends require_user with a role check.
 

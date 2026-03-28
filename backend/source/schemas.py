@@ -17,9 +17,20 @@ Sections:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field, field_validator
+
+
+# ---------------------------------------------------------------------------
+# DB row type returned by require_user / require_admin dependencies
+# ---------------------------------------------------------------------------
+
+class UserRow(TypedDict):
+    username: str
+    role:     str
+    allowed:  bool
+    active:   bool
 
 
 # ---------------------------------------------------------------------------

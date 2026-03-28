@@ -45,7 +45,7 @@ from schemas import (
     CreateUserRequest, CreateUserResponse,
     DeleteUserResponse, RegisterUserRequest, RegisterResponse,
     RegenerateHyResponse, SetRoleRequest, SetRoleResponse,
-    UpdateUserRequest, UpdateUserResponse, UserResponse, UserSessionInfo,
+    UpdateUserRequest, UpdateUserResponse, UserResponse, UserRow, UserSessionInfo,
 )
 from utils import (
     generate_hy_password, 
@@ -203,7 +203,7 @@ def get_me(user_row=Depends(require_user)):
 def update_user(
     username: str,
     body: UpdateUserRequest,
-    _: object = Depends(require_admin),
+    admin_row: UserRow = Depends(require_admin),
 ):
     """
     Update one or more fields on an existing user. Admin only.
@@ -211,6 +211,7 @@ def update_user(
 
     NOTE: username is immutable; role cannot be changed via this endpoint.
     Use /set-role to change a user's role.
+    Editing any field of an admin account is forbidden.
     """
     updates, params = [], []
     if body.allowed    is not None: updates.append("allowed = %s");    params.append(bool(body.allowed))
@@ -224,10 +225,25 @@ def update_user(
     try:
         params.append(username)
         with get_db() as conn:
-            with conn.cursor() as cur:
-                cur.execute(f"UPDATE users SET {', '.join(updates)} WHERE username = %s", params)
-                if cur.rowcount == 0:
+            with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
+                # Guard: forbid editing admin accounts.
+                cur.execute("SELECT role FROM users WHERE username = %s", (username,))
+                target = cur.fetchone()
+                if not target:
                     raise HTTPException(404, "User not found")
+                if target["role"] == "admin":
+                    # Admins can only change their own password, nothing else.
+                    non_password_updates = [
+                        f for f in ("allowed", "active", "expires_at") if getattr(body, f) is not None
+                    ]
+                    if non_password_updates:
+                        raise HTTPException(403, "Cannot edit an admin account")
+                    if body.password is None:
+                        raise HTTPException(403, "Cannot edit an admin account")
+                    if username != admin_row["username"]:
+                        raise HTTPException(403, "Cannot change another admin's password")
+
+                cur.execute(f"UPDATE users SET {', '.join(updates)} WHERE username = %s", params)
             conn.commit()
     except HTTPException:
         raise
@@ -236,7 +252,7 @@ def update_user(
         raise HTTPException(500, "Internal server error")
 
     updated_fields = [f for f in ("allowed", "password", "active", "expires_at") if getattr(body, f) is not None]
-    logger.info("User updated: %r (fields: %s)", username, updated_fields)
+    logger.info("User updated: %r (fields: %s) (by admin %r)", username, updated_fields, admin_row["username"])
 
     return UpdateUserResponse(
         status = "updated",
@@ -250,7 +266,7 @@ def update_user(
 @router.delete("/{username}", response_model=DeleteUserResponse)
 def delete_user(
     username: str,
-    admin_row=Depends(require_admin),
+    admin_row: UserRow = Depends(require_admin),
 ):
     """
     Delete a user and all their data. Admin only.
@@ -276,12 +292,14 @@ def delete_user(
                 # Step 2: if target is an admin, lock ALL admin rows to prevent
                 # the race condition where two concurrent requests both see
                 # admin_count > 1 and both proceed to delete.
+                # NOTE: FOR UPDATE cannot be used with aggregate functions,
+                # so we lock the rows first and count them in Python.
                 if target["role"] == "admin":
                     cur.execute(
-                        "SELECT COUNT(*) AS admin_count FROM users WHERE role = 'admin' FOR UPDATE",
+                        "SELECT username FROM users WHERE role = 'admin' FOR UPDATE",
                     )
-                    row = cur.fetchone()
-                    if row is None or row["admin_count"] <= 1:
+                    admin_rows = cur.fetchall()
+                    if len(admin_rows) <= 1:
                         raise HTTPException(400, "Cannot delete the last admin account")
 
             # DELETE first, revoke tokens after — so that if DELETE fails,
@@ -314,7 +332,7 @@ def delete_user(
 def set_role(
     username: str,
     body: SetRoleRequest,
-    admin_row=Depends(require_admin),
+    admin_row: UserRow = Depends(require_admin),
 ):
     """
     Change a user's role. Admin only.
@@ -343,12 +361,14 @@ def set_role(
                 # Step 2: if demoting an admin, lock ALL admin rows to prevent
                 # the race condition where two concurrent requests both see
                 # admin_count > 1 and both proceed to demote.
+                # NOTE: FOR UPDATE cannot be used with aggregate functions,
+                # so we lock the rows first and count them in Python.
                 if target["role"] == "admin" and body.role != "admin":
                     cur.execute(
-                        "SELECT COUNT(*) AS admin_count FROM users WHERE role = 'admin' FOR UPDATE",
+                        "SELECT username FROM users WHERE role = 'admin' FOR UPDATE",
                     )
-                    row = cur.fetchone()
-                    if row is None or row["admin_count"] <= 1:
+                    admin_rows = cur.fetchall()
+                    if len(admin_rows) <= 1:
                         raise HTTPException(400, "Cannot demote the last admin account")
 
                 with conn.cursor() as cur:
