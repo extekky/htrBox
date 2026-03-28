@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
-// import { AdminOverviewPage } from "@/pages/AdminOverviewPage";
+import { AdminBoard } from "@/pages/AdminBoard";
 // import { UsersPage } from "@/pages/UsersPage";
 // import { ServersPage } from "@/pages/ServersPage";
 import { ProfilePage } from "@/pages/ProfilePage";
@@ -85,9 +85,9 @@ export function AppRouter() {
       </Route>
 
       {/* Admin-only routes */}
-      {/* <Route path="/admin">
-        <AdminRoute component={AdminOverviewPage} />
-      </Route> */}
+      <Route path="/admin">
+        <AdminRoute component={AdminBoard} />
+      </Route>
 
       {/* <Route path="/users">
         <AdminRoute component={UsersPage} />
