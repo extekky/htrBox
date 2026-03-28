@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { fetchMyTraffic } from "@/api/traffic";
+
 import type { TrafficBucketResponse } from "@/api/types";
+import { 
+    fetchMyTraffic, 
+    fetchUserTraffic,
+} from "@/api/traffic";
 
 // Интервал бакета в миллисекундах (5 минут)
 const BUCKET_MS = 5 * 60 * 1000;
@@ -51,6 +55,11 @@ export interface UseTrafficResult {
     isError: boolean;
 }
 
+/**
+ * Хук для получения трафика текущего пользователя.
+ * - `days` может быть 1, 2 или 3 — это параметр API для выбора периода.
+ * - Возвращает данные, общую сумму трафика и статусы загрузки/ошибки.
+ */
 export function useTraffic(days: 1 | 2 | 3): UseTrafficResult {
     const { data: raw, isLoading, isError } = useQuery({
         queryKey: ["traffic", "me", days],
@@ -64,6 +73,34 @@ export function useTraffic(days: 1 | 2 | 3): UseTrafficResult {
         [raw, days],
     );
 
+    const totalGb = useMemo(
+        () => data.reduce((sum, p) => sum + p.delta_gb, 0),
+        [data],
+    );
+
+    return { data, totalGb, isLoading, isError };
+}
+
+/**
+ * Хук для получения трафика конкретного пользователя.
+ * Отличается от `useTraffic` только API-эндпоинтом и ключом кэша.
+ */
+export function useUserTraffic(username: string, days: 1 | 2 | 3): UseTrafficResult {
+    const { data: raw, isLoading, isError } = useQuery({
+        queryKey: ["traffic", "user", username, days],
+        queryFn: () => fetchUserTraffic(username, days),
+        staleTime: BUCKET_MS,
+        enabled: !!username,
+        retry: false, // Если юзера нет, API вернёт 404 — не нужно повторять запрос
+    });
+
+    // Остальная логика идентична — заполняем пропуски и считаем сумму
+    const data = useMemo(
+        () => fillBuckets(raw ?? [], days),
+        [raw, days],
+    );
+
+    // Считаем общую сумму трафика за период
     const totalGb = useMemo(
         () => data.reduce((sum, p) => sum + p.delta_gb, 0),
         [data],

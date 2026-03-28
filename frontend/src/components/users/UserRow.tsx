@@ -25,6 +25,7 @@ interface UserRowProps {
     user: UserResponse;
     selected: boolean;
     onToggleSelect: (username: string) => void;
+    onView: (user: UserResponse) => void;
     onEdit: (user: UserResponse) => void;
     onDelete: (username: string) => void;
 }
@@ -61,6 +62,7 @@ export function UserRow({
     user,
     selected,
     onToggleSelect,
+    onView,
     onEdit,
     onDelete,
 }: UserRowProps) {
@@ -71,12 +73,13 @@ export function UserRow({
     return (
         <tr
             className={cn(
-                "group transition-colors duration-100",
+                "group transition-colors duration-100 cursor-pointer",
                 selected ? "bg-primary/5" : "hover:bg-muted/40",
             )}
+            onClick={() => onView(user)}
         >
             {/* Колонка с чекбоксом выбора */}
-            <td className="pl-4 pr-2 py-3.5 w-10">
+            <td className="pl-4 pr-2 py-3.5 w-10" onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                     checked={selected}
                     onCheckedChange={() => onToggleSelect(user.username)}
@@ -149,7 +152,7 @@ export function UserRow({
             </td>
 
             {/* Кнопки действий */}
-            <td className="px-4 pr-5 py-3.5">
+            <td className="px-4 pr-5 py-3.5" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-end gap-0.5">
                     <button
                         type="button"

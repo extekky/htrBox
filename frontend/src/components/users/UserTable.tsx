@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/CheckBox";
 import { CardContent } from "@/components/ui/Card";
 import { UserTableToolbar, type StatusFilter } from "./UserTableToolbar";
 import { UserRow } from "./UserRow";
+import { UserViewModal } from "./UserViewModal";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 import { useUsers, useDeleteUser, useKickUsers } from "@/hooks/useUsers";
@@ -154,6 +155,7 @@ export function UserTable({ onEdit }: UserTableProps) {
 
     // Состояние диалогов подтверждения
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+    const [viewTarget, setViewTarget] = useState<UserResponse | null>(null);
     const [showKickConfirm, setShowKickConfirm] = useState(false);
 
     // Отфильтрованный список пользователей (мемоизирован)
@@ -226,6 +228,7 @@ export function UserTable({ onEdit }: UserTableProps) {
                 user={user}
                 selected={selectedUsernames.has(user.username)}
                 onToggleSelect={toggleSelection}
+                onView={(user) => setViewTarget(user)}
                 onEdit={onEdit}
                 onDelete={(username) => setDeleteTarget(username)}
             />
@@ -274,6 +277,13 @@ export function UserTable({ onEdit }: UserTableProps) {
                     </tbody>
                 </table>
             </div>
+
+            {viewTarget && (
+                <UserViewModal
+                    user={viewTarget}
+                    onClose={() => setViewTarget(null)}
+                />
+            )}
 
             {/* Диалог подтверждения удаления */}
             <ConfirmDialog

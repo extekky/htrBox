@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { useTraffic } from "@/hooks/useTraffic";
+import { useTraffic, useUserTraffic } from "@/hooks/useTraffic";
 import type { TrafficPoint } from "@/hooks/useTraffic";
 
 // -------------------------------------------------------------
@@ -124,9 +124,27 @@ const DAY_OPTIONS = [
 // Компонент
 // -------------------------------------------------------------
 
-export function TrafficChart() {
+interface TrafficChartProps {
+    username?: string; // если передан — показывает трафик конкретного пользователя
+}
+
+/**
+ * Компонент для отображения графика трафика.
+ *  - Если `username` не передан, показывает трафик текущего пользователя.
+ *  - Включает табы для выбора периода (1, 2 или 3 дня).
+ *  - Показывает общую сумму трафика в шапке.
+ *  - Использует Recharts для отрисовки графика с кастомным tooltip.
+ *  - Подбирает интервалы и форматирование тиков в зависимости от выбранного периода и данных.
+ */
+export function TrafficChart({ username }: TrafficChartProps = {}) {
     const [days, setDays] = useState<1 | 2 | 3>(1);
-    const { data, totalGb, isLoading, isError } = useTraffic(days);
+
+    // Вызываем только один хук в зависимости от наличия username
+    const trafficResult = username
+        ? useUserTraffic(username, days)
+        : useTraffic(days);
+
+    const { data, totalGb, isLoading, isError } = trafficResult;
 
     const ticks = useMemo(() => buildTicks(data, days), [data, days]);
 
