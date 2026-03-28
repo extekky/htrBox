@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { useTraffic, useUserTraffic } from "@/hooks/useTraffic";
+import { useTraffic } from "@/hooks/useTraffic";
 import type { TrafficPoint } from "@/hooks/useTraffic";
 
 // -------------------------------------------------------------
@@ -161,12 +161,8 @@ interface TrafficChartProps {
 export function TrafficChart({ username }: TrafficChartProps = {}) {
     const [days, setDays] = useState<1 | 2 | 3>(1);
 
-    // Вызываем только один хук в зависимости от наличия username
-    const trafficResult = username
-        ? useUserTraffic(username, days)
-        : useTraffic(days);
-
-    const { data: rawData, totalGb, isLoading, isError } = trafficResult;
+    // username пробрасывается в хук — без него возвращает трафик текущего пользователя
+    const { data: rawData, totalGb, isLoading, isError } = useTraffic(days, username);
 
     // Сглаживаем данные для плавной кривой
     const data = useMemo(() => smoothData(rawData, 4), [rawData]);
