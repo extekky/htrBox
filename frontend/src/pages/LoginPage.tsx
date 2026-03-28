@@ -50,10 +50,8 @@ export function LoginPage() {
             // Редиректим: администратора — в /admin, остальных — в /profile
             navigate(result.user.role === "admin" ? "/admin" : "/profile");
         } catch (err) {
-            console.error("Полная ошибка при логине:", err);
 
             if (err instanceof ApiRequestError) {
-                console.log(`Статус: ${err.status} | Сообщение: ${err.message}`);
 
                 if (err.status === 401) {
                     toastError("Неверные данные", "Проверьте имя пользователя и пароль");
@@ -69,7 +67,6 @@ export function LoginPage() {
                 }
             } else {
                 toastError("Нет подключения", "Не удалось связаться с сервером");
-                console.error("Неизвестная ошибка:", err);
             }
         }
     }

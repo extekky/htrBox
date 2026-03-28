@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { ConnectionCard } from "@/components/common/ConnectionCard";
 import { Guide } from "@/components/common/Guilde";
+import { TrafficChart } from "@/components/common/TrafficChart";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { ServerSelector } from "@/components/common/ServerSelector";
 import { pickAvatar } from "@/lib/avatars";
@@ -278,6 +279,9 @@ export function ProfilePage() {
                             </div>
                         </Card>
                     )}
+
+                    {/* -- График трафика ---------------------------------- */}
+                    <TrafficChart />
 
                 </div>
             </div>

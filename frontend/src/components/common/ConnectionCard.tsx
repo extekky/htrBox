@@ -4,6 +4,7 @@ import { Link2, Copy, Check, RefreshCw } from "lucide-react";
 import { useServerStore, selectSelectedServer, selectUrlMap } from "@/stores/serverStore";
 import { useAuthStore, selectUser } from "@/stores/authStore";
 import { initServerData } from "@/hooks/useServers";
+import { ApiRequestError } from "@/api/client";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/cn";
 
@@ -48,8 +49,12 @@ export function ConnectionCard() {
             // Вызываем хук инициализации данных серверов
             await initServerData(user.username);
             success("Ключи обновлены");
-        } catch {
-            error("Ошибка", "Не удалось обновить ключи");
+        } catch (e) {
+            if (e instanceof ApiRequestError && e.status === 429) {
+                error("Слишком много запросов", "Подождите немного и попробуйте снова");
+            } else {
+                error("Ошибка", "Не удалось обновить ключи");
+            }
         } finally {
             setRefreshing(false);
         }
