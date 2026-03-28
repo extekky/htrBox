@@ -20,17 +20,18 @@ import type { TrafficPoint } from "@/hooks/useTraffic";
 
 /** Для шапки — с пробелом и полной единицей */
 function fmtGb(gb: number): string {
-    if (gb === 0) return "0";
-    if (gb < 0.001) return `${(gb * 1024).toFixed(2)} MB`;
-    if (gb < 1) return `${(gb * 1024).toFixed(1)} MB`;
+    if (gb === 0) return "0 B";
+    if (gb < 0.001) return `${(gb * 1024 * 1024).toFixed(0)} KB`;
+    if (gb < 1) return `${(gb * 1024).toFixed(gb * 1024 < 10 ? 2 : 1)} MB`;
     return `${gb.toFixed(3)} GB`;
 }
 
 /** Для тиков оси Y — без пробела, компактно */
 function fmtYTick(gb: number): string {
     if (gb === 0) return "0";
-    if (gb < 1) return `${(gb * 1024).toFixed(0)}MB`;
-    return `${gb.toFixed(1)}GB`;
+    if (gb < 0.001) return `${(gb * 1024 * 1024).toFixed(0)}K`;
+    if (gb < 1) return `${(gb * 1024).toFixed(0)}M`;
+    return `${gb.toFixed(1)}G`;
 }
 
 /** Для тиков оси X */
@@ -85,6 +86,27 @@ function buildTicks(data: TrafficPoint[], days: number): number[] {
 }
 
 // -------------------------------------------------------------
+// Сглаживание данных (скользящее среднее по окну)
+// -------------------------------------------------------------
+
+function smoothData(data: TrafficPoint[], radius = 3): TrafficPoint[] {
+    if (data.length === 0) return data;
+    return data.map((point, i) => {
+        const start = Math.max(0, i - radius);
+        const end = Math.min(data.length - 1, i + radius);
+        let sum = 0;
+        let count = 0;
+        for (let j = start; j <= end; j++) {
+            // Вес убывает от центра — треугольное окно
+            const w = radius + 1 - Math.abs(j - i);
+            sum += data[j].delta_gb * w;
+            count += w;
+        }
+        return { ...point, delta_gb: sum / count };
+    });
+}
+
+// -------------------------------------------------------------
 // Кастомный Tooltip
 // -------------------------------------------------------------
 
@@ -125,7 +147,7 @@ const DAY_OPTIONS = [
 // -------------------------------------------------------------
 
 interface TrafficChartProps {
-    username?: string; // если передан — показывает трафик конкретного пользователя
+    username?: string;
 }
 
 /**
@@ -144,23 +166,21 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
         ? useUserTraffic(username, days)
         : useTraffic(days);
 
-    const { data, totalGb, isLoading, isError } = trafficResult;
+    const { data: rawData, totalGb, isLoading, isError } = trafficResult;
+
+    // Сглаживаем данные для плавной кривой
+    const data = useMemo(() => smoothData(rawData, 4), [rawData]);
 
     const ticks = useMemo(() => buildTicks(data, days), [data, days]);
 
     const yMax = useMemo(() => {
         const peak = Math.max(...data.map((p) => p.delta_gb), 0);
-        return peak > 0 ? peak * 1.25 : 0.001;
+        return peak > 0 ? peak * 1.3 : 0.001;
     }, [data]);
 
-    // Ширина оси Y подбирается под длину самого длинного тика
     const yWidth = useMemo(() => {
-        if (yMax < 1) {
-            // значения в MB — до 4 цифр + "MB" = ~52px
-            return yMax * 1024 >= 100 ? 52 : 44;
-        }
-        // значения в GB
-        return 48;
+        if (yMax < 1) return yMax * 1024 >= 100 ? 48 : 40;
+        return 44;
     }, [yMax]);
 
     return (
@@ -188,7 +208,7 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
                             key={opt.value}
                             onClick={() => setDays(opt.value)}
                             className={cn(
-                                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150",
+                                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
                                 days === opt.value
                                     ? "bg-card text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground",
@@ -266,12 +286,14 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
                             />
 
                             <Area
-                                type="monotone"
+                                type="basis"
                                 dataKey="delta_gb"
                                 stroke="var(--color-primary)"
                                 strokeWidth={2}
                                 fill="url(#trafficGradient)"
-                                isAnimationActive={false}
+                                isAnimationActive={true}
+                                animationDuration={600}
+                                animationEasing="ease-out"
                                 dot={false}
                                 activeDot={{
                                     r: 4,
