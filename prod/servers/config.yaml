@@ -1,0 +1,33 @@
+# Общая конфигурация для Hysteria серверов, который будет 
+# работать на 443 порту и использовать TLS сертификаты для шифрования.
+
+listen: :443
+
+tls:
+    cert: /etc/hysteria/certs/server.crt
+    key: /etc/hysteria/certs/server.key
+
+# Аутентификация через Backend на Yandex Cloud
+auth:
+    type: http
+    http:
+        url: http://93.77.187.20:8000/auth
+
+masquerade:
+    type: proxy
+    proxy:
+        url: https://bing.com
+        rewriteHost: true
+
+quic:
+    initStreamReceiveWindow: 8388608
+    maxStreamReceiveWindow: 8388608
+    initConnReceiveWindow: 20971520
+    maxConnReceiveWindow: 20971520
+
+# Traffic stats API — backend опрашивает этот endpoint
+# secret не берётся из .env.Hysteria так как не поддреживается
+# передача через переменную окружения
+trafficStats:
+    listen: :8080 # Внешний порт для API
+    secret: a27f0dd505a8bd94558d29c829a13fd82a45c399b4ea4fa84f5571d6df6eac15

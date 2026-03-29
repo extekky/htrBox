@@ -1,0 +1,71 @@
+# ─────────────────────────────────────────────────────
+#  Yandex Cloud: Frontend + Backend + Postgres
+#  Запуск: docker compose -f docker-compose.yc.yaml up -d --build
+#
+#  pgdata живёт в ~/htrBox-data/pgdata (вне проекта)
+#  Сертификаты: /etc/letsencrypt (управляются certbot на хосте)
+# ─────────────────────────────────────────────────────
+
+services:
+    postgres:
+        image: postgres:17-alpine
+        container_name: postgres
+        env_file:
+            - .env.FrontBack
+        volumes:
+            - /home/dolzhkevich/htrBox-data/pgdata:/var/lib/postgresql/data
+        networks:
+            - vpn_net
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"
+
+    backend:
+        container_name: backend
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        env_file:
+            - .env.FrontBack
+        environment:
+            - DOCKER_ENV=true
+        depends_on:
+            - postgres
+        ports:
+            - "8000:8000"
+        networks:
+            - vpn_net
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"
+
+    frontend:
+        container_name: frontend
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - /etc/letsencrypt:/etc/letsencrypt:ro
+        depends_on:
+            - backend
+        networks:
+            - vpn_net
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"
+
+networks:
+    vpn_net:
+        driver: bridge
