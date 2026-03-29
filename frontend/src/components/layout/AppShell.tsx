@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import { BottomBar } from "./BottomBar";
-import { useWebSocket } from "@/hooks/useWebSocket";
+// import { useWebSocket } from "@/hooks/useWebSocket";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAuthStore, selectIsAdmin } from "@/stores/authStore";
 import { useLogout } from "@/hooks/useAuth";
@@ -247,7 +247,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
     // Инициализируем WebSocket один раз на уровне шелла
-    useWebSocket();
+    // useWebSocket();
 
     // Определяем мобильный режим для переключения между TopHeader и BottomBar
     const isMobile = useIsMobile();

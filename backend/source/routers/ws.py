@@ -133,104 +133,104 @@ class ConnectionManager:
         return sum(len(v) for v in self._connections.values())
 
 
-manager = ConnectionManager()
+# manager = ConnectionManager()
 
 
 # ---------------------------------------------------------------------------
 # Public notify API (used from other modules)
 # ---------------------------------------------------------------------------
 
-async def notify(
-    message: dict,
-    target_username: str | None = None,
-) -> None:
-    """
-    Send a WebSocket notification.
+# async def notify(
+#     message: dict,
+#     target_username: str | None = None,
+# ) -> None:
+#     """
+#     Send a WebSocket notification.
 
-    target_username=None -> broadcast to all connected clients.
-    target_username set  -> send to that user's connections AND broadcast to
-                           everyone else (so admin panels also receive the event).
+#     target_username=None -> broadcast to all connected clients.
+#     target_username set  -> send to that user's connections AND broadcast to
+#                            everyone else (so admin panels also receive the event).
 
-    NOTE: this function is not yet called from any router or background worker.
-    The WebSocket infrastructure is in place but notifications are not wired up.
-    Until that happens, connected clients only receive periodic pings.
-    """
-    if target_username:
-        await manager.send_to_user(target_username, message)
-        await manager.broadcast_except(target_username, message)
-    else:
-        await manager.broadcast(message)
+#     NOTE: this function is not yet called from any router or background worker.
+#     The WebSocket infrastructure is in place but notifications are not wired up.
+#     Until that happens, connected clients only receive periodic pings.
+#     """
+#     if target_username:
+#         await manager.send_to_user(target_username, message)
+#         await manager.broadcast_except(target_username, message)
+#     else:
+#         await manager.broadcast(message)
 
-def notify_sync(message: dict, loop: asyncio.AbstractEventLoop | None = None) -> None:
-    """
-    Synchronous wrapper for notify() — used from traffic_collector
-    which runs in a separate thread outside the asyncio event loop.
-    """
-    try:
-        app_loop = loop or asyncio.get_running_loop()
-        asyncio.run_coroutine_threadsafe(notify(message), app_loop)
-    except RuntimeError:
-        # No running event loop in this thread — nothing to do
-        logger.debug("notify_sync: no running event loop found")
-    except Exception as e:
-        logger.debug("notify_sync failed: %s", e)
+# def notify_sync(message: dict, loop: asyncio.AbstractEventLoop | None = None) -> None:
+#     """
+#     Synchronous wrapper for notify() — used from traffic_collector
+#     which runs in a separate thread outside the asyncio event loop.
+#     """
+#     try:
+#         app_loop = loop or asyncio.get_running_loop()
+#         asyncio.run_coroutine_threadsafe(notify(message), app_loop)
+#     except RuntimeError:
+#         # No running event loop in this thread — nothing to do
+#         logger.debug("notify_sync: no running event loop found")
+#     except Exception as e:
+#         logger.debug("notify_sync failed: %s", e)
 
 
-# ---------------------------------------------------------------------------
-# WebSocket endpoint
-# ---------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
+# # WebSocket endpoint
+# # ---------------------------------------------------------------------------
 
-@router.websocket("/ws")
-async def websocket_endpoint(
-    ws: WebSocket,
-    token: str | None = Query(None),
-):
-    """
-    WebSocket connection for push notifications.
-    Auth via ?token=<access_token>. Invalid token closes the connection.
-    Anonymous connections are not permitted.
-    """
-    # Rejection must always be accept() -> close() so the browser receives a
-    # proper WebSocket close frame with a meaningful code and reason string.
-    # Calling close() before accept() produces a bare TCP reset — the client
-    # sees code 1006 (Abnormal Closure) with an empty reason, making it
-    # impossible to distinguish an auth failure from a network drop.
-    if not token:
-        await ws.accept()
-        await ws.close(code=4001, reason="Authentication required")
-        return
+# @router.websocket("/ws")
+# async def websocket_endpoint(
+#     ws: WebSocket,
+#     token: str | None = Query(None),
+# ):
+#     """
+#     WebSocket connection for push notifications.
+#     Auth via ?token=<access_token>. Invalid token closes the connection.
+#     Anonymous connections are not permitted.
+#     """
+#     # Rejection must always be accept() -> close() so the browser receives a
+#     # proper WebSocket close frame with a meaningful code and reason string.
+#     # Calling close() before accept() produces a bare TCP reset — the client
+#     # sees code 1006 (Abnormal Closure) with an empty reason, making it
+#     # impossible to distinguish an auth failure from a network drop.
+#     if not token:
+#         await ws.accept()
+#         await ws.close(code=4001, reason="Authentication required")
+#         return
 
-    try:
-        payload  = decode_access_token(token)
-        username = payload.get("sub")
-        if not username:
-            raise ValueError("No subject in token")
-    except Exception:
-        await ws.accept()
-        await ws.close(code=4001, reason="Invalid token")
-        return
+#     try:
+#         payload  = decode_access_token(token)
+#         username = payload.get("sub")
+#         if not username:
+#             raise ValueError("No subject in token")
+#     except Exception:
+#         await ws.accept()
+#         await ws.close(code=4001, reason="Invalid token")
+#         return
 
-    await manager.connect(ws, username)
+#     await manager.connect(ws, username)
 
-    try:
-        # Send initial ping
-        await ws.send_text(json.dumps({"type": "ping"}))
+#     try:
+#         # Send initial ping
+#         await ws.send_text(json.dumps({"type": "ping"}))
 
-        while True:
-            try:
-                data = await asyncio.wait_for(ws.receive_text(), timeout=60.0)
-                msg  = json.loads(data)
-                if msg.get("type") in ("ping", "pong"):
-                    pass  # keep-alive
-            except asyncio.TimeoutError:
-                try:
-                    await ws.send_text(json.dumps({"type": "ping"}))
-                except Exception:
-                    break
-            except WebSocketDisconnect:
-                break  # client disconnected — exit the loop cleanly
-            except Exception as e:
-                logger.debug("WS error for %r: %s", username, e)
+#         while True:
+#             try:
+#                 data = await asyncio.wait_for(ws.receive_text(), timeout=60.0)
+#                 msg  = json.loads(data)
+#                 if msg.get("type") in ("ping", "pong"):
+#                     pass  # keep-alive
+#             except asyncio.TimeoutError:
+#                 try:
+#                     await ws.send_text(json.dumps({"type": "ping"}))
+#                 except Exception:
+#                     break
+#             except WebSocketDisconnect:
+#                 break  # client disconnected — exit the loop cleanly
+#             except Exception as e:
+#                 logger.debug("WS error for %r: %s", username, e)
 
-    finally:
-        await manager.disconnect(ws, username)
+#     finally:
+#         await manager.disconnect(ws, username)
