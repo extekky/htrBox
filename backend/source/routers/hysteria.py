@@ -43,6 +43,7 @@ from schemas import (
     KickUsersResponse, 
     ResetTrafficResponse,
 )
+from utils import management_url
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -110,7 +111,7 @@ async def kick_users(
     errors = []
     async with httpx.AsyncClient(timeout=2.0) as client:
         for srv in servers:
-            url = srv["hysteria_url"]
+            url = management_url(srv["hysteria_url"])
             try:
                 r = await client.post(
                     f"{url}/kick",
@@ -145,7 +146,7 @@ async def get_online_users(_: object = Depends(require_admin)):
 
     async with httpx.AsyncClient(timeout=2.0) as client:
         for srv in servers:
-            url = srv["hysteria_url"]
+            url = management_url(srv["hysteria_url"])
             try:
                 r = await client.get(f"{url}/online", headers=_hysteria_headers())
                 r.raise_for_status()

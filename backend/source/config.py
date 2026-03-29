@@ -161,6 +161,8 @@ ALLOWED_ORIGINS: list[str] = [
 # Authorization header value sent to every Hysteria API request
 HYSTERIA_AUTH = _require("HYSTERIA_AUTH")
 
+# Port on which the Hysteria server management API listens
+HYSTERIA_FETCH_PORT = _optional_int("HYSTERIA_FETCH_PORT", 8080)
 
 # ---------------------------------------------------------------------------
 # Traffic collector

@@ -75,8 +75,13 @@ from datetime import datetime, timedelta, timezone
 import psycopg2.extras
 import requests
 
-from config import HYSTERIA_AUTH, TRAFFIC_BUCKET_SECONDS, TRAFFIC_POLL_INTERVAL
+from config import (
+    HYSTERIA_AUTH, 
+    TRAFFIC_BUCKET_SECONDS,
+    TRAFFIC_POLL_INTERVAL,
+)
 from database import get_db
+from utils import management_url
 
 logger = logging.getLogger(__name__)
 
@@ -211,9 +216,11 @@ def _normalize_traffic_response(data) -> dict[str, int]:
 def _fetch_traffic(hysteria_url: str) -> dict:
     """
     Fetch raw traffic counters from one Hysteria server.
-    Returns an empty dict on any error - the caller skips that server silently.
+    Traffic API runs on HYSTERIA_FETCH_PORT (8080), not the VPN port (443).
+    Management API always runs over plain HTTP regardless of the server URL scheme.
+    Returns an empty dict on any error — the caller skips that server silently.
     """
-    url = f"{hysteria_url.rstrip('/')}/traffic"
+    url = f"{management_url(hysteria_url)}/traffic"
     logger.debug("Fetching traffic from %s", url)
     try:
         r = _session.get(url, timeout=10)

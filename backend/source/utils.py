@@ -18,6 +18,7 @@ import bcrypt
 
 logger = logging.getLogger(__name__)
 
+from config import HYSTERIA_FETCH_PORT
 
 # ---------------------------------------------------------------------------
 # Password utilities
@@ -47,3 +48,13 @@ def verify_password(password: str, hashed: str) -> bool:
     except Exception as e:
         logger.error("Password verification error: %s", e)
         return False
+    
+
+def management_url(hysteria_url: str) -> str:
+    """
+    Management API (traffic, online) always runs over plain HTTP on HYSTERIA_FETCH_PORT.
+    Strip the original scheme and port, force http:// and management port.
+    """
+    _, _, host_port = hysteria_url.partition("://")
+    host = host_port.split(":")[0]
+    return f"http://{host}:{HYSTERIA_FETCH_PORT}"
