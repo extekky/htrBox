@@ -4,27 +4,38 @@
 
 FROM node:20-alpine AS base
 WORKDIR /app
-
-# Turn on corepack and activate pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy only the manifests for caching the dependency layer
-# pnpm-lock.yaml* — wildcard makes the file optional
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json package-lock.json* ./
 
 # =============================================
 # Dependencies
 # =============================================
 
 FROM base AS deps
-RUN npm install
+RUN npm ci
 
 # =============================================
-# Dev stage
+# Development
 # =============================================
 
-FROM base AS dev
-COPY --from=deps /app/node_modules ./node_modules
+FROM deps AS dev
 COPY . .
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+# =============================================
+# Build
+# =============================================
+
+FROM deps AS build
+COPY . .
+RUN npm run build
+
+# =============================================
+# Production
+# =============================================
+
+FROM nginx:alpine AS prod
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80 443
+CMD ["nginx", "-g", "daemon off;"]

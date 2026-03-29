@@ -1,11 +1,11 @@
 # =============================================
 #  Local development
 #
-#  Frontend: Vite dev server on :80 (hot reload)
+#  Frontend: Vite dev server on :5173 (hot reload)
 #  Backend:  FastAPI on :8000
 #  Hysteria: self-signed certs (hysteria/certs/)
 #
-#  Proxy /api/ -> backend steup in vite.config.ts
+#  Proxy /api/ -> backend setup in vite.config.ts
 # =============================================
 
 services:
@@ -53,6 +53,9 @@ services:
             target: dev
         ports:
             - "5173:5173"
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules
         depends_on:
             - backend
         networks:

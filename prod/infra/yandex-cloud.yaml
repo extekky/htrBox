@@ -50,6 +50,7 @@ services:
         build:
             context: ./frontend
             dockerfile: Dockerfile
+            target: prod
         ports:
             - "80:80"
             - "443:443"
