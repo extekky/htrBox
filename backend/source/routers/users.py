@@ -342,6 +342,9 @@ def set_role(
 
     Role change takes effect immediately — the user's next request will
     be evaluated against the new role without requiring re-login.
+
+    When promoting to admin: allowed, active are set to TRUE, expires_at to NULL.
+    When demoting to user: active is set to FALSE (subscription inactive until re-activates).
     """
     if username == admin_row["username"]:
         raise HTTPException(400, "Cannot change your own role")
@@ -371,12 +374,20 @@ def set_role(
                     if len(admin_rows) <= 1:
                         raise HTTPException(400, "Cannot demote the last admin account")
 
-                with conn.cursor() as cur:
+            with conn.cursor() as cur:
+                if body.role == "admin":
                     cur.execute(
-                        "UPDATE users SET role = %s WHERE username = %s",
+                        "UPDATE users SET role = 'admin', allowed = TRUE, active = TRUE, expires_at = NULL "
+                        "WHERE username = %s",
+                        (username,),
+                    )
+                else:
+                    cur.execute(
+                        "UPDATE users SET role = %s, active = FALSE WHERE username = %s",
                         (body.role, username),
                     )
-                conn.commit()
+            conn.commit()
+        
         except HTTPException:
             conn.rollback()
             raise
