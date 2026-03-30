@@ -291,8 +291,8 @@ def _collect_server(server_id: str, totals_gb: dict[str, float], conn) -> None:
 
                 if delta_gb > 0:
                     logger.debug(
-                        "User %r server %r: +%.6f GB -> bucket %s",
-                        username, server_id, delta_gb, bucket_time,
+                        "User %r server %s: +%.6f GB -> bucket %s",
+                        username, server_id[:8], delta_gb, bucket_time,
                     )
                     cur.execute(
                         """INSERT INTO traffic_5m (username, server_id, bucket_time, delta_gb)

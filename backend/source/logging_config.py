@@ -97,8 +97,8 @@ def setup_logging(log_level: str = "DEBUG") -> None:
     # Docker (output goes to the Docker log driver which preserves ANSI).
     use_colour = in_docker or (hasattr(sys.stderr, "isatty") and sys.stderr.isatty())
 
-    _FMT_CONSOLE = "%(asctime)s | %(levelname)-7s | %(name)-30s | %(message)s"
-    _FMT_VERBOSE = "%(asctime)s | %(levelname)-7s | %(name)s:%(funcName)s:%(lineno)d | %(message)s"
+    _FMT_CONSOLE = "%(asctime)s | %(levelname)-8s | %(name)-30s | %(message)s"
+    _FMT_VERBOSE = "%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s"
     _DATEFMT     = "%Y-%m-%d %H:%M:%S"
 
     # Build handlers programmatically so we can pass the formatter instance

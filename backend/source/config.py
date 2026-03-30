@@ -10,27 +10,31 @@ Required variables (no default, service won't start without them):
   ADMIN_PASSWORD       - Password for the initial admin account (first-run seed only)
   HYSTERIA_AUTH        - Authorization header value for Hysteria API calls
   JWT_SECRET           - Secret key for signing JWT tokens (min 32 chars required)
+  POSTGRES_USER        - PostgreSQL user
+  POSTGRES_PASSWORD    - PostgreSQL password
+  POSTGRES_DB          - PostgreSQL database name
 
 Optional variables (have safe defaults):
-  DATABASE_URL               - PostgreSQL DSN                  (default: postgresql://vpn:vpn@localhost:5432/vpn)
-  ALLOWED_ORIGINS            - Comma-separated CORS origins    (default: http://localhost:80)
-  TRAFFIC_POLL_INTERVAL      - Seconds between traffic polls   (default: 30)
-  TRAFFIC_BUCKET_SECONDS     - Traffic bucket size in seconds  (default: 300)
-  TRAFFIC_RETENTION_DAYS     - Days to keep traffic_5m rows    (default: 7)
+  POSTGRES_HOST              - PostgreSQL host                  (default: postgres)
+  POSTGRES_PORT              - PostgreSQL port                  (default: 5432)
+  ALLOWED_ORIGINS            - Comma-separated CORS origins     (default: http://localhost:80)
+  TRAFFIC_POLL_INTERVAL      - Seconds between traffic polls    (default: 30)
+  TRAFFIC_BUCKET_SECONDS     - Traffic bucket size in seconds   (default: 300)
+  TRAFFIC_RETENTION_DAYS     - Days to keep traffic_5m rows     (default: 7)
   MAINTENANCE_INTERVAL       - Seconds between maintenance runs (default: 600)
-  LOG_LEVEL                  - Logging level                   (default: INFO)
-  JWT_ACCESS_TTL_MINUTES     - Access token lifetime in minutes  (default: 30)
-  JWT_REFRESH_TTL_DAYS       - Refresh token lifetime in days    (default: 30)
-  JWT_ALGORITHM              - JWT signing algorithm             (default: HS256)
-  COOKIE_SECURE              - Set Secure flag on cookies        (default: true)
-  COOKIE_SAMESITE            - SameSite policy for cookies       (default: strict)
+  LOG_LEVEL                  - Logging level                    (default: INFO)
+  JWT_ACCESS_TTL_MINUTES     - Access token lifetime in minutes (default: 30)
+  JWT_REFRESH_TTL_DAYS       - Refresh token lifetime in days   (default: 30)
+  JWT_ALGORITHM              - JWT signing algorithm            (default: HS256)
+  COOKIE_SECURE              - Set Secure flag on cookies       (default: true)
+  COOKIE_SAMESITE            - SameSite policy for cookies      (default: strict)
                                Use lax or none only if you have a specific reason.
 
 Rate limiting variables (all optional):
- 
+
   RT_MAX_FAILURES / RT_BLOCK_DURATION — brute-force protection: block IP after
   N consecutive auth failures for BLOCK_DURATION seconds.
- 
+
   RT_<ENDPOINT>_REQ / RT_<ENDPOINT>_WIN — per-endpoint sliding-window caps:
   max REQ requests per WIN seconds.
 """
@@ -89,7 +93,7 @@ def _optional_int(name: str, default: int) -> int:
 
 
 def _optional_bool(name: str, default: bool) -> bool:
-    """Load an optional boolean env variable. Accepts true/false/1/0 (case-insensitive)."""
+    """Load an optional boolean env variable. Accepts true/false/1/0."""
     raw = os.getenv(name, "").strip().lower()
     if raw in ("true", "1", "yes"):
         return True
@@ -105,14 +109,23 @@ def _optional_samesite(key: str, default: SameSiteType) -> SameSiteType:
     return cast(SameSiteType, val)
 
 
+def _build_database_url() -> str:
+    """Build a PostgreSQL DSN from individual POSTGRES_* env variables."""
+    user     = _require("POSTGRES_USER")
+    password = _require("POSTGRES_PASSWORD")
+    db       = _require("POSTGRES_DB")
+    host     = _optional("POSTGRES_HOST", "postgres") # default is service name in docker compose
+    port     = _optional_int("POSTGRES_PORT", 5432)
+
+    return f"postgres://{user}:{password}@{host}:{port}/{db}"
+
+
 # ---------------------------------------------------------------------------
 # Database (PostgreSQL)
+# URL is always assembled from POSTGRES_* variables.
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = _optional(
-    "DATABASE_URL",
-    "postgresql://vpn:vpn@localhost:5432/vpn",
-)
+DATABASE_URL = _build_database_url()
 
 
 # ---------------------------------------------------------------------------
@@ -139,7 +152,7 @@ JWT_REFRESH_TTL_DAYS   = _optional_int("JWT_REFRESH_TTL_DAYS", 30)
 # Cookies
 # ---------------------------------------------------------------------------
 
-COOKIE_SECURE    = _optional_bool("COOKIE_SECURE", True)
+COOKIE_SECURE   = _optional_bool("COOKIE_SECURE", True)
 COOKIE_SAMESITE = _optional_samesite("COOKIE_SAMESITE", "strict")
 
 
@@ -182,7 +195,7 @@ MAINTENANCE_INTERVAL   = _optional_int("MAINTENANCE_INTERVAL", 600)   # 10 minut
 # After RT_MAX_FAILURES failed attempts the IP is blocked for RT_BLOCK_DURATION seconds.
 RT_MAX_FAILURES   = _optional_int("RT_MAX_FAILURES", 3)
 RT_BLOCK_DURATION = _optional_int("RT_BLOCK_DURATION", 180)
- 
+
 # Per-endpoint sliding-window caps: _REQ = max requests, _WIN = window in seconds.
 RT_LOGIN_REQ = _optional_int("RT_LOGIN_REQ", 10)
 RT_LOGIN_WIN = _optional_int("RT_LOGIN_WIN", 60)
@@ -199,8 +212,8 @@ RT_SERVERS_WIN = _optional_int("RT_SERVERS_WIN", 60)
 RT_CHANGE_PASSWORD_REQ = _optional_int("RT_CHANGE_PASSWORD_REQ", 3)
 RT_CHANGE_PASSWORD_WIN = _optional_int("RT_CHANGE_PASSWORD_WIN", 300)
 
-RT_GENERATE_URL_REQ =  _optional_int("RT_GENERATE_URL_REQ", 30)
-RT_GENERATE_URL_WIN =  _optional_int("RT_GENERATE_URL_WIN", 60)
+RT_GENERATE_URL_REQ = _optional_int("RT_GENERATE_URL_REQ", 30)
+RT_GENERATE_URL_WIN = _optional_int("RT_GENERATE_URL_WIN", 60)
 
 RT_REGENERATE_HY_REQ = _optional_int("RT_REGENERATE_HY_REQ", 5)
 RT_REGENERATE_HY_WIN = _optional_int("RT_REGENERATE_HY_WIN", 60)
@@ -227,4 +240,4 @@ LOG_LEVEL = _optional("LOG_LEVEL", "INFO").upper()
 # ---------------------------------------------------------------------------
 
 # Expose /docs and /redoc only when explicitly enabled.
-DOCS_ENABLED: bool = _optional_bool("DOCS_ENABLED", False)
+DOCS_ENABLED = _optional_bool("DOCS_ENABLED", False)
