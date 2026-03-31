@@ -5,6 +5,7 @@
  *   - кнопки «показать/скрыть пароль» для type="password"
  *   - иконки слева через проп `icon`
  *   - кастомного правого слота через `rightSlot`
+ *   - специальное визуальное выделение пустых datetime-local полей
  *
  * Совместим с react-hook-form через forwardRef — просто передай {...register("field")}.
  *
@@ -23,6 +24,14 @@
  *   placeholder="••••••••"
  *   error={errors.password?.message}
  *   {...register("password")}
+ * />
+ *
+ * @example — datetime-local поле с визуальным выделением пустого состояния
+ * <FormInput
+ *   label="Дата и время"
+ *   type="datetime-local"
+ *   error={errors.datetime?.message}
+ *   {...register("datetime")}
  * />
  */
 
@@ -49,13 +58,32 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
     ({ label, error, id, type, icon, rightSlot, className, ...props }, ref) => {
         // Состояние видимости для полей пароля
         const [showPassword, setShowPassword] = useState(false);
+        // Состояние для отслеживания пустоты datetime-local поля
+        const [isEmptyDatetime, setIsEmptyDatetime] = useState(true);
 
         // Генерируем id из label, если не передан явно
         const fieldId = id ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : Math.random().toString(36).slice(2));
 
         // Для password-поля подменяем тип и добавляем кнопку-глазик
         const isPassword = type === "password";
+        const isDatetime = type === "datetime-local";
         const resolvedType = isPassword && showPassword ? "text" : type;
+
+        // Обработчик изменения для datetime-local полей
+        const handleDatetimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            setIsEmptyDatetime(!e.target.value);
+            props.onChange?.(e);
+        };
+
+        // Инициализация состояния пустоты при монтировании или изменении value
+        React.useEffect(() => {
+            if (isDatetime) {
+                const inputElement = ref && typeof ref === "object" && "current" in ref ? ref.current : null;
+                if (inputElement) {
+                    setIsEmptyDatetime(!inputElement.value);
+                }
+            }
+        }, [props.value, isDatetime, ref]);
 
         // Правый слот: кастомный -> глазик -> ничего
         const rightContent =
@@ -63,11 +91,11 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    tabIndex={-1}           // не попадает в Tab-навигацию
+                    tabIndex={-1} // Исключаем из таба, чтобы не мешать основному фокусу
                     aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                 >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
             ) : null;
 
@@ -102,12 +130,16 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                             // Рамка красная при ошибке
                             error
                                 ? "border-destructive focus:ring-destructive"
-                                : "border-border",
+                                : // Для пустых datetime-local полей — более заметная рамка
+                                isDatetime && isEmptyDatetime
+                                    ? "border-muted-foreground/30 bg-muted/20 focus:ring-muted-foreground/50"
+                                    : "border-border",
                             // Паддинги в зависимости от слотов
                             hasLeft ? "pl-9" : "px-3",
                             hasRight ? "pr-10" : hasLeft ? "pr-3" : "",
                             className,
                         )}
+                        onChange={isDatetime ? handleDatetimeChange : props.onChange}
                         {...props}
                     />
 

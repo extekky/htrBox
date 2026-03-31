@@ -92,7 +92,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
         resolver: zodResolver(createUserSchema),
         defaultValues: {
             allowed: true,
-            active: true,
+            active: false,
             expires_at: null,
         },
     });
@@ -130,7 +130,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
             open
             onClose={onClose}
             title="Новый пользователь"
-            description="Hysteria-пароль будет сгенерирован автоматически"
+            description="Hysteria url будет сгенерирован автоматически"
             footer={
                 <ModalActions
                     formId="user-create-form"
@@ -167,28 +167,26 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                 />
 
                 {/* Дата истечения — нативный datetime-local */}
-                <div className="flex flex-col gap-1.5">
-                    <FormLabel htmlFor="user-expires">Истекает (необязательно)</FormLabel>
-                    <input
-                        id="user-expires"
-                        {...register("expires_at")}
-                        type="datetime-local"
-                        min={nowMoscowInput()}
-                        className="h-9 w-full rounded-lg border border-border bg-input px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
-                    />
-                </div>
+                <FormInput
+                    label="Истекает (необязательно)"
+                    id="user-expires"
+                    type="datetime-local"
+                    min={nowMoscowInput()}
+                    error={errors.expires_at?.message}
+                    {...register("expires_at")}
+                />
 
                 {/* Тоглы доступа */}
                 <div className="flex flex-col gap-2">
                     <ToggleCard
-                        label="Разрешён"
-                        description="Аккаунт не заблокирован администратором"
+                        label="Доступ к сервису"
+                        description={allowed ? "Не забанен" : "Будет забанен"}
                         checked={!!allowed}
                         onChange={(v) => setValue("allowed", v)}
                     />
                     <ToggleCard
-                        label="Активен"
-                        description="Подписка активна, VPN доступен"
+                        label="Подписка"
+                        description={active ? "Будет активирована" : "Будет отключена"}
                         checked={!!active}
                         onChange={(v) => setValue("active", v)}
                     />

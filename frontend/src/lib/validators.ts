@@ -28,7 +28,17 @@ const expiresAtSchema = z
     .string()
     .nullable()
     .optional()
-    .or(z.literal(""));
+    .or(z.literal(""))
+    .refine(
+        (val) => {
+            if (val == null || val === "") {
+                return false;
+            }
+            const date = new Date(val);
+            return !isNaN(date.getTime());
+        },
+        { message: "Заполните дату полностью" }
+    );
 
 // -------------------------------------------------------------
 // Логин

@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 
 import { Modal } from "@/components/ui/Modal";
-import { FormLabel } from "@/components/ui/FormLabel";
 import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { ToggleCard } from "@/components/ui/ToggleCard";
@@ -304,7 +303,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
             allowed: user.allowed,
             active: user.active,
             password: "",
-            expires_at: toInputDatetimeLocal(user.expires_at) || toInputDatetimeLocal(new Date().toISOString()),
+            expires_at: toInputDatetimeLocal(user.expires_at),
         },
     });
 
@@ -433,18 +432,13 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
                         <div className="h-px bg-border" />
 
                         {/* Дата истечения — нативный datetime-local */}
-                        <div className="flex flex-col gap-1.5">
-                            <FormLabel htmlFor="user-edit-expires">Истекает</FormLabel>
-                            <input
-                                id="user-edit-expires"
-                                {...register("expires_at")}
-                                type="datetime-local"
-                                className="h-9 w-full rounded-lg border border-border bg-input px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
-                            />
-                            {errors.expires_at && (
-                                <p className="text-xs text-destructive">{errors.expires_at.message}</p>
-                            )}
-                        </div>
+                        <FormInput
+                            label="Истекает"
+                            id="user-edit-expires"
+                            type="datetime-local"
+                            error={errors.expires_at?.message}
+                            {...register("expires_at")}
+                        />
                     </form>
                 )}
 
