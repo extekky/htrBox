@@ -138,7 +138,7 @@ export function useDeleteUser() {
 }
 
 /**
- * Изменяет роль пользователя (admin ↔ user).
+ * Изменяет роль пользователя (admin <-> user).
  * Инвалидирует список пользователей при успехе.
  */
 export function useSetRole() {

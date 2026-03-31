@@ -275,7 +275,7 @@ export function ManualPage() {
                             <div className="flex flex-col gap-3 pt-3">
                                 {/* Краткое описание */}
                                 <p className="text-muted-foreground">
-                                    <strong className="text-foreground">htrBox</strong> — личный кабинет для VPN на базе{" "}
+                                    <strong className="text-foreground">htrBox</strong> — личный кабинет для VPN на основе{" "}
                                     <strong className="text-foreground">Hysteria2</strong>. Трафик маскируется под HTTPS — соединение устойчиво к блокировкам.
                                 </p>
 

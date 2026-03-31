@@ -98,7 +98,7 @@ export function getSubscriptionValue(
     if (daysLeft !== null && daysLeft < 0) {
         return {
             text: "Истекла",
-            sub: "обратитесь к администратору",
+            sub: "часики тик-так тик-так ...",
             color: "text-red-500",
         };
     }

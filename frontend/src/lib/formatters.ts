@@ -148,9 +148,7 @@ export function msAgo(iso: string | null | undefined): number | null {
  */
 export function daysUntil(iso: string | null | undefined): number | null {
     if (!iso) return null;
-    const ms = msUntil(iso);
-    if (ms === null) return null;
-    if (ms <= 0) return -1;
+    if (msUntil(iso) === null) return null;  // на случай невалидной даты
 
     const expiryMs = moscowMidnightMs(new Date(iso));
     const todayMs = moscowMidnightMs(new Date());
@@ -163,15 +161,19 @@ export function daysUntil(iso: string | null | undefined): number | null {
  * Примеры: "Осталось 5 дней", "Истекает сегодня", "Истёк 2 дня назад"
  */
 export function formatDaysLeft(iso: string | null | undefined): string {
-    const days = daysUntil(iso);
-    if (days === null) return "Срок не установлен";
-    if (days < 0) {
-        const d = Math.abs(days);
-        return `Истёк ${d} ${pluralize(d, "день", "дня", "дней")} назад`;
+    const ms = msUntil(iso);
+    if (ms === null) return "Срок не установлен";
+
+    if (ms > 0) {
+        const days = daysUntil(iso)!;
+        if (days === 0) return `Истекает сегодня в ${formatTime(iso)}`;
+        if (days === 1) return "Истекает завтра";
+        return `Осталось ${days} ${pluralize(days, "день", "дня", "дней")}`;
     }
-    if (days === 0) return "Истекает сегодня";
-    if (days === 1) return "Истекает завтра";
-    return `Осталось ${days} ${pluralize(days, "день", "дня", "дней")}`;
+
+    const days = Math.abs(daysUntil(iso)!);
+    if (days === 0) return `Истёк сегодня в ${formatTime(iso)}`;
+    return `Истёк ${days} ${pluralize(days, "день", "дня", "дней")} назад`;
 }
 
 /**
@@ -208,9 +210,11 @@ export type ExpiryTier = "none" | "expired" | "critical" | "warning" | "ok";
  * ok       — более 7 дней
  */
 export function getExpiryTier(iso: string | null | undefined): ExpiryTier {
-    const days = daysUntil(iso);
-    if (days === null) return "none";
-    if (days < 0) return "expired";
+    const ms = msUntil(iso);
+    if (ms === null) return "none";
+    if (ms <= 0) return "expired";  // точная проверка по ms
+
+    const days = daysUntil(iso)!;
     if (days <= 3) return "critical";
     if (days <= 7) return "warning";
     return "ok";
