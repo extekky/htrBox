@@ -34,11 +34,11 @@ interface AllowedBadgeProps {
 function AllowedBadge({ value }: AllowedBadgeProps) {
     return value ? (
         <Pill className="bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/20">
-            Разрешён
+            Ок
         </Pill>
     ) : (
         <Pill className="bg-destructive/10 text-destructive border-destructive/20">
-            Заблокирован
+            Бан
         </Pill>
     );
 }
@@ -73,7 +73,7 @@ interface RoleBadgeProps {
 
 function RoleBadge({ role }: RoleBadgeProps) {
     return role === "admin" ? (
-        <Pill className="bg-primary/10 text-primary border-primary/20">
+        <Pill className="bg-amber-500/10 text-amber-500/90 border-amber-500/30">
             Админ
         </Pill>
     ) : (

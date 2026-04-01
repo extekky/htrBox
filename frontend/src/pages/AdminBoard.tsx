@@ -12,7 +12,12 @@ import { useUsers } from "@/hooks/useUsers";
 import { useServersAdmin } from "@/hooks/useServers";
 import { KpiCard } from "@/components/dashboard/KpiCard"
 import { useOnlineUsers } from "@/hooks/useHysteria";
-import { daysUntil } from "@/lib/formatters";
+import {
+    msUntil,
+    daysUntil,
+    formatDaysLeft,
+} from "@/lib/formatters";
+
 import { cn } from "@/lib/cn";
 
 import {
@@ -52,8 +57,9 @@ export function AdminBoard() {
 
     // Пользователи, чья подписка истекает в ближайшие 7 дней
     const expiringUsers = users.filter((u) => {
-        const d = daysUntil(u.expires_at);
-        return d !== null && d >= 0 && d <= 7;
+        const ms = msUntil(u.expires_at);
+        const days = daysUntil(u.expires_at);
+        return ms !== null && ms > 0 && days !== null && days <= 7;
     });
 
     const activeServers = servers.filter((s) => s.active).length;
@@ -122,7 +128,7 @@ export function AdminBoard() {
                     <div className="grid grid-cols-4 gap-3">
                         <KpiCard label="Всего" value={totalUsers} sub="аккаунтов" icon={Users} accent="blue" />
                         <KpiCard label="Активных" value={activeUsers} sub="с подпиской" icon={Wifi} accent="green" />
-                        <KpiCard label="Заблокировано" value={blockedUsers} icon={ShieldAlert} accent={blockedUsers > 0 ? "red" : "default"} />
+                        <KpiCard label="Забанено" value={blockedUsers} icon={ShieldAlert} accent={blockedUsers > 0 ? "red" : "default"} />
                         <KpiCard label="Истекают" value={expiringUsers.length} sub="≤ 7 дней" icon={Clock} accent={expiringUsers.length > 0 ? "amber" : "default"} />
                     </div>
                 </div>
@@ -171,9 +177,9 @@ export function AdminBoard() {
                             Object.entries(online).map(([username, info]) => (
                                 <SectionRow key={username}>
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                        {/* <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                                             <span className="text-[10px] font-bold text-emerald-500">{username[0].toUpperCase()}</span>
-                                        </div>
+                                        </div> */}
                                         <span className="text-sm font-medium text-foreground">{username}</span>
                                     </div>
                                     <span className="text-xs text-muted-foreground tabular-nums">{info.connections} соед.</span>
@@ -204,20 +210,29 @@ export function AdminBoard() {
                             <SectionEmpty label="Все подписки в порядке" />
                         ) : (
                             expiringUsers.slice(0, 6).map((u) => {
+                                const ms = msUntil(u.expires_at);
                                 const days = daysUntil(u.expires_at);
-                                const urgent = days !== null && days <= 1;
+                                const urgent = ms !== null && ms <= 0 || (days !== null && days <= 1);
+
                                 return (
                                     <SectionRow key={u.username}>
                                         <div className="flex items-center gap-2.5">
-                                            <div className={cn(
+                                            {/* <div className={cn(
                                                 "w-6 h-6 rounded-lg flex items-center justify-center",
-                                                urgent ? "bg-rose-500/10 border border-rose-500/20" : "bg-amber-500/10 border border-amber-500/20",
+                                                urgent
+                                                    ? "bg-rose-500/10 border border-rose-500/20"
+                                                    : "bg-amber-500/10 border border-amber-500/20",
                                             )}>
-                                                <span className={cn("text-[10px] font-bold", urgent ? "text-rose-500" : "text-amber-500")}>
+                                                <span className={cn(
+                                                    "text-[10px] font-bold",
+                                                    urgent ? "text-rose-500" : "text-amber-500",
+                                                )}>
                                                     {u.username[0].toUpperCase()}
                                                 </span>
-                                            </div>
-                                            <span className="text-sm font-medium text-foreground">{u.username}</span>
+                                            </div> */}
+                                            <span className="text-sm font-medium text-foreground">
+                                                {u.username}
+                                            </span>
                                         </div>
                                         <span className={cn(
                                             "text-xs px-2 py-0.5 rounded-lg border font-semibold",
@@ -225,7 +240,7 @@ export function AdminBoard() {
                                                 ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
                                                 : "bg-amber-500/10 border-amber-500/20 text-amber-500",
                                         )}>
-                                            {days !== null && days <= 0 ? "истекла" : `${days} дн.`}
+                                            {formatDaysLeft(u.expires_at)}
                                         </span>
                                     </SectionRow>
                                 );

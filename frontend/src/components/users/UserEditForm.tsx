@@ -433,8 +433,8 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
 
                         {/* Дата истечения — нативный datetime-local */}
                         <FormInput
-                            label="Истекает"
-                            id="user-edit-expires"
+                            label="Истекает (обязательно)"
+                            id="user-expires"
                             type="datetime-local"
                             error={errors.expires_at?.message}
                             {...register("expires_at")}

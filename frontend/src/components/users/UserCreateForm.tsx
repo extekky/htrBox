@@ -166,16 +166,6 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                     {...register("password")}
                 />
 
-                {/* Дата истечения — нативный datetime-local */}
-                <FormInput
-                    label="Истекает (необязательно)"
-                    id="user-expires"
-                    type="datetime-local"
-                    min={nowMoscowInput()}
-                    error={errors.expires_at?.message}
-                    {...register("expires_at")}
-                />
-
                 {/* Тоглы доступа */}
                 <div className="flex flex-col gap-2">
                     <ToggleCard
@@ -191,6 +181,17 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
                         onChange={(v) => setValue("active", v)}
                     />
                 </div>
+
+                <div className="h-px bg-border" />
+
+                {/* Дата истечения — нативный datetime-local */}
+                <FormInput
+                    label="Истекает (обязательно)"
+                    id="user-expires"
+                    type="datetime-local"
+                    error={errors.expires_at?.message}
+                    {...register("expires_at")}
+                />
             </form>
         </Modal>
     );

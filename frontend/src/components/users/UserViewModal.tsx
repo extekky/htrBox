@@ -116,8 +116,8 @@ export function UserViewModal({ user, onClose }: UserViewModalProps) {
                     </InfoRow>
                     <InfoRow label="Доступ">
                         {user.allowed
-                            ? <span className="flex items-center gap-1 text-green-500"><CircleCheck size={12} /> Разрешён</span>
-                            : <span className="flex items-center gap-1 text-destructive"><CircleX size={12} /> Заблокирован</span>
+                            ? <span className="flex items-center gap-1 text-green-500"><CircleCheck size={12} /> Ок</span>
+                            : <span className="flex items-center gap-1 text-destructive"><CircleX size={12} /> Бан</span>
                         }
                     </InfoRow>
                     <InfoRow label="Подписка">

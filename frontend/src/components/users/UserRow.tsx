@@ -122,7 +122,7 @@ export function UserRow({
                 <div className="flex flex-wrap items-center gap-1.5">
                     <StatusBadge type="allowed" value={user.allowed} />
                     <StatusBadge type="active" value={user.active} />
-                    {user.role === "admin" && <CheckCircle2 size={15} className="text-amber-500" />}
+                    {user.role === "admin" && <CheckCircle2 size={20} className="text-amber-500/90" />}
                 </div>
             </td>
 
