@@ -101,7 +101,7 @@ async def kick_users(
         placeholders = ",".join("%s" for _ in usernames)
         with conn.cursor() as cur:
             cur.execute(
-                f"UPDATE users SET allowed = FALSE WHERE username IN ({placeholders})",
+                f"UPDATE users SET allowed = FALSE, active = FALSE WHERE username IN ({placeholders})",
                 usernames,
             )
             updated = cur.rowcount

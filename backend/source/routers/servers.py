@@ -53,12 +53,16 @@ def list_servers(current_user=Depends(optional_user)):
     """
     # Resolve role from DB only if a token was provided
     caller_is_admin = False
+    caller_is_active = False
     if current_user is not None:
         with get_db() as conn:
             with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
-                cur.execute("SELECT role FROM users WHERE username = %s", (current_user.username,))
+                cur.execute("SELECT role, active FROM users WHERE username = %s", (current_user.username,))
                 row = cur.fetchone()
             caller_is_admin = row is not None and row["role"] == "admin"
+            caller_is_active = row is not None and row["active"] == True
+        if not caller_is_active:
+            raise HTTPException(403, "Inactive users cannot access server list")
 
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:

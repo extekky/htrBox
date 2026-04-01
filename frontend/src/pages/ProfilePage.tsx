@@ -281,7 +281,7 @@ export function ProfilePage() {
                     )}
 
                     {/* -- График трафика ---------------------------------- */}
-                    <TrafficChart />
+                    {isActive && (<TrafficChart />)}
 
                 </div>
             </div>

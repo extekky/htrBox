@@ -428,11 +428,15 @@ def regenerate_hy(
     """
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
-            cur.execute("SELECT role FROM users WHERE username = %s", (current_user.username,))
+            cur.execute("SELECT role, active FROM users WHERE username = %s", (current_user.username,))
             caller_row = cur.fetchone()
         if not caller_row:
             raise HTTPException(401, "User no longer exists")
 
+        caller_is_active  = bool(caller_row["active"])
+        if not caller_is_active:
+            raise HTTPException(403, "Inactive users cannot regenerate hysteria password")
+        
         caller_is_admin = caller_row["role"] == "admin"
 
         if not caller_is_admin and current_user.username != username:

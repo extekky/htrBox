@@ -143,7 +143,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                         {...props}
                     />
 
-                    {/* Слот справа (глазик или кастомный) */}
+                    {/* Слот справа */}
                     {hasRight && (
                         <span className="absolute right-3 top-1/2 -translate-y-1/2">
                             {rightContent}

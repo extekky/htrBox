@@ -13,7 +13,8 @@ import logging
 
 from fastapi import (
     APIRouter, 
-    Depends, 
+    Depends,
+    HTTPException, 
     Query,
 )
 
@@ -54,6 +55,9 @@ def my_traffic(
     user_row=Depends(require_user),
 ):
     """5-minute traffic buckets for the currently authenticated user."""
+    if not user_row["active"]:
+        raise HTTPException(status_code=403, detail="Inactive account")
+    
     username = user_row["username"]
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
