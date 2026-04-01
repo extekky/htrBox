@@ -32,8 +32,7 @@ from routers import (
     hysteria, 
     servers, 
     traffic, 
-    users, 
-    ws,
+    users,
 )
 from rate_limiter import start_cleanup, rate_limit
 from config import (
@@ -178,4 +177,3 @@ app.include_router(users.router)
 app.include_router(hysteria.router)
 app.include_router(servers.router)
 app.include_router(traffic.router)
-app.include_router(ws.router)

@@ -1,144 +1,144 @@
-"""
-Ws router - WebSocket endpoint for push notifications to the frontend.
+# """
+# Ws router - WebSocket endpoint for push notifications to the frontend.
 
-IMPORTANT: The WebSocket is used ONLY as a notification channel (event bus).
-The client receives an event and then makes a regular HTTP request via TANSTACK.
-This simplifies the logic and makes the system resilient to WebSocket failures.
+# IMPORTANT: The WebSocket is used ONLY as a notification channel (event bus).
+# The client receives an event and then makes a regular HTTP request via TANSTACK.
+# This simplifies the logic and makes the system resilient to WebSocket failures.
 
-Connection:
-    WS /ws?token=<access_token>
+# Connection:
+#     WS /ws?token=<access_token>
 
-Events (server -> client):
-    {"type": "ping"}                             - heartbeat
-    {"type": "user_updated", "username": "x"}    - specific user has been updated
-    {"type": "users_changed"}                    - user list has changed
-    {"type": "online_changed"}                   - online status has changed
-    {"type": "traffic_updated", "username": "x"} - traffic updated (from collector)
-    {"type": "servers_changed"}                  - server list has changed
+# Events (server -> client):
+#     {"type": "ping"}                             - heartbeat
+#     {"type": "user_updated", "username": "x"}    - specific user has been updated
+#     {"type": "users_changed"}                    - user list has changed
+#     {"type": "online_changed"}                   - online status has changed
+#     {"type": "traffic_updated", "username": "x"} - traffic updated (from collector)
+#     {"type": "servers_changed"}                  - server list has changed
 
-Usage from other routers:
-    from routers.ws import notify
-    await notify({"type": "users_changed"})
-    await notify({"type": "user_updated", "username": "alice"}, target_username="alice")
+# Usage from other routers:
+#     from routers.ws import notify
+#     await notify({"type": "users_changed"})
+#     await notify({"type": "user_updated", "username": "alice"}, target_username="alice")
 
-Usage from traffic_collector (synchronous context):
-    from routers.ws import notify_sync
-    notify_sync({"type": "traffic_updated", "username": "alice"})
-"""
+# Usage from traffic_collector (synchronous context):
+#     from routers.ws import notify_sync
+#     notify_sync({"type": "traffic_updated", "username": "alice"})
+# """
 
-import asyncio
-import json
-import logging
+# import asyncio
+# import json
+# import logging
 
-from fastapi import (
-    APIRouter, 
-    Query, 
-    WebSocket, 
-    WebSocketDisconnect,
-)
+# from fastapi import (
+#     APIRouter, 
+#     Query, 
+#     WebSocket, 
+#     WebSocketDisconnect,
+# )
 
-from auth_jwt import decode_access_token
+# from auth_jwt import decode_access_token
 
-router = APIRouter()
-logger = logging.getLogger(__name__)
+# router = APIRouter()
+# logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Connection Manager
-# ---------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
+# # Connection Manager
+# # ---------------------------------------------------------------------------
 
-class ConnectionManager:
-    """
-    Stores all active WebSocket connections keyed by username.
-    Thread-safe via asyncio.Lock.
-    """
+# class ConnectionManager:
+#     """
+#     Stores all active WebSocket connections keyed by username.
+#     Thread-safe via asyncio.Lock.
+#     """
 
-    def __init__(self):
-        # username -> list[WebSocket] (one user can have multiple tabs)
-        self._connections: dict[str, list[WebSocket]] = {}
-        self._lock = asyncio.Lock()
+#     def __init__(self):
+#         # username -> list[WebSocket] (one user can have multiple tabs)
+#         self._connections: dict[str, list[WebSocket]] = {}
+#         self._lock = asyncio.Lock()
 
-    async def connect(self, ws: WebSocket, username: str) -> None:
-        await ws.accept()
-        async with self._lock:
-            self._connections.setdefault(username, []).append(ws)
-            logger.debug("WS connected: %r (total users: %d)", username, len(self._connections))
+#     async def connect(self, ws: WebSocket, username: str) -> None:
+#         await ws.accept()
+#         async with self._lock:
+#             self._connections.setdefault(username, []).append(ws)
+#             logger.debug("WS connected: %r (total users: %d)", username, len(self._connections))
 
-    async def disconnect(self, ws: WebSocket, username: str) -> None:
-        async with self._lock:
-            conns = self._connections.get(username, [])
-            if ws in conns:
-                conns.remove(ws)
-            if not conns:
-                self._connections.pop(username, None)
-            logger.debug("WS disconnected: %r", username)
+#     async def disconnect(self, ws: WebSocket, username: str) -> None:
+#         async with self._lock:
+#             conns = self._connections.get(username, [])
+#             if ws in conns:
+#                 conns.remove(ws)
+#             if not conns:
+#                 self._connections.pop(username, None)
+#             logger.debug("WS disconnected: %r", username)
 
-    async def broadcast(self, message: dict) -> None:
-        """Send a message to all connected clients."""
-        data = json.dumps(message)
-        dead: list[tuple[str, WebSocket]] = []
+#     async def broadcast(self, message: dict) -> None:
+#         """Send a message to all connected clients."""
+#         data = json.dumps(message)
+#         dead: list[tuple[str, WebSocket]] = []
 
-        async with self._lock:
-            snapshot = {u: list(ws_list) for u, ws_list in self._connections.items()}
+#         async with self._lock:
+#             snapshot = {u: list(ws_list) for u, ws_list in self._connections.items()}
 
-        for username, ws_list in snapshot.items():
-            for ws in ws_list:
-                try:
-                    await ws.send_text(data)
-                except Exception:
-                    dead.append((username, ws))
+#         for username, ws_list in snapshot.items():
+#             for ws in ws_list:
+#                 try:
+#                     await ws.send_text(data)
+#                 except Exception:
+#                     dead.append((username, ws))
 
-        # Remove dead connections
-        for username, ws in dead:
-            await self.disconnect(ws, username)
+#         # Remove dead connections
+#         for username, ws in dead:
+#             await self.disconnect(ws, username)
 
-    async def send_to_user(self, username: str, message: dict) -> None:
-        """Send a message to a specific user (all their tabs)."""
-        data = json.dumps(message)
-        async with self._lock:
-            ws_list = list(self._connections.get(username, []))
-        dead = []
-        for ws in ws_list:
-            try:
-                await ws.send_text(data)
-            except Exception:
-                dead.append(ws)
-        for ws in dead:
-            await self.disconnect(ws, username)
+#     async def send_to_user(self, username: str, message: dict) -> None:
+#         """Send a message to a specific user (all their tabs)."""
+#         data = json.dumps(message)
+#         async with self._lock:
+#             ws_list = list(self._connections.get(username, []))
+#         dead = []
+#         for ws in ws_list:
+#             try:
+#                 await ws.send_text(data)
+#             except Exception:
+#                 dead.append(ws)
+#         for ws in dead:
+#             await self.disconnect(ws, username)
 
-    async def broadcast_except(self, excluded_username: str, message: dict) -> None:
-        """Send a message to all connected clients EXCEPT the given user."""
-        data = json.dumps(message)
-        dead: list[tuple[str, WebSocket]] = []
+#     async def broadcast_except(self, excluded_username: str, message: dict) -> None:
+#         """Send a message to all connected clients EXCEPT the given user."""
+#         data = json.dumps(message)
+#         dead: list[tuple[str, WebSocket]] = []
 
-        async with self._lock:
-            snapshot = {
-                u: list(ws_list)
-                for u, ws_list in self._connections.items()
-                if u != excluded_username
-            }
+#         async with self._lock:
+#             snapshot = {
+#                 u: list(ws_list)
+#                 for u, ws_list in self._connections.items()
+#                 if u != excluded_username
+#             }
 
-        for username, ws_list in snapshot.items():
-            for ws in ws_list:
-                try:
-                    await ws.send_text(data)
-                except Exception:
-                    dead.append((username, ws))
+#         for username, ws_list in snapshot.items():
+#             for ws in ws_list:
+#                 try:
+#                     await ws.send_text(data)
+#                 except Exception:
+#                     dead.append((username, ws))
 
-        for username, ws in dead:
-            await self.disconnect(ws, username)
+#         for username, ws in dead:
+#             await self.disconnect(ws, username)
 
-    @property
-    def active_count(self) -> int:
-        return sum(len(v) for v in self._connections.values())
+#     @property
+#     def active_count(self) -> int:
+#         return sum(len(v) for v in self._connections.values())
 
 
 # manager = ConnectionManager()
 
 
-# ---------------------------------------------------------------------------
-# Public notify API (used from other modules)
-# ---------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
+# # Public notify API (used from other modules)
+# # ---------------------------------------------------------------------------
 
 # async def notify(
 #     message: dict,
