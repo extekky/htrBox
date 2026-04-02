@@ -1,18 +1,17 @@
-# ─────────────────────────────────────────────────────
+# -----------------------------------------------------
 #  Yandex Cloud: Frontend + Backend + Postgres
-#  Запуск: docker compose -f docker-compose.yc.yaml up -d --build
 #
 #  pgdata живёт в ~/htrBox-data/pgdata (вне проекта)
 #  Сертификаты: /etc/letsencrypt (управляются certbot на хосте)
-# ─────────────────────────────────────────────────────
-
+# -----------------------------------------------------
 services:
     postgres:
         image: postgres:17-alpine
         container_name: postgres
         env_file:
-            - .env.FrontBack
+            - .env
         volumes:
+            # хранится вне проекта, чтобы не потерять при удалении контейнера
             - /home/dolzhkevich/htrBox-data/pgdata:/var/lib/postgresql/data
         networks:
             - vpn_net
@@ -29,7 +28,7 @@ services:
             context: ./backend
             dockerfile: Dockerfile
         env_file:
-            - .env.FrontBack
+            - .env
         environment:
             - DOCKER_ENV=true
         depends_on:
@@ -48,8 +47,8 @@ services:
     frontend:
         container_name: frontend
         build:
-            context: ./frontend
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: frontend/Dockerfile
             target: prod
         ports:
             - "80:80"

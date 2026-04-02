@@ -94,3 +94,4 @@ coverage/
 
 # Ignore any other files or directories
 other
+*venv

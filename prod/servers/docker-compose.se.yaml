@@ -1,0 +1,24 @@
+# -----------------------------------------------------
+#  VPN сервер: Sweden
+# -----------------------------------------------------
+services:
+    hysteria:
+        image: tobyxdd/hysteria:v2.7.0
+        container_name: hysteria
+        env_file:
+            - .env
+        volumes:
+            - ./hysteria/config.yaml:/etc/hysteria/config.yaml:ro
+            - /etc/letsencrypt/live/se.stdoq.ru/fullchain.pem:/etc/hysteria/certs/server.crt:ro
+            - /etc/letsencrypt/live/se.stdoq.ru/privkey.pem:/etc/hysteria/certs/server.key:ro
+        command: server -c /etc/hysteria/config.yaml --disable-update-check
+        ports:
+            - "443:443/udp" # основной VPN порт (UDP)
+            - "8080:8080"   # traffic stats API (от backend)
+        restart: unless-stopped
+
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"

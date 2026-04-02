@@ -1,44 +1,45 @@
 #!/bin/bash
 set -e
 
-# ─────────────────────────────────────────────────────────────────────────────
-# deploy.sh — деплой htrBox
-# Запуск из папки prod/: ./deploy.sh [yc|vps-se|vps-nether|vps-all|all]
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# deploy.sh - деплой htrBox
+# ./deploy.sh [yc|vps-se|vps-nether|vps-all|all]
+# -----------------------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# ── Yandex Cloud (frontend + backend + postgres) ──────────────────────────────
+# -- Yandex Cloud (frontend + backend + postgres) ------------------------------
 YC_HOST="93.77.187.20"
 YC_USER="dolzhkevich"
 YC_KEY="$HOME/.ssh/ssh-key-yandex-cloud"
 YC_DIR="/home/dolzhkevich/htrBox"
 YC_DATA_DIR="/home/dolzhkevich/htrBox-data"
 
-# ── VPS Sweden (hysteria) ─────────────────────────────────────────────────────
+# -- VPS Sweden (hysteria) -----------------------------------------------------
 VPS_HOST_SE="193.25.216.190"
-VPS_USER="root"
-VPS_KEY="$HOME/.ssh/id_rsa"
-VPS_DIR="/root/htrBox"
+VPS_USER_SE="root"
+VPS_KEY_SE="$HOME/.ssh/id_rsa"
+VPS_DIR_SE="/root/htrBox"
 
-# ── VPS Nether (hysteria) — сервер ещё не поднят ─────────────────────────────
-VPS_HOST_NETHER=""      # TODO: заполнить когда сервер появится
-VPS_USER_NETHER="root"
-VPS_KEY_NETHER="$HOME/.ssh/id_rsa"
-VPS_DIR_NETHER="/root/htrBox"
+# -- VPS Nether (hysteria) —----------------------------------------------------
+VPS_HOST_NL="151.245.136.168"
+VPS_USER_NL="root"
+VPS_KEY_NL="$HOME/.ssh/id_rsa"
+VPS_DIR_NL="/root/htrBox"
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
 log()  { echo -e "${GREEN}[✓]${NC} $1"; }
 warn() { echo -e "${YELLOW}[!]${NC} $1"; }
 fail() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 
-[ ! -f "$SCRIPT_DIR/infra/yandex-cloud.yaml" ] && fail "Запускай из папки prod/"
-[ ! -f "$SCRIPT_DIR/servers/sweden.yaml" ]      && fail "servers/sweden.yaml не найден"
+# -- Проверяем что запущено из папки prod/ ------------------------------------
+[ ! -f "$SCRIPT_DIR/infra/docker-compose.yaml" ]       && fail "infra/docker-compose.yaml не найден — запускай из папки prod/"
+[ ! -f "$SCRIPT_DIR/servers/docker-compose.se.yaml" ]  && fail "servers/docker-compose.se.yaml не найден"
 
-# ════════════════════════════════════════════════════
+# ----------------------------------------------------
 # ДЕПЛОЙ Yandex Cloud (frontend + backend + postgres)
-# ════════════════════════════════════════════════════
+# ----------------------------------------------------
 deploy_yc() {
   echo ""
   echo "-------------------------------------------"
@@ -47,6 +48,7 @@ deploy_yc() {
 
   [ ! -f "$SCRIPT_DIR/certificates/yandex-cloud.ini" ] && fail "certificates/yandex-cloud.ini не найден"
   [ ! -f "$SCRIPT_DIR/infra/.env" ]                    && fail "infra/.env не найден"
+  [ ! -f "$SCRIPT_DIR/infra/nginx.conf" ]              && fail "infra/nginx.conf не найден"
 
   log "Создаём директории на YC..."
   ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "mkdir -p $YC_DIR $YC_DATA_DIR/pgdata"
@@ -59,11 +61,10 @@ deploy_yc() {
     --exclude=".pytest_cache" \
     -C "$PROJECT_ROOT" backend
   scp -i "$YC_KEY" /tmp/backend.tar.gz "$YC_USER@$YC_HOST:/tmp/"
-  ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "mkdir -p $YC_DIR && tar --warning=no-unknown-keyword -xzf /tmp/backend.tar.gz -C $YC_DIR && rm /tmp/backend.tar.gz"
+  ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "tar --warning=no-unknown-keyword -xzf /tmp/backend.tar.gz -C $YC_DIR && rm /tmp/backend.tar.gz"
   rm /tmp/backend.tar.gz
 
   log "Копируем frontend/ на YC..."
-  cp "$SCRIPT_DIR/infra/nginx.conf" "$PROJECT_ROOT/frontend/nginx.conf"
   tar -czf /tmp/frontend.tar.gz \
     --exclude="node_modules" \
     --exclude="dist" \
@@ -72,9 +73,14 @@ deploy_yc() {
   ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "tar --warning=no-unknown-keyword -xzf /tmp/frontend.tar.gz -C $YC_DIR && rm /tmp/frontend.tar.gz"
   rm /tmp/frontend.tar.gz
 
+  # nginx.conf для prod передаётся отдельно, поверх распакованного frontend/
+  # dev-файл (frontend/nginx.conf в репозитории) не затрагивается
+  log "Копируем prod nginx.conf на YC (infra/nginx.conf -> frontend/nginx.conf)..."
+  scp -i "$YC_KEY" "$SCRIPT_DIR/infra/nginx.conf" "$YC_USER@$YC_HOST:$YC_DIR/frontend/nginx.conf"
+
   log "Копируем docker-compose и .env..."
-  scp -i "$YC_KEY" "$SCRIPT_DIR/infra/yandex-cloud.yaml" "$YC_USER@$YC_HOST:$YC_DIR/docker-compose.yc.yaml"
-  scp -i "$YC_KEY" "$SCRIPT_DIR/infra/.env"              "$YC_USER@$YC_HOST:$YC_DIR/.env.FrontBack"
+  scp -i "$YC_KEY" "$SCRIPT_DIR/infra/docker-compose.yaml" "$YC_USER@$YC_HOST:$YC_DIR/docker-compose.yc.yaml"
+  scp -i "$YC_KEY" "$SCRIPT_DIR/infra/.env"                "$YC_USER@$YC_HOST:$YC_DIR/.env"
 
   log "Копируем Cloudflare токен..."
   ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
@@ -134,9 +140,9 @@ deploy_yc() {
   log "Yandex Cloud задеплоен ✓"
 }
 
-# ════════════════════════════════════════════════════
+# ----------------------------------------------------
 # ДЕПЛОЙ VPS Sweden (hysteria)
-# ════════════════════════════════════════════════════
+# ----------------------------------------------------
 deploy_vps_se() {
   echo ""
   echo "-------------------------------------------"
@@ -146,21 +152,21 @@ deploy_vps_se() {
   [ ! -f "$SCRIPT_DIR/certificates/vps-sweden.ini" ] && fail "certificates/vps-sweden.ini не найден"
   [ ! -f "$SCRIPT_DIR/servers/.env" ]                && fail "servers/.env не найден"
 
-  log "Создаём директорию $VPS_DIR..."
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" "mkdir -p $VPS_DIR/hysteria"
+  log "Создаём директорию $VPS_DIR_SE..."
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" "mkdir -p $VPS_DIR_SE/hysteria"
 
   log "Копируем hysteria конфиг и docker-compose..."
-  scp -i "$VPS_KEY" "$SCRIPT_DIR/servers/config.yaml" "$VPS_USER@$VPS_HOST_SE:$VPS_DIR/hysteria/config.yaml"
-  scp -i "$VPS_KEY" "$SCRIPT_DIR/servers/sweden.yaml" "$VPS_USER@$VPS_HOST_SE:$VPS_DIR/docker-compose.hysteria.yaml"
-  scp -i "$VPS_KEY" "$SCRIPT_DIR/servers/.env"        "$VPS_USER@$VPS_HOST_SE:$VPS_DIR/.env.Hysteria"
+  scp -i "$VPS_KEY_SE" "$SCRIPT_DIR/servers/config.yaml"              "$VPS_USER_SE@$VPS_HOST_SE:$VPS_DIR_SE/hysteria/config.yaml"
+  scp -i "$VPS_KEY_SE" "$SCRIPT_DIR/servers/docker-compose.se.yaml"   "$VPS_USER_SE@$VPS_HOST_SE:$VPS_DIR_SE/docker-compose.yaml"
+  scp -i "$VPS_KEY_SE" "$SCRIPT_DIR/servers/.env"                     "$VPS_USER_SE@$VPS_HOST_SE:$VPS_DIR_SE/.env"
 
   log "Копируем Cloudflare токен..."
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
-  scp -i "$VPS_KEY" "$SCRIPT_DIR/certificates/vps-sweden.ini" "$VPS_USER@$VPS_HOST_SE:~/.secrets/cloudflare-vps.ini"
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" "chmod 600 ~/.secrets/cloudflare-vps.ini"
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
+  scp -i "$VPS_KEY_SE" "$SCRIPT_DIR/certificates/vps-sweden.ini" "$VPS_USER_SE@$VPS_HOST_SE:~/.secrets/cloudflare-vps.ini"
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" "chmod 600 ~/.secrets/cloudflare-vps.ini"
 
   log "Проверяем сертификат для se.stdoq.ru..."
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" '
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" '
     CERT_PATH="/etc/letsencrypt/live/se.stdoq.ru/fullchain.pem"
     RENEW_NEEDED=false
 
@@ -195,59 +201,53 @@ deploy_vps_se() {
   '
 
   log "Запускаем hysteria..."
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" "
-    cd $VPS_DIR
-    docker-compose -f docker-compose.hysteria.yaml pull
-    docker-compose -f docker-compose.hysteria.yaml up -d --force-recreate hysteria
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" "
+    cd $VPS_DIR_SE
+    docker-compose -f docker-compose.yaml pull
+    docker-compose -f docker-compose.yaml up -d --force-recreate hysteria
     docker image prune -f
   "
 
   echo ""
   echo "---- Статус контейнеров ----"
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" "docker ps --filter name=hysteria --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" "docker ps --filter name=hysteria --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 
   echo ""
   echo "---- Логи hysteria (последние 20 строк) ----"
-  ssh -i "$VPS_KEY" "$VPS_USER@$VPS_HOST_SE" "docker logs hysteria --tail=20"
+  ssh -i "$VPS_KEY_SE" "$VPS_USER_SE@$VPS_HOST_SE" "docker logs hysteria --tail=20"
 
   log "Sweden VPS задеплоен ✓"
 }
 
-# ════════════════════════════════════════════════════
-# ДЕПЛОЙ VPS Nether (hysteria) — сервер ещё не поднят
-# TODO: создать servers/nether.yaml когда сервер появится
-# ════════════════════════════════════════════════════
-deploy_vps_nether() {
+# ----------------------------------------------------
+# ДЕПЛОЙ VPS Nether (hysteria)
+# TODO: создать servers/docker-compose.nether.yaml когда сервер появится
+# ----------------------------------------------------
+deploy_vps_nl() {
   echo ""
   echo "-------------------------------------------"
   echo "  🌑 Деплой -> Nether VPS"
   echo "-------------------------------------------"
 
-  if [ -z "$VPS_HOST_NETHER" ]; then
-    warn "Nether VPS ещё не настроен — заполни VPS_HOST_NETHER в deploy.sh"
-    warn "Также создай servers/nether.yaml и заполни certificates/vps-nether.ini"
-    return 0
-  fi
+  [ ! -f "$SCRIPT_DIR/certificates/vps-nether.ini" ]              && fail "certificates/vps-nether.ini не найден"
+  [ ! -f "$SCRIPT_DIR/servers/docker-compose.nl.yaml" ]           && fail "servers/docker-compose.nl.yaml не найден"
+  [ ! -f "$SCRIPT_DIR/servers/.env" ]                             && fail "servers/.env не найден"
 
-  [ ! -f "$SCRIPT_DIR/certificates/vps-nether.ini" ] && fail "certificates/vps-nether.ini не найден"
-  [ ! -f "$SCRIPT_DIR/servers/nether.yaml" ]         && fail "servers/nether.yaml не найден"
-  [ ! -f "$SCRIPT_DIR/servers/.env" ]                && fail "servers/.env не найден"
-
-  log "Создаём директорию $VPS_DIR_NETHER..."
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" "mkdir -p $VPS_DIR_NETHER/hysteria"
+  log "Создаём директорию $VPS_DIR_NL..."
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" "mkdir -p $VPS_DIR_NL/hysteria"
 
   log "Копируем hysteria конфиг и docker-compose..."
-  scp -i "$VPS_KEY_NETHER" "$SCRIPT_DIR/servers/config.yaml" "$VPS_USER_NETHER@$VPS_HOST_NETHER:$VPS_DIR_NETHER/hysteria/config.yaml"
-  scp -i "$VPS_KEY_NETHER" "$SCRIPT_DIR/servers/nether.yaml" "$VPS_USER_NETHER@$VPS_HOST_NETHER:$VPS_DIR_NETHER/docker-compose.hysteria.yaml"
-  scp -i "$VPS_KEY_NETHER" "$SCRIPT_DIR/servers/.env"        "$VPS_USER_NETHER@$VPS_HOST_NETHER:$VPS_DIR_NETHER/.env.Hysteria"
+  scp -i "$VPS_KEY_NL" "$SCRIPT_DIR/servers/config.yaml"                    "$VPS_USER_NL@$VPS_HOST_NL:$VPS_DIR_NL/hysteria/config.yaml"
+  scp -i "$VPS_KEY_NL" "$SCRIPT_DIR/servers/docker-compose.nl.yaml"         "$VPS_USER_NL@$VPS_HOST_NL:$VPS_DIR_NL/docker-compose.yaml"
+  scp -i "$VPS_KEY_NL" "$SCRIPT_DIR/servers/.env"                           "$VPS_USER_NL@$VPS_HOST_NL:$VPS_DIR_NL/.env"
 
   log "Копируем Cloudflare токен..."
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
-  scp -i "$VPS_KEY_NETHER" "$SCRIPT_DIR/certificates/vps-nether.ini" "$VPS_USER_NETHER@$VPS_HOST_NETHER:~/.secrets/cloudflare-vps.ini"
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" "chmod 600 ~/.secrets/cloudflare-vps.ini"
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
+  scp -i "$VPS_KEY_NL" "$SCRIPT_DIR/certificates/vps-nether.ini" "$VPS_USER_NL@$VPS_HOST_NL:~/.secrets/cloudflare-vps.ini"
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" "chmod 600 ~/.secrets/cloudflare-vps.ini"
 
   log "Проверяем Docker..."
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" '
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" '
     if ! command -v docker &>/dev/null; then
       echo "  -> Docker не найден, устанавливаем..."
       apt-get update -qq
@@ -271,9 +271,9 @@ deploy_vps_nether() {
     echo "  -> Docker daemon активен ✓"
   '
 
-  log "Проверяем сертификат для nether.stdoq.ru..."
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" '
-    CERT_PATH="/etc/letsencrypt/live/nether.stdoq.ru/fullchain.pem"
+  log "Проверяем сертификат для nl.stdoq.ru..."
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" '
+    CERT_PATH="/etc/letsencrypt/live/nl.stdoq.ru/fullchain.pem"
     RENEW_NEEDED=false
 
     if [ ! -f "$CERT_PATH" ]; then
@@ -296,7 +296,7 @@ deploy_vps_nether() {
       certbot certonly \
         --dns-cloudflare \
         --dns-cloudflare-credentials ~/.secrets/cloudflare-vps.ini \
-        -d nether.stdoq.ru \
+        -d nl.stdoq.ru \
         --email st.stanislove@yandex.ru \
         --agree-tos --no-eff-email \
         --non-interactive
@@ -307,35 +307,35 @@ deploy_vps_nether() {
   '
 
   log "Запускаем hysteria..."
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" "
-    cd $VPS_DIR_NETHER
-    docker compose -f docker-compose.hysteria.yaml pull
-    docker compose -f docker-compose.hysteria.yaml up -d --force-recreate hysteria
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" "
+    cd $VPS_DIR_NL
+    docker compose -f docker-compose.yaml pull
+    docker compose -f docker-compose.yaml up -d --force-recreate hysteria
     docker image prune -f
   "
 
   echo ""
   echo "---- Статус контейнеров ----"
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" "docker ps --filter name=hysteria --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" "docker ps --filter name=hysteria --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 
   echo ""
   echo "---- Логи hysteria (последние 20 строк) ----"
-  ssh -i "$VPS_KEY_NETHER" "$VPS_USER_NETHER@$VPS_HOST_NETHER" "docker logs hysteria --tail=20"
+  ssh -i "$VPS_KEY_NL" "$VPS_USER_NL@$VPS_HOST_NL" "docker logs hysteria --tail=20"
 
   log "Nether VPS задеплоен ✓"
 }
 
-# ════════════════════════════════════════════════════
+# ----------------------------------------------------
 # ТОЧКА ВХОДА
-# ════════════════════════════════════════════════════
+# ----------------------------------------------------
 case "${1:-all}" in
   yc)         deploy_yc ;;
   vps-se)     deploy_vps_se ;;
-  vps-nether) deploy_vps_nether ;;
-  vps-all)    deploy_vps_se && deploy_vps_nether ;;
+  vps-nl)     deploy_vps_nl ;;
+  # vps-all)    deploy_vps_se && deploy_vps_nether ;;
   all)        deploy_yc && deploy_vps_se && deploy_vps_nether ;;
   *)
-    echo "Использование: ./deploy.sh [yc|vps-se|vps-nether|vps-all|all]"
+    echo "Использование: ./deploy.sh [yc|vps-se|vps-nl|vps-all|all]"
     exit 1
     ;;
 esac

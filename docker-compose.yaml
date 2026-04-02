@@ -1,4 +1,4 @@
-# =============================================
+# ---------------------------------------------
 #  Local development
 #
 #  Frontend: Vite dev server on :5173 (hot reload)
@@ -6,7 +6,7 @@
 #  Hysteria: self-signed certs (hysteria/certs/)
 #
 #  Proxy /api/ -> backend setup in vite.config.ts
-# =============================================
+# ---------------------------------------------
 
 services:
     postgres:
@@ -27,7 +27,8 @@ services:
             context: ./backend
             dockerfile: Dockerfile
         environment:
-            - DOCKER_ENV=true
+            # for logging in backend
+            - DOCKER_ENV-true
         depends_on:
             - postgres
         ports:
@@ -62,7 +63,7 @@ services:
             - ./hysteria/config.yaml:/etc/hysteria/config.yaml:ro
             - ./hysteria/certs/server.crt:/etc/hysteria/certs/server.crt:ro
             - ./hysteria/certs/server.key:/etc/hysteria/certs/server.key:ro
-        command: server -c /etc/hysteria/config.yaml
+        command: server -c /etc/hysteria/config.yaml --disable-update-check
         ports:
             - "443:443/udp"
             - "8080:8080"
