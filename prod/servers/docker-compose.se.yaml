@@ -1,6 +1,7 @@
 # -----------------------------------------------------
 #  VPN сервер: Sweden
 # -----------------------------------------------------
+
 services:
     hysteria:
         image: tobyxdd/hysteria:v2.7.0
@@ -14,6 +15,7 @@ services:
         command: server -c /etc/hysteria/config.yaml --disable-update-check
         ports:
             - "443:443/udp" # основной VPN порт (UDP)
+            - "443:443/tcp" # для максарадинга
             - "8080:8080"   # traffic stats API (от backend)
         restart: unless-stopped
 

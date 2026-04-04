@@ -1,5 +1,4 @@
-# Общая конфигурация для Hysteria серверов, который будет 
-# работать на 443 порту и использовать TLS сертификаты для шифрования.
+# Конфигурация для Нидерлад
 
 listen: :443
 
@@ -11,13 +10,15 @@ tls:
 auth:
     type: http
     http:
-        url: http://93.77.187.20:8000/auth
+        url: http://stdoq.ru:8000/auth
 
 masquerade:
     type: proxy
     proxy:
         url: https://bing.com
         rewriteHost: true
+    listenHTTPS: :443
+    forceHTTPS: true
 
 quic:
     initStreamReceiveWindow: 8388608

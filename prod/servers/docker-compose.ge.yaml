@@ -1,5 +1,5 @@
 # -----------------------------------------------------
-#  VPN сервер: Netherlands
+#  VPN сервер: Germany
 # -----------------------------------------------------
 
 services:
@@ -10,8 +10,8 @@ services:
             - .env
         volumes:
             - ./hysteria/config.yaml:/etc/hysteria/config.yaml:ro
-            - /etc/letsencrypt/live/nl.stdoq.ru/fullchain.pem:/etc/hysteria/certs/server.crt:ro
-            - /etc/letsencrypt/live/nl.stdoq.ru/privkey.pem:/etc/hysteria/certs/server.key:ro
+            - /etc/letsencrypt/live/ge.stdoq.ru/fullchain.pem:/etc/hysteria/certs/server.crt:ro
+            - /etc/letsencrypt/live/ge.stdoq.ru/privkey.pem:/etc/hysteria/certs/server.key:ro
         command: server -c /etc/hysteria/config.yaml --disable-update-check
         ports:
             - "443:443/udp" # основной VPN порт (UDP)

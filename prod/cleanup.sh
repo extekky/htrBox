@@ -24,6 +24,11 @@ VPS_USER_NL="root"
 VPS_KEY_NL="$HOME/.ssh/id_rsa"
 VPS_DIR_NL="/root/htrBox"
 
+VPS_HOST_GE="94.156.170.52"
+VPS_USER_GE="root"
+VPS_KEY_GE="$HOME/.ssh/id_rsa"
+VPS_DIR_GE="/root/htrBox"
+
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 log()  { echo -e "${GREEN}[✓] $1${NC}"; }
 warn() { echo -e "${YELLOW}[!] $1${NC}"; }
@@ -69,7 +74,7 @@ REMOTE
   log "$name -> очищен"
 }
 
-case "${1:-all}" in
+case "${1-}" in
   yc)
     cleanup_server "Yandex Cloud" "$YC_HOST" "$YC_USER" "$YC_KEY" "$YC_DIR"
     ;;
@@ -79,28 +84,11 @@ case "${1:-all}" in
   vps-nl)
     cleanup_server "Nether VPS" "$VPS_HOST_NL" "$VPS_USER_NL" "$VPS_KEY_NL" "$VPS_DIR_NL"
     ;;
-  vps-all)
-    cleanup_server "Sweden VPS" "$VPS_HOST_SE" "$VPS_USER_SE" "$VPS_KEY_SE" "$VPS_DIR_SE"
-    cleanup_server "Nether VPS" "$VPS_HOST_NL" "$VPS_USER_NL" "$VPS_KEY_NL" "$VPS_DIR_NL"
-    ;;
-  all)
-    TMPDIR=$(mktemp -d)
-    cleanup_server "Yandex Cloud" "$YC_HOST" "$YC_USER" "$YC_KEY" "$YC_DIR" \
-      > "$TMPDIR/yc.log" 2>&1 & YC_PID=$!
-    cleanup_server "Sweden VPS" "$VPS_HOST_SE" "$VPS_USER_SE" "$VPS_KEY_SE" "$VPS_DIR_SE" \
-      > "$TMPDIR/se.log" 2>&1 & SE_PID=$!
-
-    wait $YC_PID || true
-    wait $SE_PID || true
-
-    echo "--- Yandex Cloud ---"; cat "$TMPDIR/yc.log"
-    echo "--- Sweden VPS ---";   cat "$TMPDIR/se.log"
-    rm -rf "$TMPDIR"
-
-    cleanup_server "Nether VPS" "$VPS_HOST_NL" "$VPS_USER_NL" "$VPS_KEY_NL" "$VPS_DIR_NL"
+  vps-ge)
+    cleanup_server "German VPS" "$VPS_HOST_GE" "$VPS_USER_GE" "$VPS_KEY_GE" "$VPS_DIR_GE"
     ;;
   *)
-    echo "Использование: $0 [yc|vps-se|vps-nl|vps-all|all]"
+    echo "Использование: $0 [yc|vps-se|vps-nl|vps-ge]"
     exit 1
     ;;
 esac
