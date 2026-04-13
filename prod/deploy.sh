@@ -29,7 +29,7 @@ VPS_KEY_NL="$HOME/.ssh/id_rsa"
 VPS_DIR_NL="/root/htrBox"
 
 # -- VPS Germany (hysteria) —----------------------------------------------------
-VPS_HOST_GE="94.156.170.52"
+VPS_HOST_GE="2.26.99.243"
 VPS_USER_GE="root"
 VPS_KEY_GE="$HOME/.ssh/id_rsa"
 VPS_DIR_GE="/root/htrBox"
@@ -66,7 +66,10 @@ deploy_yc() {
     --exclude="venv" \
     --exclude="__pycache__" \
     --exclude="*.pyc" \
+    --exclude="pytest.ini" \
     --exclude=".pytest_cache" \
+    --exclude="requirements-dev.txt" \
+    --exclude="TODO" \
     -C "$PROJECT_ROOT" backend
   scp -i "$YC_KEY" /tmp/backend.tar.gz "$YC_USER@$YC_HOST:/tmp/"
   ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "tar --warning=no-unknown-keyword -xzf /tmp/backend.tar.gz -C $YC_DIR && rm /tmp/backend.tar.gz"
@@ -76,6 +79,8 @@ deploy_yc() {
   tar -czf /tmp/frontend.tar.gz \
     --exclude="node_modules" \
     --exclude="dist" \
+    --exclude="TODO" \
+    --exclude="nginx.conf" \
     -C "$PROJECT_ROOT" frontend
   scp -i "$YC_KEY" /tmp/frontend.tar.gz "$YC_USER@$YC_HOST:/tmp/"
   ssh -i "$YC_KEY" "$YC_USER@$YC_HOST" "tar --warning=no-unknown-keyword -xzf /tmp/frontend.tar.gz -C $YC_DIR && rm /tmp/frontend.tar.gz"

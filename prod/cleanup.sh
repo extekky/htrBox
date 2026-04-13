@@ -24,7 +24,7 @@ VPS_USER_NL="root"
 VPS_KEY_NL="$HOME/.ssh/id_rsa"
 VPS_DIR_NL="/root/htrBox"
 
-VPS_HOST_GE="94.156.170.52"
+VPS_HOST_GE="2.26.99.243"
 VPS_USER_GE="root"
 VPS_KEY_GE="$HOME/.ssh/id_rsa"
 VPS_DIR_GE="/root/htrBox"
