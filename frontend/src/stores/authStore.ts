@@ -14,6 +14,11 @@ interface AuthState {
     // Профиль и данные сессии авторизованного пользователя
     user: UserSessionInfo | null;
 
+    // Временная метка последнего логина.
+    // Выставляется при setAuth, НЕ персистируется — сбрасывается при refresh страницы.
+    // Используется для привязки баннеров к конкретной сессии логина.
+    loginTimestamp: number | null;
+
     // Текущий in-flight запрос на обновление токена.
     // Хранится чтобы не дублировать параллельные refresh-запросы.
     _refreshPromise: Promise<string | null> | null;
@@ -32,13 +37,15 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
     token: null,
     user: null,
+    loginTimestamp: null,
     _refreshPromise: null,
 
     /**
      * Установить токен и пользователя одновременно.
      * Вызывается после успешного логина.
+     * Фиксирует loginTimestamp — метку новой сессии для баннеров.
      */
-    setAuth: (token, user) => set({ token, user }),
+    setAuth: (token, user) => set({ token, user, loginTimestamp: Date.now() }),
 
     /**
      * Обновить только access-токен (например после refresh).
@@ -55,7 +62,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
      * Также очищает серверные данные из serverStore.
      */
     clearAuth: () => {
-        set({ token: null, user: null, _refreshPromise: null });
+        set({ token: null, user: null, loginTimestamp: null, _refreshPromise: null });
         useServerStore.getState().clearServer();
     },
 
@@ -97,3 +104,4 @@ export const selectUser            = (s: AuthState) => s.user;
 export const selectRole            = (s: AuthState) => s.user?.role ?? null;
 export const selectIsAdmin         = (s: AuthState) => s.user?.role === "admin";
 export const selectIsAuthenticated = (s: AuthState) => s.token !== null && s.user !== null;
+export const selectLoginTimestamp  = (s: AuthState) => s.loginTimestamp;

@@ -146,7 +146,7 @@ function StatusCard({ icon, label, description, color }: StatusCardProps) {
     const p = palette[color];
 
     return (
-        <div className={cn("flex items-start gap-3 p-4 rounded-xl border", p.wrap)}>
+        <div className={cn("flex items-center gap-3 p-4 rounded-xl border", p.wrap)}>
             <span className={cn("shrink-0 mt-0.5", p.icon)}>{icon}</span>
             <div>
                 <p className={cn("text-sm font-semibold", p.label)}>{label}</p>
@@ -171,7 +171,7 @@ function RuleCard({
 }) {
     return (
         <div className={cn(
-            "flex items-start gap-3 p-3.5 rounded-xl border",
+            "flex gap-3 p-3 rounded-xl border items-center",
             // /8 -> /10 чтобы совпадать с bg-amber-500/10 из getAccountStatus
             variant === "warning" && "bg-amber-500/10 border-amber-500/20",
             variant === "danger" && "bg-red-500/10 border-red-500/20",
@@ -249,14 +249,6 @@ export function ManualPage() {
                         <p className="text-sm text-muted-foreground mt-0.5">
                             Всё о сервисе, тарифах и ограничениях
                         </p>
-                    </div>
-
-                    {/* -- Баннер бета-тестирования -- */}
-                    {/* Бета-баннер — те же токены что в Warning-баннере ProfilePage */}
-                    <div className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
-                        <span className="text-sm text-amber-500">
-                            Сервис на стадии тестирования — возможны временные неполадки
-                        </span>
                     </div>
 
                     {/* -- Список секций -- */}
@@ -355,18 +347,18 @@ export function ManualPage() {
                                 {/* warning — ограничение трафика */}
                                 <RuleCard
                                     icon={<Download size={14} />}
-                                    text="Лимит трафика — 10 ГБ в месяц. При превышении доступ может быть ограничен."
+                                    text="Лимит трафика — не ограничен, но цветовая индикация в профиле ориентирована на 10 Гб."
                                     variant="warning"
                                 />
                                 {/* danger — запрет */}
                                 <RuleCard
                                     icon={<AlertTriangle size={14} />}
-                                    text="Запрещено использование для незаконной деятельности — аккаунт будет заблокирован без предупреждения."
+                                    text="Если будет зафиксировано 3 и более одновременных подключений с одного аккаунта - бан."
                                     variant="danger"
                                 />
                                 <RuleCard
                                     icon={<ArrowRightLeft size={14} />}
-                                    text="При смене устройства просто скопируйте ссылку и вставьте в клиент заново."
+                                    text="При смене устройства скопируйте ссылку и вставьте в клиент заново."
                                 />
                                 <RuleCard
                                     icon={<KeyRound size={14} />}
@@ -410,7 +402,7 @@ export function ManualPage() {
                                             {[
                                                 "Hysteria2 протокол",
                                                 "До 10 ГБ трафика",
-                                                "1 устройство",
+                                                "2 устройства",
                                             ].map((feature) => (
                                                 <div
                                                     key={feature}
@@ -431,7 +423,7 @@ export function ManualPage() {
                                 </div>
 
                                 {/* Инструкция по оплате */}
-                                <div className="flex items-start gap-3 p-4 rounded-xl bg-secondary/70 border border-border">
+                                <div className="flex gap-3 p-4 rounded-xl bg-secondary/70 border border-border items-center">
                                     <MessageCircle size={15} className="text-primary shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-sm font-medium text-foreground">Как оплатить</p>

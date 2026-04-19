@@ -9,6 +9,7 @@ import { Guide } from "@/components/common/Guilde";
 import { TrafficChart } from "@/components/common/TrafficChart";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { ServerSelector } from "@/components/common/ServerSelector";
+import { NotifyBanner } from "@/components/common/NotifyBanner";
 import { pickAvatar } from "@/lib/avatars";
 import { useMe } from "@/hooks/useUsers";
 import { useAuthStore } from "@/stores/authStore";
@@ -152,7 +153,7 @@ export function ProfilePage() {
 
                                 {/* Дата окончания подписки */}
                                 <div className="text-right shrink-0">
-                                    <p className="text-[11px] text-muted-foreground">Подписка до</p>
+                                    <p className="text-[11px] text-muted-foreground">Действует до</p>
                                     <p className="text-xs text-foreground mt-0.5">
                                         {expiryDateLine ?? "Не установлена"}
                                     </p>
@@ -215,8 +216,21 @@ export function ProfilePage() {
                         </Card>
                     </div>
 
+                    {/* -- Баннер: подписка есть, но аккаунт не активирован -- */}
+                    <NotifyBanner
+                        bannerId="inactive-user"
+                        visible={profile.allowed && !profile.active}
+                        icon={AlertTriangle}
+                        title="Сервис стал платным"
+                        description={
+                            `Для продолжения работы оформите подписку у администратора.\n` +
+                            `Стабильность работы не гарантируется — возможны перебои.`
+                        }
+                        variant="amber"
+                    />
+
                     {/* -- Предупреждение: allowed, но подписка не активирована -- */}
-                    {profile.allowed && !profile.active && (
+                    {/* {profile.allowed && !profile.active && (
                         <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3.5 flex items-center gap-3">
                             <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 shrink-0">
                                 <AlertTriangle size={16} />
@@ -230,7 +244,7 @@ export function ProfilePage() {
                                 </p>
                             </div>
                         </div>
-                    )}
+                    )} */}
 
                     {/* -- Онбординг-гайд — показываем пока нет даты истечения -- */}
                     {!expiresAt && <Guide />}

@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 
 import { BottomBar } from "./BottomBar";
-// import { useWebSocket } from "@/hooks/useWebSocket";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAuthStore, selectIsAdmin } from "@/stores/authStore";
 import { useLogout } from "@/hooks/useAuth";
@@ -16,7 +15,6 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
 } from "@/components/ui/DropDownMenu";
-import { pickAvatar } from "@/lib/avatars";
 import { cn } from "@/lib/cn";
 
 // -------------------------------------------------------------
@@ -68,23 +66,9 @@ function isActivePath(location: string, href: string) {
 function UserAvatarButton() {
     // Получаем текущего пользователя из стора авторизации
     const user = useAuthStore((s) => s.user);
-
-    // Подбираем компонент аватара по имени пользователя (детерминировано)
-    // const Avatar = user ? pickAvatar(user.username) : null;
-
+    
     return (
         <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-border bg-muted flex items-center justify-center">
-            {/* {Avatar ? (
-                // Масштабируем аватар, чтобы он красиво вписался в круглый контейнер
-                <div className="scale-[0.72] w-[140%] h-[140%] -translate-x-1">
-                    <Avatar />
-                </div>
-            ) : (
-                // Фолбэк — первая буква имени пользователя, если аватар не найден
-                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
-                    {user?.username?.[0]?.toUpperCase() ?? "?"}
-                </div>
-            )} */}
             <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
                 {user?.username?.[0]?.toUpperCase() ?? "?"}
             </div>
@@ -163,33 +147,8 @@ function TopHeader() {
                     <DesktopNav />
                 </div>
 
-                {/* Центр — бейдж Beta, только на мобильных (где нет навигации).
-                    pointer-events-none чтобы не перехватывать клики. */}
-                <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-none">
-                    <div className={cn(
-                        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium",
-                        "bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400",
-                    )}>
-                        {/* Пульсирующая точка-индикатор */}
-                        <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
-                        </span>
-                        Beta
-                    </div>
-                </div>
-
                 {/* Правая часть — бейдж Beta (десктоп), Telegram, меню пользователя */}
                 <div className="flex items-center gap-2 sm:gap-3">
-
-                    {/* Бейдж Beta на десктопе — вынесен вправо, чтобы не загромождать навигацию */}
-                    <div className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
-                        <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
-                        </span>
-                        Beta
-                    </div>
 
                     {/* Ссылка на Telegram-канал поддержки */}
                     <a
