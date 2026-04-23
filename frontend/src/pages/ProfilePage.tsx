@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { ConnectionCard } from "@/components/common/ConnectionCard";
-import { Guide } from "@/components/common/Guilde";
+import { Guide } from "@/components/common/Guide";
 import { TrafficChart } from "@/components/common/TrafficChart";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { ServerSelector } from "@/components/common/ServerSelector";

@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { Guide } from "@/components/common/Guilde";
+import { Guide } from "@/components/common/Guide";
 
 // -------------------------------------------------------------
 // Страница "ЧеКаво"
