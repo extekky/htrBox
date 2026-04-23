@@ -16,17 +16,17 @@ const BUCKET_MS = 5 * 60 * 1000;
 // -------------------------------------------------------------
 
 export interface TrafficPoint {
-    /** Unix timestamp (ms) */
-    ts: number;
-    /** Трафик за интервал в GB */
-    delta_gb: number;
+  /** Unix timestamp (ms) */
+  ts: number;
+  /** Трафик за интервал в GB */
+  delta_gb: number;
 }
 
 export interface UseTrafficResult {
-    data: TrafficPoint[];
-    totalGb: number;
-    isLoading: boolean;
-    isError: boolean;
+  data: TrafficPoint[];
+  totalGb: number;
+  isLoading: boolean;
+  isError: boolean;
 }
 
 // -------------------------------------------------------------
@@ -37,28 +37,31 @@ export interface UseTrafficResult {
  * Заполняет пропуски в данных нулями.
  * API возвращает только бакеты с трафиком > 0, остальные нужно дорисовать.
  */
-function fillBuckets(raw: TrafficBucketResponse[], days: number): TrafficPoint[] {
-    const now = Date.now();
-    const startMs = now - days * 24 * 60 * 60 * 1000;
+function fillBuckets(
+  raw: TrafficBucketResponse[],
+  days: number,
+): TrafficPoint[] {
+  const now = Date.now();
+  const startMs = now - days * 24 * 60 * 60 * 1000;
 
-    // Округляем до ближайшего 5-минутного бакета
-    const startBucket = Math.ceil(startMs / BUCKET_MS) * BUCKET_MS;
-    const endBucket = Math.floor(now / BUCKET_MS) * BUCKET_MS;
+  // Округляем до ближайшего 5-минутного бакета
+  const startBucket = Math.ceil(startMs / BUCKET_MS) * BUCKET_MS;
+  const endBucket = Math.floor(now / BUCKET_MS) * BUCKET_MS;
 
-    // Индексируем сырые данные по округлённому timestamp
-    const index = new Map<number, number>();
-    for (const row of raw) {
-        const ts = Math.round(new Date(row.time).getTime() / BUCKET_MS) * BUCKET_MS;
-        index.set(ts, (index.get(ts) ?? 0) + row.delta_gb);
-    }
+  // Индексируем сырые данные по округлённому timestamp
+  const index = new Map<number, number>();
+  for (const row of raw) {
+    const ts = Math.round(new Date(row.time).getTime() / BUCKET_MS) * BUCKET_MS;
+    index.set(ts, (index.get(ts) ?? 0) + row.delta_gb);
+  }
 
-    // Генерируем все бакеты подряд, подставляя 0 для пустых
-    const result: TrafficPoint[] = [];
-    for (let ts = startBucket; ts <= endBucket; ts += BUCKET_MS) {
-        result.push({ ts, delta_gb: index.get(ts) ?? 0 });
-    }
+  // Генерируем все бакеты подряд, подставляя 0 для пустых
+  const result: TrafficPoint[] = [];
+  for (let ts = startBucket; ts <= endBucket; ts += BUCKET_MS) {
+    result.push({ ts, delta_gb: index.get(ts) ?? 0 });
+  }
 
-    return result;
+  return result;
 }
 
 // -------------------------------------------------------------
@@ -71,34 +74,37 @@ function fillBuckets(raw: TrafficBucketResponse[], days: number): TrafficPoint[]
  * - С `username` — возвращает трафик конкретного пользователя (для админа).
  * - `days` может быть 1, 2 или 3 — период выборки.
  */
-export function useTraffic(days: 1 | 2 | 3, username?: string): UseTrafficResult {
-    const { data: raw, isLoading, isError } = useQuery({
-        queryKey: username
-            ? ["traffic", "user", username, days]
-            : ["traffic", "me", days],
-        queryFn: () => username
-            ? fetchUserTraffic(username, days)
-            : fetchMyTraffic(days),
+export function useTraffic(
+  days: 1 | 2 | 3,
+  username?: string,
+): UseTrafficResult {
+  const {
+    data: raw,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: username
+      ? ["traffic", "user", username, days]
+      : ["traffic", "me", days],
+    queryFn: () =>
+      username ? fetchUserTraffic(username, days) : fetchMyTraffic(days),
 
-        // Трафик меняется раз в 5 минут — кэшируем соответственно
-        staleTime: BUCKET_MS,
+    // Трафик меняется раз в 5 минут — кэшируем соответственно
+    staleTime: BUCKET_MS,
 
-        // Запрос с username не выполняется, пока имя не задано
-        enabled: username !== undefined ? username.length > 0 : true,
+    // Запрос с username не выполняется, пока имя не задано
+    enabled: username !== undefined ? username.length > 0 : true,
 
-        // Если юзера нет, API вернёт 404 — не нужно повторять запрос
-        retry: username !== undefined ? false : undefined,
-    });
+    // Если юзера нет, API вернёт 404 — не нужно повторять запрос
+    retry: username !== undefined ? false : undefined,
+  });
 
-    const data = useMemo(
-        () => fillBuckets(raw ?? [], days),
-        [raw, days],
-    );
+  const data = useMemo(() => fillBuckets(raw ?? [], days), [raw, days]);
 
-    const totalGb = useMemo(
-        () => data.reduce((sum, p) => sum + p.delta_gb, 0),
-        [data],
-    );
+  const totalGb = useMemo(
+    () => data.reduce((sum, p) => sum + p.delta_gb, 0),
+    [data],
+  );
 
-    return { data, totalGb, isLoading, isError };
+  return { data, totalGb, isLoading, isError };
 }

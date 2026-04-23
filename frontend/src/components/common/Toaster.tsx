@@ -13,16 +13,16 @@ const DEFAULT_TOAST_DURATION = 3000;
 // -------------------------------------------------------------
 
 const VARIANT_ROOT: Record<ToastVariant, string> = {
-    default: "bg-card border-border text-white",
-    destructive: "bg-red-500/10 border-red-500/20 text-white",
-    success: "bg-emerald-500/10 border-emerald-500/20 text-white",
+  default: "bg-card border-border text-white",
+  destructive: "bg-red-500/10 border-red-500/20 text-white",
+  success: "bg-emerald-500/10 border-emerald-500/20 text-white",
 };
 
 // Прогресс-бар внизу тоста
 const VARIANT_PROGRESS: Record<ToastVariant, string> = {
-    default: "bg-muted-foreground/50",
-    destructive: "bg-red-500",
-    success: "bg-emerald-500",
+  default: "bg-muted-foreground/50",
+  destructive: "bg-red-500",
+  success: "bg-emerald-500",
 };
 
 // -------------------------------------------------------------
@@ -30,88 +30,87 @@ const VARIANT_PROGRESS: Record<ToastVariant, string> = {
 // -------------------------------------------------------------
 
 function ToastViewport() {
-    return (
-        <ToastPrimitives.Viewport
-            className={cn(
-                "fixed bottom-4 right-4 z-100 outline-none",
-                "flex max-h-screen w-full max-w-104 flex-col-reverse gap-2 p-4",
-                "sm:bottom-8 sm:right-8 sm:flex-col sm:p-0",
-            )}
-        />
-    );
+  return (
+    <ToastPrimitives.Viewport
+      className={cn(
+        "fixed bottom-4 right-4 z-100 outline-none",
+        "flex max-h-screen w-full max-w-104 flex-col-reverse gap-2 p-4",
+        "sm:bottom-8 sm:right-8 sm:flex-col sm:p-0",
+      )}
+    />
+  );
 }
 
 // -------------------------------------------------------------
 // ToastItem — одно уведомление
 // -------------------------------------------------------------
 
-type ToastItemProps = Required<Pick<ToastItem, "id" | "variant" | "duration">>
-    & Pick<ToastItem, "title" | "description">
-    & { onRemove: (id: string) => void };
+type ToastItemProps = Required<Pick<ToastItem, "id" | "variant" | "duration">> &
+  Pick<ToastItem, "title" | "description"> & { onRemove: (id: string) => void };
 
 function ToastItem({
-    id,
-    title,
-    description,
-    variant = "default",
-    duration = DEFAULT_TOAST_DURATION,
-    onRemove,
+  id,
+  title,
+  description,
+  variant = "default",
+  duration = DEFAULT_TOAST_DURATION,
+  onRemove,
 }: ToastItemProps) {
-    return (
-        <ToastPrimitives.Root
-            duration={duration}
-            onOpenChange={(open) => { if (!open) onRemove(id); }}
-            className={cn(
-                // Базовые стили
-                "group relative w-full overflow-hidden rounded-lg border p-4 shadow-lg",
-                // Анимации входа / выхода (Radix data-state)
-                "data-[state=open]:animate-in data-[state=open]:fade-in",
-                "data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full",
-                "data-[state=closed]:animate-out data-[state=closed]:fade-out-80",
-                "data-[state=closed]:slide-out-to-right-full",
-                VARIANT_ROOT[variant],
-            )}
+  return (
+    <ToastPrimitives.Root
+      duration={duration}
+      onOpenChange={(open) => {
+        if (!open) onRemove(id);
+      }}
+      className={cn(
+        // Базовые стили
+        "group relative w-full overflow-hidden rounded-lg border p-4 shadow-lg",
+        // Анимации входа / выхода (Radix data-state)
+        "data-[state=open]:animate-in data-[state=open]:fade-in",
+        "data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full",
+        "data-[state=closed]:animate-out data-[state=closed]:fade-out-80",
+        "data-[state=closed]:slide-out-to-right-full",
+        VARIANT_ROOT[variant],
+      )}
+    >
+      {/* Прогресс-бар (требует @keyframes shrink в глобальных стилях) */}
+      <div
+        className={cn(
+          "absolute bottom-0 left-0 h-1 w-full origin-left animate-shrink",
+          VARIANT_PROGRESS[variant],
+        )}
+        style={{ "--toast-duration": `${duration}ms` } as React.CSSProperties}
+      />
+
+      <div className="flex items-start justify-between gap-3">
+        {/* Текстовый блок */}
+        <div className="grid flex-1 gap-1">
+          {title && (
+            <ToastPrimitives.Title className="text-sm font-semibold leading-tight">
+              {title}
+            </ToastPrimitives.Title>
+          )}
+          {description && (
+            <ToastPrimitives.Description className="text-sm leading-relaxed opacity-80">
+              {description}
+            </ToastPrimitives.Description>
+          )}
+        </div>
+
+        {/* Кнопка закрытия */}
+        <ToastPrimitives.Close
+          aria-label="Закрыть уведомление"
+          className={cn(
+            "rounded-md p-1.5 opacity-60",
+            "transition-opacity hover:opacity-100 focus:opacity-100",
+            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          )}
         >
-            {/* Прогресс-бар (требует @keyframes shrink в глобальных стилях) */}
-            <div
-                className={cn(
-                    "absolute bottom-0 left-0 h-1 w-full origin-left animate-shrink",
-                    VARIANT_PROGRESS[variant],
-                )}
-                style={{ "--toast-duration": `${duration}ms` } as React.CSSProperties}
-            />
-
-            <div className="flex items-start justify-between gap-3">
-
-                {/* Текстовый блок */}
-                <div className="grid flex-1 gap-1">
-                    {title && (
-                        <ToastPrimitives.Title className="text-sm font-semibold leading-tight">
-                            {title}
-                        </ToastPrimitives.Title>
-                    )}
-                    {description && (
-                        <ToastPrimitives.Description className="text-sm leading-relaxed opacity-80">
-                            {description}
-                        </ToastPrimitives.Description>
-                    )}
-                </div>
-
-                {/* Кнопка закрытия */}
-                <ToastPrimitives.Close
-                    aria-label="Закрыть уведомление"
-                    className={cn(
-                        "rounded-md p-1.5 opacity-60",
-                        "transition-opacity hover:opacity-100 focus:opacity-100",
-                        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                    )}
-                >
-                    <X className="h-4 w-4" />
-                </ToastPrimitives.Close>
-
-            </div>
-        </ToastPrimitives.Root>
-    );
+          <X className="h-4 w-4" />
+        </ToastPrimitives.Close>
+      </div>
+    </ToastPrimitives.Root>
+  );
 }
 
 // -------------------------------------------------------------
@@ -119,22 +118,22 @@ function ToastItem({
 // -------------------------------------------------------------
 
 export function Toaster() {
-    const { toasts, remove } = useToastStore();
+  const { toasts, remove } = useToastStore();
 
-    return (
-        <ToastPrimitives.Provider swipeDirection="right">
-            {toasts.map((toast) => (
-                <ToastItem
-                    key={toast.id}
-                    id={toast.id}
-                    title={toast.title}
-                    description={toast.description}
-                    variant={toast.variant ?? "default"}
-                    duration={toast.duration ?? DEFAULT_TOAST_DURATION}
-                    onRemove={remove}
-                />
-            ))}
-            <ToastViewport />
-        </ToastPrimitives.Provider>
-    );
+  return (
+    <ToastPrimitives.Provider swipeDirection="right">
+      {toasts.map((toast) => (
+        <ToastItem
+          key={toast.id}
+          id={toast.id}
+          title={toast.title}
+          description={toast.description}
+          variant={toast.variant ?? "default"}
+          duration={toast.duration ?? DEFAULT_TOAST_DURATION}
+          onRemove={remove}
+        />
+      ))}
+      <ToastViewport />
+    </ToastPrimitives.Provider>
+  );
 }

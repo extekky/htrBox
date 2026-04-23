@@ -1,25 +1,21 @@
-import {
-    useQuery,
-    useMutation,
-    useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { generateUrl } from "@/api/hysteria";
 import { useServerStore } from "@/stores/serverStore";
 
 import {
-    getServers,
-    getServersAdmin,
-    createServer,
-    updateServer,
-    deleteServer,
+  getServers,
+  getServersAdmin,
+  createServer,
+  updateServer,
+  deleteServer,
 } from "@/api/servers";
 
 import type {
-    ServerPublicResponse,
-    ServerAdminResponse,
-    CreateServerRequest,
-    UpdateServerRequest,
+  ServerPublicResponse,
+  ServerAdminResponse,
+  CreateServerRequest,
+  UpdateServerRequest,
 } from "@/api/types";
 
 // -------------------------------------------------------------
@@ -27,9 +23,9 @@ import type {
 // -------------------------------------------------------------
 
 export const SERVER_KEYS = {
-    all: ["servers"] as const,
-    list: ["servers", "list"] as const,
-    admin: ["servers", "admin"] as const,
+  all: ["servers"] as const,
+  list: ["servers", "list"] as const,
+  admin: ["servers", "admin"] as const,
 } as const;
 
 // -------------------------------------------------------------
@@ -43,16 +39,16 @@ export const SERVER_KEYS = {
  * Используется на пользовательских страницах (например, выбор сервера в профиле).
  */
 export function useServers() {
-    return useQuery<ServerPublicResponse[]>({
-        queryKey: SERVER_KEYS.list,
-        queryFn: getServers,
-        select: (data) =>
-            [...data].sort((a, b) =>
-                `${a.country} ${a.city}`.localeCompare(`${b.country} ${b.city}`),
-            ),
-        // refetchInterval: 30_000,
-        // staleTime наследуется из глобальной конфигурации queryClient (~30с)
-    });
+  return useQuery<ServerPublicResponse[]>({
+    queryKey: SERVER_KEYS.list,
+    queryFn: getServers,
+    select: (data) =>
+      [...data].sort((a, b) =>
+        `${a.country} ${a.city}`.localeCompare(`${b.country} ${b.city}`),
+      ),
+    // refetchInterval: 30_000,
+    // staleTime наследуется из глобальной конфигурации queryClient (~30с)
+  });
 }
 
 /**
@@ -63,15 +59,15 @@ export function useServers() {
  * Используется в панели администратора / таблице управления серверами.
  */
 export function useServersAdmin() {
-    return useQuery<ServerAdminResponse[]>({
-        queryKey: SERVER_KEYS.admin,
-        queryFn: getServersAdmin,
-        select: (data) =>
-            [...data].sort((a, b) =>
-                `${a.country} ${a.city}`.localeCompare(`${b.country} ${b.city}`),
-            ),
-        // staleTime наследуется из глобальной конфигурации
-    });
+  return useQuery<ServerAdminResponse[]>({
+    queryKey: SERVER_KEYS.admin,
+    queryFn: getServersAdmin,
+    select: (data) =>
+      [...data].sort((a, b) =>
+        `${a.country} ${a.city}`.localeCompare(`${b.country} ${b.city}`),
+      ),
+    // staleTime наследуется из глобальной конфигурации
+  });
 }
 
 // -------------------------------------------------------------
@@ -83,19 +79,19 @@ export function useServersAdmin() {
  * После успешного выполнения инвалидирует публичный и админский списки.
  */
 export function useCreateServer() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: (payload: CreateServerRequest) => createServer(payload),
+  return useMutation({
+    mutationFn: (payload: CreateServerRequest) => createServer(payload),
 
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: SERVER_KEYS.list });
-            queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
-        },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.list });
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
+    },
 
-        // Опционально: можно добавить оптимистичное добавление для мгновенного обновления UI
-        // onMutate: async (newServer) => { ... }
-    });
+    // Опционально: можно добавить оптимистичное добавление для мгновенного обновления UI
+    // onMutate: async (newServer) => { ... }
+  });
 }
 
 /**
@@ -103,19 +99,19 @@ export function useCreateServer() {
  * После успешного выполнения инвалидирует оба списка.
  */
 export function useUpdateServer() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: UpdateServerRequest }) =>
-            updateServer(id, data),
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateServerRequest }) =>
+      updateServer(id, data),
 
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: SERVER_KEYS.list });
-            queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
-        },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.list });
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
+    },
 
-        // При необходимости можно добавить оптимистичное обновление (аналогично удалению)
-    });
+    // При необходимости можно добавить оптимистичное обновление (аналогично удалению)
+  });
 }
 
 /**
@@ -123,42 +119,43 @@ export function useUpdateServer() {
  * При ошибке выполняет откат, после завершения инвалидирует оба списка.
  */
 export function useDeleteServer() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: (serverId: string) => deleteServer(serverId),
+  return useMutation({
+    mutationFn: (serverId: string) => deleteServer(serverId),
 
-        onMutate: async (serverId: string) => {
-            // Отменяем активные запросы, чтобы не перезаписать оптимистичное обновление
-            await queryClient.cancelQueries({ queryKey: SERVER_KEYS.admin });
+    onMutate: async (serverId: string) => {
+      // Отменяем активные запросы, чтобы не перезаписать оптимистичное обновление
+      await queryClient.cancelQueries({ queryKey: SERVER_KEYS.admin });
 
-            // Сохраняем предыдущее состояние для возможного отката
-            const previousServers = queryClient.getQueryData<ServerAdminResponse[]>(
-                SERVER_KEYS.admin,
-            );
+      // Сохраняем предыдущее состояние для возможного отката
+      const previousServers = queryClient.getQueryData<ServerAdminResponse[]>(
+        SERVER_KEYS.admin,
+      );
 
-            // Оптимистично удаляем сервер из админского списка
-            queryClient.setQueryData<ServerAdminResponse[]>(SERVER_KEYS.admin, (old = []) =>
-                old.filter((server) => server.id !== serverId),
-            );
+      // Оптимистично удаляем сервер из админского списка
+      queryClient.setQueryData<ServerAdminResponse[]>(
+        SERVER_KEYS.admin,
+        (old = []) => old.filter((server) => server.id !== serverId),
+      );
 
-            // Возвращаем контекст с предыдущим состоянием для отката
-            return { previousServers };
-        },
+      // Возвращаем контекст с предыдущим состоянием для отката
+      return { previousServers };
+    },
 
-        onError: (_err, _serverId, context) => {
-            // Откат к предыдущему состоянию при ошибке
-            if (context?.previousServers) {
-                queryClient.setQueryData(SERVER_KEYS.admin, context.previousServers);
-            }
-        },
+    onError: (_err, _serverId, context) => {
+      // Откат к предыдущему состоянию при ошибке
+      if (context?.previousServers) {
+        queryClient.setQueryData(SERVER_KEYS.admin, context.previousServers);
+      }
+    },
 
-        onSettled: () => {
-            // Всегда перезапрашиваем оба списка для обеспечения консистентности
-            queryClient.invalidateQueries({ queryKey: SERVER_KEYS.list });
-            queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
-        },
-    });
+    onSettled: () => {
+      // Всегда перезапрашиваем оба списка для обеспечения консистентности
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.list });
+      queryClient.invalidateQueries({ queryKey: SERVER_KEYS.admin });
+    },
+  });
 }
 
 /**
@@ -166,42 +163,44 @@ export function useDeleteServer() {
  * Если активные серверы отсутствуют, функция завершает выполнение без обновления состояния.
  */
 export async function initServerData(username: string): Promise<void> {
-    const { setSelectedServer, setUrlMap, setServers, selectedServer } = useServerStore.getState();
+  const { setSelectedServer, setUrlMap, setServers, selectedServer } =
+    useServerStore.getState();
 
-    // Получаем список всех серверов и оставляем только те, что помечены как активные
-    const allServers = await getServers() as ServerPublicResponse[];
-    const active = allServers.filter((s) => s.active);
+  // Получаем список всех серверов и оставляем только те, что помечены как активные
+  const allServers = (await getServers()) as ServerPublicResponse[];
+  const active = allServers.filter((s) => s.active);
 
-    // Если активных серверов нет — затираем старые данные - поэтому закомменировано 
-    // if (active.length === 0) return;
+  // Если активных серверов нет — затираем старые данные - поэтому закомменировано
+  // if (active.length === 0) return;
 
-    // Сохраняет список серверов в store
-    setServers(active);
+  // Сохраняет список серверов в store
+  setServers(active);
 
-    // Запускаем параллельную генерацию URL для всех активных серверов.
-    // Используем Promise.allSettled, чтобы ошибка на одном сервере не блокировала остальные.
-    const results = await Promise.allSettled(
-        active.map((s) => generateUrl(username, s.id)),
-    );
+  // Запускаем параллельную генерацию URL для всех активных серверов.
+  // Используем Promise.allSettled, чтобы ошибка на одном сервере не блокировала остальные.
+  const results = await Promise.allSettled(
+    active.map((s) => generateUrl(username, s.id)),
+  );
 
-    // Формируем карту соответствия { [serverId]: connectionUrl }
-    const urlMap: Record<string, string> = {};
-    results.forEach((result, i) => {
-        if (result.status === "fulfilled") {
-            // Сопоставляем результат с исходным сервером по индексу массива active
-            urlMap[active[i].id] = result.value.url;
-        }
-    });
-
-    // Сохраняем полученную карту URL в глобальный store
-    setUrlMap(urlMap);
-
-    // Логика автоматического выбора сервера:
-    // Проверяем, существует ли ранее выбранный сервер и остался ли он в списке активных
-    const isPersistedValid = selectedServer && active.some((s) => s.id === selectedServer.id);
-
-    if (!isPersistedValid) {
-        // Если сохраненный сервер невалиден или отсутствует — выбираем первый из списка активных
-        setSelectedServer(active[0]);
+  // Формируем карту соответствия { [serverId]: connectionUrl }
+  const urlMap: Record<string, string> = {};
+  results.forEach((result, i) => {
+    if (result.status === "fulfilled") {
+      // Сопоставляем результат с исходным сервером по индексу массива active
+      urlMap[active[i].id] = result.value.url;
     }
+  });
+
+  // Сохраняем полученную карту URL в глобальный store
+  setUrlMap(urlMap);
+
+  // Логика автоматического выбора сервера:
+  // Проверяем, существует ли ранее выбранный сервер и остался ли он в списке активных
+  const isPersistedValid =
+    selectedServer && active.some((s) => s.id === selectedServer.id);
+
+  if (!isPersistedValid) {
+    // Если сохраненный сервер невалиден или отсутствует — выбираем первый из списка активных
+    setSelectedServer(active[0]);
+  }
 }

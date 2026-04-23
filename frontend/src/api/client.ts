@@ -13,13 +13,13 @@ const BASE_URL = "/api";
 // -------------------------------------------------------------
 
 export class ApiRequestError extends Error {
-    constructor(
-        public readonly status: number,
-        message: string,
-    ) {
-        super(message);
-        this.name = "ApiRequestError";
-    }
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
 }
 
 // -------------------------------------------------------------
@@ -30,8 +30,8 @@ export class ApiRequestError extends Error {
 // -------------------------------------------------------------
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
-    body?: unknown;
-    skipAuth?: boolean;
+  body?: unknown;
+  skipAuth?: boolean;
 }
 
 // -------------------------------------------------------------
@@ -43,59 +43,59 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
  * Поддерживает строковый detail, массив ошибок валидации FastAPI и поле message.
  */
 async function extractErrorMessage(res: Response): Promise<string> {
-    try {
-        const body = await res.json();
+  try {
+    const body = await res.json();
 
-        if (typeof body.detail === "string") {
-            return body.detail;
-        }
-
-        if (Array.isArray(body.detail)) {
-            return body.detail
-                .map((e: { msg?: string }) => e.msg)
-                .filter(Boolean)
-                .join("; ");
-        }
-
-        if (body.message) {
-            return String(body.message);
-        }
-    } catch {
-        // Ответ не является JSON — используем статус как сообщение
+    if (typeof body.detail === "string") {
+      return body.detail;
     }
 
-    return res.statusText || `HTTP ${res.status}`;
+    if (Array.isArray(body.detail)) {
+      return body.detail
+        .map((e: { msg?: string }) => e.msg)
+        .filter(Boolean)
+        .join("; ");
+    }
+
+    if (body.message) {
+      return String(body.message);
+    }
+  } catch {
+    // Ответ не является JSON — используем статус как сообщение
+  }
+
+  return res.statusText || `HTTP ${res.status}`;
 }
 
 /** Формирует заголовки запроса, при необходимости добавляя Authorization. */
 function buildHeaders(
-    extraHeaders: HeadersInit | undefined,
-    token: string | null,
+  extraHeaders: HeadersInit | undefined,
+  token: string | null,
 ): Record<string, string> {
-    const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        ...((extraHeaders as Record<string, string>) ?? {}),
-    };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((extraHeaders as Record<string, string>) ?? {}),
+  };
 
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
-    return headers;
+  return headers;
 }
 
 /** Формирует итоговый RequestInit для fetch. */
 function buildRequestInit(
-    options: Omit<RequestOptions, "body" | "skipAuth">,
-    body: unknown,
-    token: string | null,
+  options: Omit<RequestOptions, "body" | "skipAuth">,
+  body: unknown,
+  token: string | null,
 ): RequestInit {
-    return {
-        ...options,
-        credentials: "include",
-        headers: buildHeaders(options.headers, token),
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-    };
+  return {
+    ...options,
+    credentials: "include",
+    headers: buildHeaders(options.headers, token),
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  };
 }
 
 // -------------------------------------------------------------
@@ -112,48 +112,51 @@ function buildRequestInit(
  * - 204 No Content возвращает пустой объект для единообразия типов.
  */
 export async function request<T = unknown>(
-    path: string,
-    options: RequestOptions = {},
+  path: string,
+  options: RequestOptions = {},
 ): Promise<T> {
-    const { body, skipAuth = false, ...fetchOptions } = options;
+  const { body, skipAuth = false, ...fetchOptions } = options;
 
-    // Берём текущий токен из хранилища (null если skipAuth)
-    const currentToken = skipAuth ? null : useAuthStore.getState().token;
+  // Берём текущий токен из хранилища (null если skipAuth)
+  const currentToken = skipAuth ? null : useAuthStore.getState().token;
 
-    let response = await fetch(
-        `${BASE_URL}${path}`,
-        buildRequestInit(fetchOptions, body, currentToken),
+  let response = await fetch(
+    `${BASE_URL}${path}`,
+    buildRequestInit(fetchOptions, body, currentToken),
+  );
+
+  // Автоматическое обновление токена при 401
+  if (response.status === 401 && !skipAuth) {
+    const newToken = await useAuthStore.getState().refreshToken();
+
+    if (!newToken) {
+      // Refresh не удался — сбрасываем сессию и отправляем на логин
+      useAuthStore.getState().clearAuth();
+      window.location.href = "/login";
+      throw new ApiRequestError(
+        401,
+        "Сессия истекла — перенаправление на страницу входа",
+      );
+    }
+
+    // Повторяем оригинальный запрос с новым токеном
+    response = await fetch(
+      `${BASE_URL}${path}`,
+      buildRequestInit(fetchOptions, body, newToken),
     );
+  }
 
-    // Автоматическое обновление токена при 401
-    if (response.status === 401 && !skipAuth) {
-        const newToken = await useAuthStore.getState().refreshToken();
+  if (!response.ok) {
+    const message = await extractErrorMessage(response);
+    throw new ApiRequestError(response.status, message);
+  }
 
-        if (!newToken) {
-            // Refresh не удался — сбрасываем сессию и отправляем на логин
-            useAuthStore.getState().clearAuth();
-            window.location.href = "/login";
-            throw new ApiRequestError(401, "Сессия истекла — перенаправление на страницу входа");
-        }
+  // 204 No Content — возвращаем пустой объект для единообразия типов
+  if (response.status === 204) {
+    return {} as T;
+  }
 
-        // Повторяем оригинальный запрос с новым токеном
-        response = await fetch(
-            `${BASE_URL}${path}`,
-            buildRequestInit(fetchOptions, body, newToken),
-        );
-    }
-
-    if (!response.ok) {
-        const message = await extractErrorMessage(response);
-        throw new ApiRequestError(response.status, message);
-    }
-
-    // 204 No Content — возвращаем пустой объект для единообразия типов
-    if (response.status === 204) {
-        return {} as T;
-    }
-
-    return response.json() as Promise<T>;
+  return response.json() as Promise<T>;
 }
 
 // -------------------------------------------------------------
@@ -161,16 +164,16 @@ export async function request<T = unknown>(
 // -------------------------------------------------------------
 
 export const get = <T>(path: string, opts?: RequestOptions) =>
-    request<T>(path, { method: "GET", ...opts });
+  request<T>(path, { method: "GET", ...opts });
 
 export const post = <T>(path: string, body?: unknown, opts?: RequestOptions) =>
-    request<T>(path, { method: "POST", body, ...opts });
+  request<T>(path, { method: "POST", body, ...opts });
 
 export const put = <T>(path: string, body?: unknown, opts?: RequestOptions) =>
-    request<T>(path, { method: "PUT", body, ...opts });
+  request<T>(path, { method: "PUT", body, ...opts });
 
 export const patch = <T>(path: string, body?: unknown, opts?: RequestOptions) =>
-    request<T>(path, { method: "PATCH", body, ...opts });
+  request<T>(path, { method: "PATCH", body, ...opts });
 
 export const del = <T>(path: string, opts?: RequestOptions) =>
-    request<T>(path, { method: "DELETE", ...opts });
+  request<T>(path, { method: "DELETE", ...opts });

@@ -3,11 +3,12 @@
 // -------------------------------------------------------------
 
 interface FormLabelProps {
-    children: React.ReactNode;
-    htmlFor?: string;
+  children: React.ReactNode;
+  htmlFor?: string;
 }
 
-const CLS = "text-xs font-medium text-muted-foreground uppercase tracking-wider";
+const CLS =
+  "text-xs font-medium text-muted-foreground uppercase tracking-wider";
 
 /**
  * Компонент для отображения метки формы.
@@ -18,12 +19,12 @@ const CLS = "text-xs font-medium text-muted-foreground uppercase tracking-wider"
  * @param {string} [props.htmlFor] - ID элемента формы, с которым связана метка.
  */
 export function FormLabel({ children, htmlFor }: FormLabelProps) {
-    if (htmlFor) {
-        return (
-            <label htmlFor={htmlFor} className={CLS}>
-                {children}
-            </label>
-        );
-    }
-    return <span className={CLS}>{children}</span>;
+  if (htmlFor) {
+    return (
+      <label htmlFor={htmlFor} className={CLS}>
+        {children}
+      </label>
+    );
+  }
+  return <span className={CLS}>{children}</span>;
 }

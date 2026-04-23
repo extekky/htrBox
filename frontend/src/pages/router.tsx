@@ -17,7 +17,7 @@ import { NotFoundPage } from "@/pages/NotFoundPage";
 // -------------------------------------------------------------
 
 interface RouteGuardProps {
-    component: React.ComponentType;
+  component: React.ComponentType;
 }
 
 // -------------------------------------------------------------
@@ -26,13 +26,13 @@ interface RouteGuardProps {
 // -------------------------------------------------------------
 
 function AdminRoute({ component: Component }: RouteGuardProps) {
-    const token = useAuthStore((s) => s.token);
-    const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
 
-    if (!token || !user) return <Redirect to="/login" />;
-    if (user.role !== "admin") return <Redirect to="/profile" />;
+  if (!token || !user) return <Redirect to="/login" />;
+  if (user.role !== "admin") return <Redirect to="/profile" />;
 
-    return <Component />;
+  return <Component />;
 }
 
 // -------------------------------------------------------------
@@ -41,11 +41,11 @@ function AdminRoute({ component: Component }: RouteGuardProps) {
 // -------------------------------------------------------------
 
 function PrivateRoute({ component: Component }: RouteGuardProps) {
-    const token = useAuthStore((s) => s.token);
+  const token = useAuthStore((s) => s.token);
 
-    if (!token) return <Redirect to="/login" />;
+  if (!token) return <Redirect to="/login" />;
 
-    return <Component />;
+  return <Component />;
 }
 
 // -------------------------------------------------------------
@@ -54,13 +54,13 @@ function PrivateRoute({ component: Component }: RouteGuardProps) {
 // -------------------------------------------------------------
 
 function UserOnlyRoute({ component: Component }: RouteGuardProps) {
-    const token = useAuthStore((s) => s.token);
-    const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
 
-    if (!token || !user) return <Redirect to="/login" />;
-    if (user.role === "admin") return <Redirect to="/admin" />;
+  if (!token || !user) return <Redirect to="/login" />;
+  if (user.role === "admin") return <Redirect to="/admin" />;
 
-    return <Component />;
+  return <Component />;
 }
 
 // -------------------------------------------------------------
@@ -71,15 +71,15 @@ function UserOnlyRoute({ component: Component }: RouteGuardProps) {
 // -------------------------------------------------------------
 
 function PublicOnlyRoute({ component: Component }: RouteGuardProps) {
-    const token = useAuthStore((s) => s.token);
-    const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
 
-    if (token && user) {
-        const redirectTo = user.role === "admin" ? "/admin" : "/profile";
-        return <Redirect to={redirectTo} />;
-    }
+  if (token && user) {
+    const redirectTo = user.role === "admin" ? "/admin" : "/profile";
+    return <Redirect to={redirectTo} />;
+  }
 
-    return <Component />;
+  return <Component />;
 }
 
 // -------------------------------------------------------------
@@ -87,58 +87,58 @@ function PublicOnlyRoute({ component: Component }: RouteGuardProps) {
 // -------------------------------------------------------------
 
 export function AppRouter() {
-    const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((s) => s.user);
 
-    return (
-        <Switch>
+  return (
+    <Switch>
+      {/* -- Публичные маршруты (только для незалогиненных) -- */}
+      <Route path="/login">
+        <PublicOnlyRoute component={LoginPage} />
+      </Route>
+      <Route path="/register">
+        <PublicOnlyRoute component={RegisterPage} />
+      </Route>
 
-            {/* -- Публичные маршруты (только для незалогиненных) -- */}
-            <Route path="/login">
-                <PublicOnlyRoute component={LoginPage} />
-            </Route>
-            <Route path="/register">
-                <PublicOnlyRoute component={RegisterPage} />
-            </Route>
+      {/* -- Только для администраторов ----------------------- */}
+      <Route path="/admin">
+        <AdminRoute component={AdminBoard} />
+      </Route>
+      <Route path="/users">
+        <AdminRoute component={UserManage} />
+      </Route>
+      <Route path="/servers">
+        <AdminRoute component={ServersPage} />
+      </Route>
 
-            {/* -- Только для администраторов ----------------------- */}
-            <Route path="/admin">
-                <AdminRoute component={AdminBoard} />
-            </Route>
-            <Route path="/users">
-                <AdminRoute component={UserManage} />
-            </Route>
-            <Route path="/servers">
-                <AdminRoute component={ServersPage} />
-            </Route>
+      {/* -- Приватные маршруты (любой авторизованный) ------- */}
+      <Route path="/profile">
+        <UserOnlyRoute component={ProfilePage} />
+      </Route>
+      <Route path="/settings">
+        <PrivateRoute component={SettingsPage} />
+      </Route>
+      <Route path="/manual">
+        <UserOnlyRoute component={ManualPage} />
+      </Route>
+      <Route path="/chekavo">
+        <UserOnlyRoute component={ChekavoPage} />
+      </Route>
 
-            {/* -- Приватные маршруты (любой авторизованный) ------- */}
-            <Route path="/profile">
-                <UserOnlyRoute component={ProfilePage} />
-            </Route>
-            <Route path="/settings">
-                <PrivateRoute component={SettingsPage} />
-            </Route>
-            <Route path="/manual">
-                <UserOnlyRoute component={ManualPage} />
-            </Route>
-            <Route path="/chekavo">
-                <UserOnlyRoute component={ChekavoPage} />
-            </Route>
+      {/* -- Корень: редирект по статусу авторизации и роли -- */}
+      <Route path="/">
+        {user ? (
+          user.role === "admin" ? (
+            <Redirect to="/admin" />
+          ) : (
+            <Redirect to="/profile" />
+          )
+        ) : (
+          <Redirect to="/login" />
+        )}
+      </Route>
 
-            {/* -- Корень: редирект по статусу авторизации и роли -- */}
-            <Route path="/">
-                {user ? (
-                    user.role === "admin"
-                        ? <Redirect to="/admin" />
-                        : <Redirect to="/profile" />
-                ) : (
-                    <Redirect to="/login" />
-                )}
-            </Route>
-
-            {/* -- 404 - страница не найдена -- */}
-            <Route component={NotFoundPage} />
-
-        </Switch>
-    );
+      {/* -- 404 - страница не найдена -- */}
+      <Route component={NotFoundPage} />
+    </Switch>
+  );
 }

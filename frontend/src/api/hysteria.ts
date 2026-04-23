@@ -1,8 +1,8 @@
 import { get, post } from "./client";
 import type {
-    KickUsersRequest,
-    GenerateUrlResponse,
-    OnlineUsersResponse,
+  KickUsersRequest,
+  GenerateUrlResponse,
+  OnlineUsersResponse,
 } from "./types";
 
 /**
@@ -19,7 +19,7 @@ import type {
  * при получении WebSocket-события 'online_changed'.
  */
 export function getOnlineUsers(): Promise<OnlineUsersResponse> {
-    return get<OnlineUsersResponse>("/online");
+  return get<OnlineUsersResponse>("/online");
 }
 
 /**
@@ -34,15 +34,13 @@ export function getOnlineUsers(): Promise<OnlineUsersResponse> {
  *
  * @param usernames Массив имён пользователей для блокировки и отключения
  */
-export function kickUsers(
-    usernames: string[],
-): Promise<{
-    kicked: string[];
-    blocked_in_db: number;
-    kick_errors?: Array<{ server_id: string; error: string }>;
+export function kickUsers(usernames: string[]): Promise<{
+  kicked: string[];
+  blocked_in_db: number;
+  kick_errors?: Array<{ server_id: string; error: string }>;
 }> {
-    const body: KickUsersRequest = { usernames };
-    return post("/kick", body);
+  const body: KickUsersRequest = { usernames };
+  return post("/kick", body);
 }
 
 /**
@@ -59,16 +57,16 @@ export function kickUsers(
  *                 (по умолчанию используется первый активный)
  */
 export function generateUrl(
-    username: string,
-    serverId?: string,
+  username: string,
+  serverId?: string,
 ): Promise<GenerateUrlResponse> {
-    const query = new URLSearchParams();
-    if (serverId) {
-        query.append("server_id", serverId);
-    }
-    const qs = query.toString();
-    const url = `/generate-url/${encodeURIComponent(username)}${qs ? `?${qs}` : ""}`;
-    return get<GenerateUrlResponse>(url);
+  const query = new URLSearchParams();
+  if (serverId) {
+    query.append("server_id", serverId);
+  }
+  const qs = query.toString();
+  const url = `/generate-url/${encodeURIComponent(username)}${qs ? `?${qs}` : ""}`;
+  return get<GenerateUrlResponse>(url);
 }
 
 /**
@@ -81,9 +79,9 @@ export function generateUrl(
  * @param username Пользователь, чей счётчик трафика необходимо сбросить
  */
 export function resetTraffic(
-    username: string,
+  username: string,
 ): Promise<{ username: string; usedTraffic: number }> {
-    return post<{ username: string; usedTraffic: number }>(
-        `/traffic/reset/${encodeURIComponent(username)}`,
-    );
+  return post<{ username: string; usedTraffic: number }>(
+    `/traffic/reset/${encodeURIComponent(username)}`,
+  );
 }

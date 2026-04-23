@@ -6,7 +6,7 @@ import type { OnlineUsersResponse } from "@/api/types";
 // Ключи запросов
 // -------------------------------------------------------------
 export const HYSTERIA_KEYS = {
-    online: ["online"] as const,
+  online: ["online"] as const,
 } as const;
 
 /**
@@ -23,11 +23,11 @@ export const HYSTERIA_KEYS = {
  * задержкой, что при поллинге создаёт очередь из зависших запросов.
  */
 export function useOnlineUsers() {
-    return useQuery<OnlineUsersResponse>({
-        queryKey: HYSTERIA_KEYS.online,
-        queryFn: getOnlineUsers,
-        staleTime: 30_000,
-        refetchInterval: 30_000,
-        retry: 1,
-    });
+  return useQuery<OnlineUsersResponse>({
+    queryKey: HYSTERIA_KEYS.online,
+    queryFn: getOnlineUsers,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    retry: 1,
+  });
 }

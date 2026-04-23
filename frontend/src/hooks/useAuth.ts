@@ -9,7 +9,7 @@ import { queryClient } from "@/queryClient";
 // -------------------------------------------------------------
 
 interface UseLogoutOptions {
-    onSuccess?: () => void;
+  onSuccess?: () => void;
 }
 
 /**
@@ -19,23 +19,23 @@ interface UseLogoutOptions {
  * Выход считается успешным даже при ошибке серверного запроса.
  */
 export function useLogout({ onSuccess }: UseLogoutOptions = {}) {
-    const clearAuth    = useAuthStore((state) => state.clearAuth);
-    const [, navigate] = useLocation();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const [, navigate] = useLocation();
 
-    return useMutation<{ ok: boolean }, unknown, void>({
-        mutationFn: () => logout(),
+  return useMutation<{ ok: boolean }, unknown, void>({
+    mutationFn: () => logout(),
 
-        onSettled: () => {
-            // Всегда очищаем всё независимо от ответа сервера
-            clearAuth();
-            queryClient.clear(); // удаляет все кэшированные данные -> свежий fetch при следующем входе
-            navigate("/login");
+    onSettled: () => {
+      // Всегда очищаем всё независимо от ответа сервера
+      clearAuth();
+      queryClient.clear(); // удаляет все кэшированные данные -> свежий fetch при следующем входе
+      navigate("/login");
 
-            // Опциональный колбэк (например, показать тост "Вы вышли из системы")
-            onSuccess?.();
-        },
+      // Опциональный колбэк (например, показать тост "Вы вышли из системы")
+      onSuccess?.();
+    },
 
-        // Повторные попытки не нужны — если сервер недоступен, выходим локально
-        retry: false,
-    });
+    // Повторные попытки не нужны — если сервер недоступен, выходим локально
+    retry: false,
+  });
 }

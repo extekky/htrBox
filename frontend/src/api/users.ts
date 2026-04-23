@@ -1,17 +1,17 @@
 import { get, post, put, del } from "./client";
 
 import type {
-    UserResponse,
-    CreateUserRequest,
-    CreateUserResponse,
-    UpdateUserRequest,
-    SetRoleRequest,
-    ChangePasswordRequest,
-    ChangePasswordResponse,
-    RegenerateHyResponse,
-    RegisterRequest,
-    RegisterResponse,
-    UserSessionInfo,
+  UserResponse,
+  CreateUserRequest,
+  CreateUserResponse,
+  UpdateUserRequest,
+  SetRoleRequest,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+  RegenerateHyResponse,
+  RegisterRequest,
+  RegisterResponse,
+  UserSessionInfo,
 } from "./types";
 
 // -------------------------------------------------------------
@@ -24,7 +24,7 @@ import type {
  * Требует роль администратора.
  */
 export function getUsers(): Promise<UserResponse[]> {
-    return get<UserResponse[]>("/users");
+  return get<UserResponse[]>("/users");
 }
 
 /**
@@ -33,9 +33,9 @@ export function getUsers(): Promise<UserResponse[]> {
  * Новые пользователи всегда получают роль "user".
  */
 export function createUser(
-    payload: CreateUserRequest,
+  payload: CreateUserRequest,
 ): Promise<CreateUserResponse> {
-    return post<CreateUserResponse>("/users", payload);
+  return post<CreateUserResponse>("/users", payload);
 }
 
 /**
@@ -44,13 +44,13 @@ export function createUser(
  * Поля username и role через этот эндпоинт изменить нельзя — для смены роли используйте setRole().
  */
 export function updateUser(
-    username: string,
-    payload: UpdateUserRequest,
+  username: string,
+  payload: UpdateUserRequest,
 ): Promise<{ status: string }> {
-    return put<{ status: string }>(
-        `/users/${encodeURIComponent(username)}`,
-        payload,
-    );
+  return put<{ status: string }>(
+    `/users/${encodeURIComponent(username)}`,
+    payload,
+  );
 }
 
 /**
@@ -58,7 +58,7 @@ export function updateUser(
  * Защита: нельзя удалить самого себя и последнего администратора.
  */
 export function deleteUser(username: string): Promise<{ status: string }> {
-    return del<{ status: string }>(`/users/${encodeURIComponent(username)}`);
+  return del<{ status: string }>(`/users/${encodeURIComponent(username)}`);
 }
 
 /**
@@ -67,13 +67,13 @@ export function deleteUser(username: string): Promise<{ status: string }> {
  * Изменение вступает в силу немедленно — повторный вход не требуется.
  */
 export function setRole(
-    username: string,
-    payload: SetRoleRequest,
+  username: string,
+  payload: SetRoleRequest,
 ): Promise<{ username: string; role: string }> {
-    return post<{ username: string; role: string }>(
-        `/users/${encodeURIComponent(username)}/set-role`,
-        payload,
-    );
+  return post<{ username: string; role: string }>(
+    `/users/${encodeURIComponent(username)}/set-role`,
+    payload,
+  );
 }
 
 // -------------------------------------------------------------
@@ -86,7 +86,7 @@ export function setRole(
  * Также реэкспортируется в auth.ts для удобства.
  */
 export function getMe(): Promise<UserSessionInfo> {
-    return get<UserSessionInfo>("/users/me");
+  return get<UserSessionInfo>("/users/me");
 }
 
 /**
@@ -97,13 +97,13 @@ export function getMe(): Promise<UserSessionInfo> {
  * Побочный эффект: все refresh-токены целевого пользователя аннулируются.
  */
 export function changePassword(
-    username: string,
-    payload: ChangePasswordRequest,
+  username: string,
+  payload: ChangePasswordRequest,
 ): Promise<ChangePasswordResponse> {
-    return post<ChangePasswordResponse>(
-        `/users/${encodeURIComponent(username)}/change-password`,
-        payload,
-    );
+  return post<ChangePasswordResponse>(
+    `/users/${encodeURIComponent(username)}/change-password`,
+    payload,
+  );
 }
 
 /**
@@ -111,12 +111,10 @@ export function changePassword(
  * Предыдущие учётные данные и строка подключения немедленно аннулируются.
  * Обычный пользователь может перегенерировать только собственный пароль.
  */
-export function regenerateHy(
-    username: string,
-): Promise<RegenerateHyResponse> {
-    return post<RegenerateHyResponse>(
-        `/users/${encodeURIComponent(username)}/regenerate-hy`,
-    );
+export function regenerateHy(username: string): Promise<RegenerateHyResponse> {
+  return post<RegenerateHyResponse>(
+    `/users/${encodeURIComponent(username)}/regenerate-hy`,
+  );
 }
 
 // -------------------------------------------------------------
@@ -128,10 +126,8 @@ export function regenerateHy(
  * Создаёт аккаунт с allowed=true, active=false —
  * перед использованием требуется ручная активация администратором.
  */
-export function register(
-    payload: RegisterRequest,
-): Promise<RegisterResponse> {
-    return post<RegisterResponse>("/users/register", payload, {
-        skipAuth: true,
-    });
+export function register(payload: RegisterRequest): Promise<RegisterResponse> {
+  return post<RegisterResponse>("/users/register", payload, {
+    skipAuth: true,
+  });
 }

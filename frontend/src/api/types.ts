@@ -9,27 +9,27 @@ export type Role = "admin" | "user";
 // -------------------------------------------------------------
 
 export interface LoginRequest {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
 export interface AccessTokenResponse {
-    access_token: string;
-    token_type: "bearer";
+  access_token: string;
+  token_type: "bearer";
 }
 
 export interface UserSessionInfo {
-    username: string;
-    role: Role;
-    allowed: boolean;
-    active: boolean;
-    usedTraffic: number;
-    expires_at: string | null;
+  username: string;
+  role: Role;
+  allowed: boolean;
+  active: boolean;
+  usedTraffic: number;
+  expires_at: string | null;
 }
 
 /** Ответ на успешный вход — токен + данные текущего пользователя */
 export interface LoginResponse extends AccessTokenResponse {
-    user: UserSessionInfo;
+  user: UserSessionInfo;
 }
 
 // -------------------------------------------------------------
@@ -37,64 +37,64 @@ export interface LoginResponse extends AccessTokenResponse {
 // -------------------------------------------------------------
 
 export interface UserResponse {
-    username: string;
-    role: Role;
-    allowed: boolean;
-    active: boolean;
-    usedTraffic: number;
-    expires_at: string | null;
+  username: string;
+  role: Role;
+  allowed: boolean;
+  active: boolean;
+  usedTraffic: number;
+  expires_at: string | null;
 }
 
 export interface CreateUserRequest {
-    username: string;
-    password: string;
-    allowed?: boolean;
-    active?: boolean;
-    expires_at?: string | null;
+  username: string;
+  password: string;
+  allowed?: boolean;
+  active?: boolean;
+  expires_at?: string | null;
 }
 
 export interface CreateUserResponse {
-    username: string;
-    hyPassword: string;
+  username: string;
+  hyPassword: string;
 }
 
 export interface UpdateUserRequest {
-    allowed?: boolean;
-    password?: string;
-    active?: boolean;
-    expires_at?: string | null;
+  allowed?: boolean;
+  password?: string;
+  active?: boolean;
+  expires_at?: string | null;
 }
 
 export interface SetRoleRequest {
-    role: Role;
+  role: Role;
 }
 
 export interface ChangePasswordRequest {
-    /** Текущий пароль — обязателен для не-администраторов */
-    password?: string;
-    new_password: string;
-    /** Также перегенерировать и обновить Hysteria-пароль */
-    apply_hy?: boolean;
+  /** Текущий пароль — обязателен для не-администраторов */
+  password?: string;
+  new_password: string;
+  /** Также перегенерировать и обновить Hysteria-пароль */
+  apply_hy?: boolean;
 }
 
 export interface ChangePasswordResponse {
-    username: string;
-    status: string;
+  username: string;
+  status: string;
 }
 
 export interface RegenerateHyResponse {
-    username: string;
-    hyPassword: string;
+  username: string;
+  hyPassword: string;
 }
 
 export interface RegisterRequest {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
 export interface RegisterResponse {
-    username: string;
-    message: string;
+  username: string;
+  message: string;
 }
 
 // -------------------------------------------------------------
@@ -103,63 +103,63 @@ export interface RegisterResponse {
 
 /** Публичное представление сервера — для обычных пользователей */
 export interface ServerPublicResponse {
-    id: string;
-    country: string;
-    city: string;
-    active: boolean;
+  id: string;
+  country: string;
+  city: string;
+  active: boolean;
 }
 
 /** Полное представление сервера — только для администраторов */
 export interface ServerAdminResponse {
-    id: string;
-    country: string;
-    city: string;
-    ip: string;
-    domain: string | null;
-    port: number;
-    label: string;
-    protocol: string;
-    hysteria_url: string | null;
-    active: boolean;
-    created_at: string;
-    updated_at: string;
+  id: string;
+  country: string;
+  city: string;
+  ip: string;
+  domain: string | null;
+  port: number;
+  label: string;
+  protocol: string;
+  hysteria_url: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreateServerRequest {
-    country: string;
-    city: string;
-    ip: string;
-    domain?: string | null;
-    port?: number;
-    label?: string;
-    protocol?: string;
-    active?: boolean;
-    hysteria_url?: string | null;
+  country: string;
+  city: string;
+  ip: string;
+  domain?: string | null;
+  port?: number;
+  label?: string;
+  protocol?: string;
+  active?: boolean;
+  hysteria_url?: string | null;
 }
 
 export interface UpdateServerRequest {
-    country?: string;
-    city?: string;
-    ip?: string;
-    domain?: string | null;
-    port?: number;
-    label?: string;
-    protocol?: string;
-    active?: boolean;
-    hysteria_url?: string | null;
+  country?: string;
+  city?: string;
+  ip?: string;
+  domain?: string | null;
+  port?: number;
+  label?: string;
+  protocol?: string;
+  active?: boolean;
+  hysteria_url?: string | null;
 }
 
 export interface ServerCreateResponse {
-    id: string;
-    country: string;
-    city: string;
-    ip: string;
-    domain: string | null;
-    port: number;
-    label: string;
-    protocol: string;
-    hysteria_url: string | null;
-    active: boolean;
+  id: string;
+  country: string;
+  city: string;
+  ip: string;
+  domain: string | null;
+  port: number;
+  label: string;
+  protocol: string;
+  hysteria_url: string | null;
+  active: boolean;
 }
 
 // -------------------------------------------------------------
@@ -168,20 +168,20 @@ export interface ServerCreateResponse {
 
 /** Один 5-минутный bucket трафика — вид со стороны пользователя */
 export interface TrafficBucketResponse {
-    time: string;
-    delta_gb: number;
-    server_id: string | null; // "all" когда не фильтруется по серверу
+  time: string;
+  delta_gb: number;
+  server_id: string | null; // "all" когда не фильтруется по серверу
 }
 
 /** Один 5-минутный bucket трафика — вид со стороны сервера или глобальный */
 export interface TrafficServerBucketResponse {
-    time: string;
-    delta_gb: number;
+  time: string;
+  delta_gb: number;
 }
 
 export interface TrafficUserTotalResponse {
-    username: string;
-    total_gb: number;
+  username: string;
+  total_gb: number;
 }
 
 // -------------------------------------------------------------
@@ -189,18 +189,18 @@ export interface TrafficUserTotalResponse {
 // -------------------------------------------------------------
 
 export interface KickUsersRequest {
-    usernames: string[];
+  usernames: string[];
 }
 
 export interface GenerateUrlResponse {
-    url: string;
-    server_id: string;
-    server_host: string;
+  url: string;
+  server_id: string;
+  server_host: string;
 }
 
 export interface OnlineUser {
-    connections: number;
-    servers: string[];
+  connections: number;
+  servers: string[];
 }
 
 export type OnlineUsersResponse = Record<string, OnlineUser>;
@@ -210,5 +210,5 @@ export type OnlineUsersResponse = Record<string, OnlineUser>;
 // -------------------------------------------------------------
 
 export interface ApiError {
-    detail: string | Array<{ msg: string; type: string }>;
+  detail: string | Array<{ msg: string; type: string }>;
 }

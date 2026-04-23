@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useShader} from "@/hooks/useShader";
+import { useShader } from "@/hooks/useShader";
 
 /**
  * Компонент для рендера шейдера на фоне страницы.
@@ -8,14 +8,14 @@ import { useShader} from "@/hooks/useShader";
  * - Устанавливает `aria-hidden="true"`, чтобы не мешать скринридерам.
  */
 export function Shader() {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    useShader(canvasRef);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useShader(canvasRef);
 
-    return (
-        <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full"
-            aria-hidden="true"
-        />
-    );
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      aria-hidden="true"
+    />
+  );
 }

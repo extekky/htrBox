@@ -1,26 +1,22 @@
 {
-    "compilerOptions": {
-        // в какой версию JS компилировать TypeScript
-        "target": "ES2020",
-        // система модулей — ESNext это современные import/export
-        "module": "ESNext",
-        // как резолвить импорты — bundler означает что этим занимается Vite
-        "moduleResolution": "bundler",
-        // как обрабатывать JSX — react-jsx это современный способ без import React
-        "jsx": "react-jsx",
-        // строгая проверка типов — ловит больше ошибок
-        "strict": true,
-        // базовая папка для путей
-        "baseUrl": ".",
-        // алиасы — @ означает src/
-        "paths": {
-            "@/*": [
-                "src/*"
-            ]
-        }
-    },
-    // какие файлы TypeScript должен проверять
-    "include": [
-        "src"
-    ]
+  "compilerOptions": {
+    // в какой версию JS компилировать TypeScript
+    "target": "ES2020",
+    // система модулей — ESNext это современные import/export
+    "module": "ESNext",
+    // как резолвить импорты — bundler означает что этим занимается Vite
+    "moduleResolution": "bundler",
+    // как обрабатывать JSX — react-jsx это современный способ без import React
+    "jsx": "react-jsx",
+    // строгая проверка типов — ловит больше ошибок
+    "strict": true,
+    // базовая папка для путей
+    "baseUrl": ".",
+    // алиасы — @ означает src/
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  // какие файлы TypeScript должен проверять
+  "include": ["src"]
 }

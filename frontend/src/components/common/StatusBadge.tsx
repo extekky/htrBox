@@ -5,22 +5,22 @@ import { getExpiryTier, formatDaysLeft } from "@/lib/formatters";
 // -------------------------------------------------------------
 
 interface PillProps {
-    children: React.ReactNode;
-    className?: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 function Pill({ children, className = "" }: PillProps) {
-    return (
-        <span
-            className={`
+  return (
+    <span
+      className={`
         inline-flex items-center rounded-full px-2.5 py-0.5
         text-xs font-medium whitespace-nowrap border
         ${className}
       `}
-        >
-            {children}
-        </span>
-    );
+    >
+      {children}
+    </span>
+  );
 }
 
 // -------------------------------------------------------------
@@ -28,19 +28,19 @@ function Pill({ children, className = "" }: PillProps) {
 // -------------------------------------------------------------
 
 interface AllowedBadgeProps {
-    value: boolean;
+  value: boolean;
 }
 
 function AllowedBadge({ value }: AllowedBadgeProps) {
-    return value ? (
-        <Pill className="bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/20">
-            Ок
-        </Pill>
-    ) : (
-        <Pill className="bg-destructive/10 text-destructive border-destructive/20">
-            Бан
-        </Pill>
-    );
+  return value ? (
+    <Pill className="bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/20">
+      Ок
+    </Pill>
+  ) : (
+    <Pill className="bg-destructive/10 text-destructive border-destructive/20">
+      Бан
+    </Pill>
+  );
 }
 
 // -------------------------------------------------------------
@@ -48,19 +48,19 @@ function AllowedBadge({ value }: AllowedBadgeProps) {
 // -------------------------------------------------------------
 
 interface ActiveBadgeProps {
-    value: boolean;
+  value: boolean;
 }
 
 function ActiveBadge({ value }: ActiveBadgeProps) {
-    return value ? (
-        <Pill className="bg-primary/10 text-primary border-primary/20">
-            Активен
-        </Pill>
-    ) : (
-        <Pill className="bg-muted text-muted-foreground border-muted">
-            Неактивен
-        </Pill>
-    );
+  return value ? (
+    <Pill className="bg-primary/10 text-primary border-primary/20">
+      Активен
+    </Pill>
+  ) : (
+    <Pill className="bg-muted text-muted-foreground border-muted">
+      Неактивен
+    </Pill>
+  );
 }
 
 // -------------------------------------------------------------
@@ -68,19 +68,19 @@ function ActiveBadge({ value }: ActiveBadgeProps) {
 // -------------------------------------------------------------
 
 interface RoleBadgeProps {
-    role: "admin" | "user";
+  role: "admin" | "user";
 }
 
 function RoleBadge({ role }: RoleBadgeProps) {
-    return role === "admin" ? (
-        <Pill className="bg-amber-500/10 text-amber-500/90 border-amber-500/30">
-            Админ
-        </Pill>
-    ) : (
-        <Pill className="bg-muted text-muted-foreground border-muted">
-            Пользователь
-        </Pill>
-    );
+  return role === "admin" ? (
+    <Pill className="bg-amber-500/10 text-amber-500/90 border-amber-500/30">
+      Админ
+    </Pill>
+  ) : (
+    <Pill className="bg-muted text-muted-foreground border-muted">
+      Пользователь
+    </Pill>
+  );
 }
 
 // -------------------------------------------------------------
@@ -88,22 +88,23 @@ function RoleBadge({ role }: RoleBadgeProps) {
 // -------------------------------------------------------------
 
 interface ExpiryBadgeProps {
-    iso: string | null | undefined;
+  iso: string | null | undefined;
 }
 
 function ExpiryBadge({ iso }: ExpiryBadgeProps) {
-    const tier = getExpiryTier(iso);
-    const label = formatDaysLeft(iso);
+  const tier = getExpiryTier(iso);
+  const label = formatDaysLeft(iso);
 
-    const styleMap: Record<typeof tier, string> = {
-        none: "bg-muted text-muted-foreground border-muted",
-        ok: "bg-muted text-muted-foreground border-muted",
-        warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-        critical: "bg-destructive/10 text-destructive border-destructive/20",
-        expired: "bg-destructive/10 text-destructive border-destructive/20",
-    };
+  const styleMap: Record<typeof tier, string> = {
+    none: "bg-muted text-muted-foreground border-muted",
+    ok: "bg-muted text-muted-foreground border-muted",
+    warning:
+      "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+    critical: "bg-destructive/10 text-destructive border-destructive/20",
+    expired: "bg-destructive/10 text-destructive border-destructive/20",
+  };
 
-    return <Pill className={styleMap[tier]}>{label}</Pill>;
+  return <Pill className={styleMap[tier]}>{label}</Pill>;
 }
 
 // -------------------------------------------------------------
@@ -115,20 +116,20 @@ function ExpiryBadge({ iso }: ExpiryBadgeProps) {
  * Поддерживает: разрешён/заблокирован, активен/неактивен, роль и срок действия.
  */
 export type StatusBadgeProps =
-    | { type: "allowed"; value: boolean }
-    | { type: "active"; value: boolean }
-    | { type: "role"; role: "admin" | "user" }
-    | { type: "expiry"; iso: string | null | undefined };
+  | { type: "allowed"; value: boolean }
+  | { type: "active"; value: boolean }
+  | { type: "role"; role: "admin" | "user" }
+  | { type: "expiry"; iso: string | null | undefined };
 
 export function StatusBadge(props: StatusBadgeProps) {
-    switch (props.type) {
-        case "allowed":
-            return <AllowedBadge value={props.value} />;
-        case "active":
-            return <ActiveBadge value={props.value} />;
-        case "role":
-            return <RoleBadge role={props.role} />;
-        case "expiry":
-            return <ExpiryBadge iso={props.iso} />;
-    }
+  switch (props.type) {
+    case "allowed":
+      return <AllowedBadge value={props.value} />;
+    case "active":
+      return <ActiveBadge value={props.value} />;
+    case "role":
+      return <RoleBadge role={props.role} />;
+    case "expiry":
+      return <ExpiryBadge iso={props.iso} />;
+  }
 }

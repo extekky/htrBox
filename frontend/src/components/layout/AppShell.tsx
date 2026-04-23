@@ -1,8 +1,14 @@
 import { Link, useLocation } from "wouter";
 import {
-    Send, LogOut, LayoutDashboard,
-    Users, Server, User, Settings,
-    BookOpen, HelpCircle
+  Send,
+  LogOut,
+  LayoutDashboard,
+  Users,
+  Server,
+  User,
+  Settings,
+  BookOpen,
+  HelpCircle,
 } from "lucide-react";
 
 import { BottomBar } from "./BottomBar";
@@ -10,10 +16,10 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useAuthStore, selectIsAdmin } from "@/stores/authStore";
 import { useLogout } from "@/hooks/useAuth";
 import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from "@/components/ui/DropDownMenu";
 import { cn } from "@/lib/cn";
 
@@ -23,16 +29,16 @@ import { cn } from "@/lib/cn";
 
 /** Описывает один пункт навигационного меню. */
 interface NavItem {
-    /** Отображаемое название пункта. */
-    label: string;
-    /** Путь для перехода. */
-    href: string;
-    /** Иконка из lucide-react. */
-    icon: React.ComponentType<{ size?: number; className?: string }>;
-    /** Если true — пункт виден только администраторам. */
-    adminOnly?: boolean;
-    /** Если true — пункт скрыт для администраторов. */
-    userOnly?: boolean;
+  /** Отображаемое название пункта. */
+  label: string;
+  /** Путь для перехода. */
+  href: string;
+  /** Иконка из lucide-react. */
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  /** Если true — пункт виден только администраторам. */
+  adminOnly?: boolean;
+  /** Если true — пункт скрыт для администраторов. */
+  userOnly?: boolean;
 }
 
 // -------------------------------------------------------------
@@ -40,13 +46,13 @@ interface NavItem {
 // -------------------------------------------------------------
 
 const NAV_ITEMS: NavItem[] = [
-    { label: "Дашборд", href: "/admin", icon: LayoutDashboard, adminOnly: true },
-    { label: "Польз.", href: "/users", icon: Users, adminOnly: true },
-    { label: "Серверы", href: "/servers", icon: Server, adminOnly: true },
-    { label: "Профиль", href: "/profile", icon: User, userOnly: true },
-    { label: "Настройки", href: "/settings", icon: Settings },
-    { label: "Правила", href: "/manual", icon: BookOpen, userOnly: true },
-    { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle, userOnly: true },
+  { label: "Дашборд", href: "/admin", icon: LayoutDashboard, adminOnly: true },
+  { label: "Польз.", href: "/users", icon: Users, adminOnly: true },
+  { label: "Серверы", href: "/servers", icon: Server, adminOnly: true },
+  { label: "Профиль", href: "/profile", icon: User, userOnly: true },
+  { label: "Настройки", href: "/settings", icon: Settings },
+  { label: "Правила", href: "/manual", icon: BookOpen, userOnly: true },
+  { label: "ЧеКаво", href: "/chekavo", icon: HelpCircle, userOnly: true },
 ];
 
 // -------------------------------------------------------------
@@ -55,7 +61,7 @@ const NAV_ITEMS: NavItem[] = [
 // Например: /users/123 -> активен пункт /users.
 // -------------------------------------------------------------
 function isActivePath(location: string, href: string) {
-    return location === href || (href !== "/" && location.startsWith(href + "/"));
+  return location === href || (href !== "/" && location.startsWith(href + "/"));
 }
 
 // -------------------------------------------------------------
@@ -64,16 +70,16 @@ function isActivePath(location: string, href: string) {
 // -------------------------------------------------------------
 
 function UserAvatarButton() {
-    // Получаем текущего пользователя из стора авторизации
-    const user = useAuthStore((s) => s.user);
-    
-    return (
-        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-border bg-muted flex items-center justify-center">
-            <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
-                {user?.username?.[0]?.toUpperCase() ?? "?"}
-            </div>
-        </div>
-    );
+  // Получаем текущего пользователя из стора авторизации
+  const user = useAuthStore((s) => s.user);
+
+  return (
+    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-border bg-muted flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
+        {user?.username?.[0]?.toUpperCase() ?? "?"}
+      </div>
+    </div>
+  );
 }
 
 // -------------------------------------------------------------
@@ -83,42 +89,42 @@ function UserAvatarButton() {
 // -------------------------------------------------------------
 
 function DesktopNav() {
-    const [location] = useLocation();
-    const isAdmin = useAuthStore(selectIsAdmin);
+  const [location] = useLocation();
+  const isAdmin = useAuthStore(selectIsAdmin);
 
-    // Оставляем только те пункты, которые доступны текущей роли
-    const visibleItems = NAV_ITEMS.filter((i) =>
-        (!i.adminOnly || isAdmin) && (!i.userOnly || !isAdmin)
-    );
+  // Оставляем только те пункты, которые доступны текущей роли
+  const visibleItems = NAV_ITEMS.filter(
+    (i) => (!i.adminOnly || isAdmin) && (!i.userOnly || !isAdmin),
+  );
 
-    return (
-        <nav className="hidden md:flex items-center gap-0.5 ml-6">
-            {visibleItems.map((item) => {
-                const active = isActivePath(location, item.href);
-                return (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                            "relative flex items-center gap-1.5 h-8 px-3 rounded-md text-sm font-medium transition-colors",
-                            // Активный пункт — выделяем фоном и цветом текста
-                            active
-                                ? "text-foreground bg-muted"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-                        )}
-                    >
-                        <item.icon size={14} />
-                        <span>{item.label}</span>
+  return (
+    <nav className="hidden md:flex items-center gap-0.5 ml-6">
+      {visibleItems.map((item) => {
+        const active = isActivePath(location, item.href);
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "relative flex items-center gap-1.5 h-8 px-3 rounded-md text-sm font-medium transition-colors",
+              // Активный пункт — выделяем фоном и цветом текста
+              active
+                ? "text-foreground bg-muted"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+            )}
+          >
+            <item.icon size={14} />
+            <span>{item.label}</span>
 
-                        {/* Точка-индикатор активного пункта под текстом */}
-                        {active && (
-                            <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-                        )}
-                    </Link>
-                );
-            })}
-        </nav>
-    );
+            {/* Точка-индикатор активного пункта под текстом */}
+            {active && (
+              <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+            )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 }
 
 // -------------------------------------------------------------
@@ -128,69 +134,67 @@ function DesktopNav() {
 // -------------------------------------------------------------
 
 function TopHeader() {
-    // Получаем мутацию выхода и флаг загрузки для блокировки кнопки
-    const { mutate: doLogout, isPending } = useLogout();
+  // Получаем мутацию выхода и флаг загрузки для блокировки кнопки
+  const { mutate: doLogout, isPending } = useLogout();
 
-    return (
-        <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
-            <div className="relative flex items-center justify-between h-14 px-4 sm:px-6">
-
-                {/* Левая часть — логотип и десктопная навигация */}
-                <div className="flex items-center">
-                    <Link href="/">
-                        <div className="flex items-center gap-2.5 cursor-pointer group shrink-0">
-                            <span className="font-bold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-                                HtrBox
-                            </span>
-                        </div>
-                    </Link>
-                    <DesktopNav />
-                </div>
-
-                {/* Правая часть — бейдж Beta (десктоп), Telegram, меню пользователя */}
-                <div className="flex items-center gap-2 sm:gap-3">
-
-                    {/* Ссылка на Telegram-канал поддержки */}
-                    <a
-                        href="https://t.me/stdoq"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={cn(
-                            "inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-lg text-xs font-medium",
-                            "bg-primary/10 text-primary hover:bg-primary/20 transition-colors",
-                        )}
-                    >
-                        <Send size={14} />
-                        {/* Ник скрыт на маленьких экранах — остаётся только иконка */}
-                        <span className="hidden sm:inline">@stdoq</span>
-                    </a>
-
-                    {/* Выпадающее меню пользователя — триггер это аватар */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                aria-label="Меню пользователя"
-                                className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            >
-                                <UserAvatarButton />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            {/* Пункт выхода — красный, заблокирован во время запроса */}
-                            <DropdownMenuItem
-                                onClick={() => doLogout()}
-                                disabled={isPending}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
-                            >
-                                <LogOut size={14} />
-                                Выйти
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
+      <div className="relative flex items-center justify-between h-14 px-4 sm:px-6">
+        {/* Левая часть — логотип и десктопная навигация */}
+        <div className="flex items-center">
+          <Link href="/">
+            <div className="flex items-center gap-2.5 cursor-pointer group shrink-0">
+              <span className="font-bold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
+                HtrBox
+              </span>
             </div>
-        </header>
-    );
+          </Link>
+          <DesktopNav />
+        </div>
+
+        {/* Правая часть — бейдж Beta (десктоп), Telegram, меню пользователя */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Ссылка на Telegram-канал поддержки */}
+          <a
+            href="https://t.me/stdoq"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-lg text-xs font-medium",
+              "bg-primary/10 text-primary hover:bg-primary/20 transition-colors",
+            )}
+          >
+            <Send size={14} />
+            {/* Ник скрыт на маленьких экранах — остаётся только иконка */}
+            <span className="hidden sm:inline">@stdoq</span>
+          </a>
+
+          {/* Выпадающее меню пользователя — триггер это аватар */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                aria-label="Меню пользователя"
+                className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <UserAvatarButton />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {/* Пункт выхода — красный, заблокирован во время запроса */}
+              <DropdownMenuItem
+                onClick={() => doLogout()}
+                disabled={isPending}
+                className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+              >
+                <LogOut size={14} />
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </header>
+  );
 }
 
 // -------------------------------------------------------------
@@ -200,47 +204,48 @@ function TopHeader() {
 // -------------------------------------------------------------
 
 interface AppShellProps {
-    /** Дочерние элементы — содержимое текущей страницы. */
-    children: React.ReactNode;
+  /** Дочерние элементы — содержимое текущей страницы. */
+  children: React.ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
-    // Инициализируем WebSocket один раз на уровне шелла
-    // useWebSocket();
+  // Инициализируем WebSocket один раз на уровне шелла
+  // useWebSocket();
 
-    // Определяем мобильный режим для переключения между TopHeader и BottomBar
-    const isMobile = useIsMobile();
+  // Определяем мобильный режим для переключения между TopHeader и BottomBar
+  const isMobile = useIsMobile();
 
-    // Получаем текущий путь
-    const [location] = useLocation();
+  // Получаем текущий путь
+  const [location] = useLocation();
 
-    // Список всех известных путей (включая главную)
-    const KNOWN_PATHS = ["/", ...NAV_ITEMS.map(item => item.href)];
+  // Список всех известных путей (включая главную)
+  const KNOWN_PATHS = ["/", ...NAV_ITEMS.map((item) => item.href)];
 
-    // Проверяем, является ли текущий путь известным.
-    // Если путь не найден в списке и не начинается с известных путей (для вложенных роутов),
-    // считаем это страницей 404.
-    const isNotFound = !KNOWN_PATHS.some(path => 
-        location === path || (path !== "/" && location.startsWith(path + "/"))
-    );
+  // Проверяем, является ли текущий путь известным.
+  // Если путь не найден в списке и не начинается с известных путей (для вложенных роутов),
+  // считаем это страницей 404.
+  const isNotFound = !KNOWN_PATHS.some(
+    (path) =>
+      location === path || (path !== "/" && location.startsWith(path + "/")),
+  );
 
-    return (
-        <div className="flex flex-col min-h-screen bg-background">
-            {/* Скрываем шапку на странице 404 */}
-            {!isNotFound && <TopHeader />}
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Скрываем шапку на странице 404 */}
+      {!isNotFound && <TopHeader />}
 
-            <main
-                className={cn(
-                    "flex-1 flex flex-col min-h-0 overflow-x-hidden",
-                    // На мобильных добавляем отступ снизу, только если виден BottomBar
-                    isMobile && !isNotFound && "pb-20",
-                )}
-            >
-                {children}
-            </main>
+      <main
+        className={cn(
+          "flex-1 flex flex-col min-h-0 overflow-x-hidden",
+          // На мобильных добавляем отступ снизу, только если виден BottomBar
+          isMobile && !isNotFound && "pb-20",
+        )}
+      >
+        {children}
+      </main>
 
-            {/* Нижняя панель навигации — только на мобильных и не на 404 */}
-            {isMobile && !isNotFound && <BottomBar />}
-        </div>
-    );
+      {/* Нижняя панель навигации — только на мобильных и не на 404 */}
+      {isMobile && !isNotFound && <BottomBar />}
+    </div>
+  );
 }

@@ -1,10 +1,10 @@
 import { get, post, put, del } from "./client";
 import type {
-    ServerPublicResponse,
-    ServerAdminResponse,
-    ServerCreateResponse,
-    CreateServerRequest,
-    UpdateServerRequest,
+  ServerPublicResponse,
+  ServerAdminResponse,
+  ServerCreateResponse,
+  CreateServerRequest,
+  UpdateServerRequest,
 } from "./types";
 
 /**
@@ -17,8 +17,10 @@ import type {
  * Используйте getServersAdmin(), если вызывающий точно имеет права администратора,
  * чтобы избежать сужения union-типов в компонентах и хуках.
  */
-export function getServers(): Promise<ServerPublicResponse[] | ServerAdminResponse[]> {
-    return get<ServerPublicResponse[] | ServerAdminResponse[]>("/servers");
+export function getServers(): Promise<
+  ServerPublicResponse[] | ServerAdminResponse[]
+> {
+  return get<ServerPublicResponse[] | ServerAdminResponse[]>("/servers");
 }
 
 /**
@@ -28,7 +30,7 @@ export function getServers(): Promise<ServerPublicResponse[] | ServerAdminRespon
  * Позволяет избежать сужения union-типа на стороне вызова.
  */
 export function getServersAdmin(): Promise<ServerAdminResponse[]> {
-    return get<ServerAdminResponse[]>("/servers");
+  return get<ServerAdminResponse[]>("/servers");
 }
 
 /**
@@ -43,8 +45,10 @@ export function getServersAdmin(): Promise<ServerAdminResponse[]> {
  *
  * @param data Данные для создания сервера
  */
-export function createServer(data: CreateServerRequest): Promise<ServerCreateResponse> {
-    return post<ServerCreateResponse>("/servers", data);
+export function createServer(
+  data: CreateServerRequest,
+): Promise<ServerCreateResponse> {
+  return post<ServerCreateResponse>("/servers", data);
 }
 
 /**
@@ -57,11 +61,11 @@ export function createServer(data: CreateServerRequest): Promise<ServerCreateRes
  * @param data Полный или частичный payload для обновления сервера
  */
 export function updateServer(
-    serverId: string,
-    data: UpdateServerRequest,
+  serverId: string,
+  data: UpdateServerRequest,
 ): Promise<ServerAdminResponse> {
-    const path = `/servers/${encodeURIComponent(serverId)}`;
-    return put<ServerAdminResponse>(path, data);
+  const path = `/servers/${encodeURIComponent(serverId)}`;
+  return put<ServerAdminResponse>(path, data);
 }
 
 /**
@@ -74,6 +78,6 @@ export function updateServer(
  * @param serverId Уникальный идентификатор удаляемого сервера
  */
 export function deleteServer(serverId: string): Promise<{ message: string }> {
-    const path = `/servers/${encodeURIComponent(serverId)}`;
-    return del<{ message: string }>(path);
+  const path = `/servers/${encodeURIComponent(serverId)}`;
+  return del<{ message: string }>(path);
 }
