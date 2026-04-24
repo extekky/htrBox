@@ -182,29 +182,36 @@
     background-color: var(--background);
     background-image:
       radial-gradient(
-        1200px 900px at 50% 26%,
+        900px 830px at 50% 40%,
         oklch(0.995 0.004 255 / 0.98) 0%,
         oklch(0.945 0.024 235 / 0.74) 40%,
         transparent 78%
       ),
       radial-gradient(
-        1500px 1200px at 58% 78%,
+        3000px 3000px at -20% -40%,
         oklch(0.73 0.11 249 / 0.7) 0%,
         oklch(0.81 0.055 248 / 0.4) 42%,
         transparent 82%
       ),
       radial-gradient(
-        560px 420px at 51% 88%,
+        2500px 2000px at 58% 120%,
+        oklch(0.73 0.11 249 / 0.7) 0%,
+        oklch(0.81 0.055 248 / 0.4) 42%,
+        transparent 82%
+      ),
+      radial-gradient(
+        560px 420px at 68% 88%,
         oklch(0.995 0.003 255 / 0.92) 0%,
         transparent 72%
       ),
       radial-gradient(
-        760px 520px at 28% 14%,
+        760px 520px at -8% 14%,
         oklch(0.82 0.032 246 / 0.28) 0%,
         transparent 78%
       ),
       linear-gradient(180deg, oklch(0.962 0.006 252) 0%, oklch(0.952 0.006 252) 100%);
     background-repeat: no-repeat;
+    /* background-attachment: fixed, fixed, fixed, fixed, fixed; */
   }
 
   .gradient-surface {
