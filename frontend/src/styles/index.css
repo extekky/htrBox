@@ -84,47 +84,6 @@
 }
 
 /* ---------------------------------------------------------------
-   Dark theme
-   --------------------------------------------------------------- */
-
-.dark {
-  --primary: oklch(0.7 0.14 240);
-  --primary-foreground: oklch(0.98 0.01 0);
-
-  --background: oklch(0.14 0.008 260);
-  --foreground: oklch(0.88 0.008 260);
-
-  --card: oklch(0.18 0.008 260);
-  --card-foreground: oklch(0.88 0.008 260);
-
-  --popover: oklch(0.2 0.01 260);
-  --popover-foreground: oklch(0.88 0.008 260);
-
-  --secondary: oklch(0.24 0.01 260);
-  --secondary-foreground: oklch(0.78 0.008 260);
-
-  --muted: oklch(0.25 0.01 260);
-  --muted-foreground: oklch(0.6 0.012 260);
-
-  --accent: oklch(0.32 0.014 240);
-  --accent-foreground: oklch(0.98 0.01 0);
-
-  --destructive: oklch(0.7 0.22 25);
-  --destructive-foreground: oklch(0.98 0.01 0);
-
-  --border: oklch(1 0 0 / 0.1);
-  --input: oklch(1 0 0 / 0.08);
-  --ring: oklch(0.7 0.14 240 / 0.4);
-
-  --sidebar: oklch(0.16 0.008 260);
-  --sidebar-foreground: oklch(0.88 0.008 260);
-  --sidebar-accent: oklch(0.26 0.012 260);
-  --sidebar-accent-foreground: oklch(0.88 0.008 260);
-  --sidebar-border: oklch(1 0 0 / 0.08);
-  --sidebar-ring: oklch(0.7 0.14 240 / 0.3);
-}
-
-/* ---------------------------------------------------------------
    Base resets
    --------------------------------------------------------------- */
 
@@ -230,7 +189,7 @@
   }
 
   .glass {
-    background-color: oklch(from var(--card) l c h / 0.4);
+    background-color: oklch(from var(--card) l c h / 0.1);
     background-image:
       linear-gradient(
         150deg,

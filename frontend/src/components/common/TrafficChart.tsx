@@ -311,7 +311,7 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
     <Card className={s.root}>
       <div className={s.header}>
         <div className={s.headerBody}>
-          <p className={s.title}>Трафик</p>
+          <p className={s.title}>График</p>
           <p className={s.total}>
             {isLoading ? (
               <span className={s.totalPlaceholder}>—</span>
