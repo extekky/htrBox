@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import { styles } from "@/styles";
+import { Card } from "@/components/ui/Card";
 
 // -------------------------------------------------------------
 // Интерфейсы
@@ -71,7 +72,7 @@ export function KpiCard({
   const c = ACCENT_MAP[accent];
 
   return (
-    <div className={cn(s.root, c.bg)}>
+    <Card className={cn(s.root, c.bg)}>
       <div className={s.header}>
         <span className={s.label}>{label}</span>
         <div className={cn(s.iconWrap, c.icon)}>
@@ -84,6 +85,6 @@ export function KpiCard({
         {/* Дополнительная информация под основным значением */}
         {sub && <p className={s.sub}>{sub}</p>}
       </div>
-    </div>
+    </Card>
   );
 }

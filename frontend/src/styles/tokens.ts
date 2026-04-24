@@ -67,16 +67,17 @@ export const typography = {
 
 export const surface = {
   // Базовый фон страницы
-  page: "bg-background",
+  page: "bg-background gradient-page",
 
   // Карточка — белая с тонкой границей
   card: "bg-card border border-border/70",
 
   // Вложенная секция внутри карточки (чуть теплее)
-  cardInner: "bg-secondary/55 border border-border/60",
+  cardInner: "bg-secondary/55 border border-border/60 ",
 
   // Попоуэр / дропдаун / тултип
-  popover: "bg-card border border-border/70 shadow-lg shadow-slate-900/8",
+  popover:
+    "bg-card border border-border/70 shadow-lg shadow-slate-900/8 ",
 
   // Поверхность с frosted-glass (для хедера / ботбара)
   frosted: "bg-background/90 backdrop-blur-xl border-border/60",

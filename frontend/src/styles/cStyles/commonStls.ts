@@ -24,15 +24,15 @@ import { colorScheme } from "@/styles/variants";
 
 export const progressBar = {
   // Корневой трек — тонкая полоса с bg-muted и обрезкой
-  root: `h-1.5 w-full ${radius.full} bg-muted/80 overflow-hidden`,
+  root: `h-1.5 w-full ${radius.full} bg-primary/20 overflow-hidden`,
 
   // Заполнение трека — высота + форма + замедленная анимация ширины (500ms — медленнее transition.slow намеренно)
   track: `h-full ${radius.full} ${transition.slow} duration-500`,
 
-  // Цветовые варианты заполнения — берём solid из colorScheme
-  fillDanger: "bg-gradient-to-r from-destructive to-red-500", // bg-destructive
-  fillWarning: "bg-gradient-to-r from-amber-500 to-amber-400", // bg-amber-500
-  fillPrimary: "bg-gradient-to-r from-primary to-indigo-500/90", // bg-primary
+  // Цветовые варианты заполнения — однотонные, без градиента
+  fillDanger: colorScheme.danger.solid,
+  fillWarning: colorScheme.warning.solid,
+  fillPrimary: colorScheme.primary.solid,
   fillMuted: "bg-muted-foreground/35", // нет совпадения в colorScheme.solid
 } as const;
 
@@ -178,7 +178,8 @@ export const connectionCard = {
     "flex items-center justify-center w-8 h-8 rounded-[10px] bg-primary/12 text-primary shrink-0 border border-primary/20",
 
   // Заголовок и подпись
-  title: "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+  title:
+    "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
   subtitle: `${typography.mutedXs} mt-1`,
 
   // Кнопка обновления
@@ -358,7 +359,8 @@ export const trafficChart = {
 
   header: "flex items-start justify-between gap-3",
   headerBody: "min-w-0 flex-1",
-  title: "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+  title:
+    "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
   total: "text-2xl font-bold text-foreground tabular-nums mt-1",
   totalPlaceholder: "text-muted-foreground",
   subtitle: "mt-1 text-xs text-muted-foreground",
@@ -369,11 +371,13 @@ export const trafficChart = {
     "text-xs font-medium border",
     transition.colors,
   ].join(" "),
-  tabButtonActive: "bg-primary/12 text-primary border-primary/24 hover:bg-primary/18",
+  tabButtonActive:
+    "bg-primary/12 text-primary border-primary/24 hover:bg-primary/18",
   tabButtonDefault:
     "bg-card text-muted-foreground border-border/70 hover:bg-secondary/80 hover:text-foreground",
 
-  chartSurface: "relative h-[236px] rounded-xl border border-border/65 bg-card/35 overflow-hidden",
+  chartSurface:
+    "relative h-[236px] rounded-xl border border-border/65 bg-card/35 overflow-hidden",
   chartSvg: "absolute inset-0 w-full h-full",
   axisLabel: "fill-muted-foreground text-[10px]",
   chartOverlay: "absolute inset-0",

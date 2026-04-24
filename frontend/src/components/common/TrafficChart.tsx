@@ -322,7 +322,7 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
           <p className={s.subtitle}>
             {isLoading
               ? "Обновляем данные"
-              : `${chartData.length} точек на экране`}
+              : `${chartData.length} точек`}
           </p>
         </div>
 

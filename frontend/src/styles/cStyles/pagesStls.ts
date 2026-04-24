@@ -23,12 +23,13 @@ import { typography, radius, spacing } from "@/styles/tokens";
 // -------------------------------------------------------------
 
 export const loginPage = {
-  restoreRoot: "flex items-center justify-center min-h-screen bg-background",
+  restoreRoot:
+    "flex items-center justify-center min-h-screen bg-background gradient-page",
   restoreInner: "flex flex-col items-center gap-3 text-muted-foreground",
   restoreIcon: loading.spin,
   restoreText: "text-sm",
 
-  root: "relative flex items-center justify-center min-h-screen overflow-hidden bg-background",
+  root: "relative flex items-center justify-center min-h-screen overflow-hidden bg-background gradient-page",
   inner: "relative z-10 w-full max-w-sm mx-4 animate-fade-in",
 
   header: "flex flex-col items-center gap-3 mb-5 text-center",
@@ -60,7 +61,7 @@ export const loginPage = {
 // -------------------------------------------------------------
 
 export const registerPage = {
-  root: "relative flex items-center justify-center min-h-screen overflow-hidden bg-background",
+  root: "relative flex items-center justify-center min-h-screen overflow-hidden bg-background gradient-page",
   inner: "relative z-10 w-full max-w-sm mx-4 animate-fade-in",
 
   header: "flex flex-col items-center gap-3 mb-5 text-center",

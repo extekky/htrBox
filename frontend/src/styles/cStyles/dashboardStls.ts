@@ -14,7 +14,7 @@ import { radius, spacing } from "@/styles/tokens";
 
 export const kpiCard = {
   root: [
-    `relative ${radius.lg} border p-5 flex flex-col ${spacing.formGapSm} overflow-hidden`,
+    `relative ${radius.lg} border p-5 flex flex-col ${spacing.formGapSm} overflow-hidden gradient-surface`,
     transition.base,
     "hover:shadow-md",
   ].join(" "),
@@ -58,14 +58,14 @@ export const kpiCard = {
 // -------------------------------------------------------------
 
 export const sectionCard = {
-  root: `${radius.lg} border border-border bg-card overflow-hidden flex flex-col`,
+  root: `${radius.lg} border border-border bg-card gradient-surface overflow-hidden flex flex-col`,
 
   header:
-    "flex items-center justify-between px-5 py-3.5 border-b border-border/60",
+    "flex flex-row items-center justify-between gap-3 px-5 py-3.5 border-b border-border/60",
   headLeft: `flex items-center ${spacing.inlineGap}`,
   title: "text-sm font-semibold text-foreground",
 
-  body: "flex-1 divide-y divide-border/40",
+  body: "p-0 pt-0 flex-1 divide-y divide-border/40",
 
   row: `flex items-center justify-between px-5 py-2.5 hover:bg-muted/30 ${transition.colors}`,
 

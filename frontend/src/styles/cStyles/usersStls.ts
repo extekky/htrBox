@@ -218,9 +218,10 @@ export const userEditModal = {
   accessRoleCard:
     "flex items-center justify-between p-3.5 rounded-xl border border-border bg-muted/20",
   accessRoleHead: "flex items-center gap-3",
-  accessRoleIconWrap: "w-8 h-8 rounded-lg flex items-center justify-center",
-  accessRoleIconAdmin: `${colorScheme.warning.bg} ${colorScheme.warning.text}`,
-  accessRoleIconDefault: "bg-muted text-muted-foreground",
+  accessRoleIconWrap:
+    "w-9 h-9 rounded-full border flex items-center justify-center shrink-0",
+  accessRoleIconAdmin: `${colorScheme.warning.bg} ${colorScheme.warning.text} ${colorScheme.warning.border}`,
+  accessRoleIconDefault: "bg-muted/75 text-muted-foreground border-border/80",
   accessRoleTitle: "text-sm font-medium text-foreground",
   accessRoleValueAdmin: colorScheme.warning.text,
   accessRoleValueDefault: "text-muted-foreground",
@@ -237,14 +238,15 @@ export const userEditModal = {
     "flex flex-col gap-2.5 p-3.5 rounded-xl border border-border bg-muted/20",
   accessHyTop: "flex items-center justify-between",
   accessHyHead: "flex items-center gap-3",
-  accessHyIconWrap: `w-8 h-8 rounded-lg flex items-center justify-center ${colorScheme.info.bg} ${colorScheme.info.text}`,
+  accessHyIconWrap:
+    `w-9 h-9 rounded-full border flex items-center justify-center shrink-0 ${colorScheme.primary.bg} ${colorScheme.primary.text} ${colorScheme.primary.border}`,
   accessHyTitle: "text-sm font-medium text-foreground",
   accessHyHint: "text-xs text-muted-foreground mt-0.5",
 
   accessHyButton: [
     "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg",
-    `text-xs font-medium ${colorScheme.info.bg} ${colorScheme.info.text} border ${colorScheme.info.border}`,
-    `${colorScheme.info.hover} disabled:opacity-50`,
+    `text-xs font-medium ${colorScheme.primary.bg} ${colorScheme.primary.text} border ${colorScheme.primary.border}`,
+    `${colorScheme.primary.hover} disabled:opacity-50`,
     transition.colors,
   ].join(" "),
 
@@ -261,7 +263,7 @@ export const userEditModal = {
     "flex items-center justify-between p-3.5 rounded-xl border border-destructive/20 bg-destructive/5",
   trafficResetHead: "flex items-center gap-3",
   trafficResetIconWrap:
-    "w-8 h-8 rounded-lg flex items-center justify-center bg-destructive/10 text-destructive",
+    "w-9 h-9 rounded-full border border-destructive/30 flex items-center justify-center shrink-0 bg-destructive/12 text-destructive",
   trafficResetTitle: "text-sm font-medium text-foreground",
   trafficResetHint: "text-xs text-muted-foreground mt-0.5",
 

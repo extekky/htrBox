@@ -1,4 +1,5 @@
 import { styles } from "@/styles";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
 // -------------------------------------------------------------
 // Интерфейсы
@@ -28,19 +29,19 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <div className={s.root}>
+    <Card className={s.root}>
       {/* Шапка секции */}
-      <div className={s.header}>
+      <CardHeader className={s.header}>
         <div className={s.headLeft}>
           <span className={s.title}>{title}</span>
           {badge}
         </div>
         {action}
-      </div>
+      </CardHeader>
 
       {/* Контент секции с разделителями между дочерними элементами */}
-      <div className={s.body}>{children}</div>
-    </div>
+      <CardContent className={s.body}>{children}</CardContent>
+    </Card>
   );
 }
 

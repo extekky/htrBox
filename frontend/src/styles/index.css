@@ -178,8 +178,65 @@
    --------------------------------------------------------------- */
 
 @layer utilities {
+  .gradient-page {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(
+        1200px 900px at 50% 26%,
+        oklch(0.995 0.004 255 / 0.98) 0%,
+        oklch(0.945 0.024 235 / 0.74) 40%,
+        transparent 78%
+      ),
+      radial-gradient(
+        1500px 1200px at 58% 78%,
+        oklch(0.73 0.11 249 / 0.7) 0%,
+        oklch(0.81 0.055 248 / 0.4) 42%,
+        transparent 82%
+      ),
+      radial-gradient(
+        560px 420px at 51% 88%,
+        oklch(0.995 0.003 255 / 0.92) 0%,
+        transparent 72%
+      ),
+      radial-gradient(
+        760px 520px at 28% 14%,
+        oklch(0.82 0.032 246 / 0.28) 0%,
+        transparent 78%
+      ),
+      linear-gradient(180deg, oklch(0.962 0.006 252) 0%, oklch(0.952 0.006 252) 100%);
+    background-repeat: no-repeat;
+  }
+
+  .gradient-surface {
+    background-image:
+      linear-gradient(
+        155deg,
+        oklch(1 0.004 255 / 0.42) 0%,
+        oklch(0.965 0.014 250 / 0.2) 100%
+      ),
+      radial-gradient(
+        160% 120% at 0% 0%,
+        oklch(0.96 0.03 245 / 0.16) 0%,
+        transparent 62%
+      );
+    background-repeat: no-repeat;
+  }
+
   .glass {
-    background: oklch(from var(--card) l c h / 0.92);
+    background-color: oklch(from var(--card) l c h / 0.4);
+    background-image:
+      linear-gradient(
+        150deg,
+        oklch(1 0.004 255 / 0.6) 0%,
+        oklch(0.965 0.018 245 / 0.26) 52%,
+        transparent 100%
+      ),
+      radial-gradient(
+        145% 115% at 0% 0%,
+        oklch(0.93 0.06 242 / 0.22) 0%,
+        transparent 64%
+      );
+    background-repeat: no-repeat;
     border: 1px solid oklch(from var(--border) l c h / 0.72);
     box-shadow:
       0 18px 34px -24px rgba(15, 23, 42, 0.32),

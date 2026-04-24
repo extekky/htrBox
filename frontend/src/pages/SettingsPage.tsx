@@ -28,7 +28,6 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/Card";
-import { Checkbox } from "@/components/ui/CheckBox";
 import { FormInput } from "@/components/ui/FormInput";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
@@ -79,11 +78,11 @@ function HysteriaSection({ username }: { username: string }) {
           </div>
           <div className={s.sectionInfo}>
             <CardTitle className={s.sectionTitle}>
-              Hysteria VPN пароль
+              Hysteria VPN ключ
             </CardTitle>
             <CardDescription className={s.sectionDescription}>
-              Пароль используется в VPN-клиенте для подключения. После
-              перегенерации текущая сессия будет прервана.
+              Ключ используется в VPN-клиенте для подключения. После
+              перегенерации текущие VPN ключи станут недействительными.
             </CardDescription>
           </div>
         </CardHeader>
@@ -111,7 +110,7 @@ function HysteriaSection({ username }: { username: string }) {
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleRegenerate}
         title="Обновить Hysteria-пароль?"
-        description="Текущая VPN-сессия будет прервана. После генерации потребуется заново скопировать строку подключения."
+        description="После перегенерации текущие VPN ключи станут недействительными. Потребуется заново скопировать строку подключения в ваш клиент."
         confirmLabel="Сгенерировать"
         variant="destructive"
         loading={isPending}
@@ -326,7 +325,7 @@ export function SettingsPage() {
           <div className={s.header}>
             <h1 className={s.title}>Настройки</h1>
             <p className={s.subtitle}>
-              Управление паролями аккаунта и VPN-подключения
+              Управление паролем аккаунта и ключами VPN-подключения
             </p>
           </div>
 

@@ -179,7 +179,7 @@ export function ProfilePage() {
                 <div className={s.heroExpiry}>
                   <p className={s.heroExpiryLabel}>Действует до</p>
                   <p className={s.heroExpiryDate}>
-                    {expiryDateLine ?? "Не установлена"}
+                    {expiryDateLine ?? "дата не установлена"}
                   </p>
                 </div>
               </div>

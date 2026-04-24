@@ -31,7 +31,7 @@ export const bottomBar = {
     "bg-background/92 backdrop-blur-md",
     "border-t border-border/60",
     "shadow-[0_-10px_24px_-18px_rgba(15,23,42,0.35)]",
-    "pb-safe",
+    "pb-safe glass",
   ].join(" "),
 
   // Внутренняя строка — фиксированная высота, равномерное распределение пунктов
@@ -70,7 +70,7 @@ export const appShell = {
   // Залипающая шапка — frosted-фон + нижняя граница
   // z-40 намеренно выше bottomBar (z-30), sticky вместо fixed
   header:
-    "sticky top-0 z-40 border-b border-border/60 bg-background/88 backdrop-blur-md",
+    "sticky top-0 z-40 border-b border-border/60 bg-background/88 backdrop-blur-md glass",
 
   // Внутренняя строка шапки
   headerInner: "relative flex items-center justify-between h-14 px-4 sm:px-6",
@@ -130,7 +130,11 @@ export const appShell = {
   dropdownWidth: "w-48",
 
   // Пункт выхода — деструктивный
-  logoutItem: `${colorScheme.danger.text} focus:${colorScheme.danger.text} focus:${colorScheme.danger.bg} cursor-pointer`,
+  logoutItem: [
+    "cursor-pointer text-destructive",
+    "focus:text-destructive focus:bg-destructive/12",
+    "data-[highlighted]:text-destructive data-[highlighted]:bg-destructive/12",
+  ].join(" "),
 
   // Основная область контента
   main: "flex-1 flex flex-col min-h-0 overflow-x-hidden",

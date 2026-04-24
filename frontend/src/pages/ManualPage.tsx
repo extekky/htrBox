@@ -354,7 +354,7 @@ export function ManualPage() {
                 {/* danger — запрет */}
                 <RuleCard
                   icon={<AlertTriangle size={14} />}
-                  text="Если будет зафиксировано 3 и более одновременных подключений с одного аккаунта - бан."
+                  text="Если будет зафиксировано 3 и более одновременных подключений с одного ключа — аккаунт блокируется."
                   variant="danger"
                 />
                 <RuleCard
@@ -398,8 +398,8 @@ export function ManualPage() {
                     <div className={s.paymentFeatures}>
                       {[
                         "Hysteria2 протокол",
-                        "До 10 ГБ трафика",
-                        "2 устройства",
+                        "До 1 ТБ трафика",
+                        "1 устройство",
                       ].map((feature) => (
                         <div key={feature} className={s.paymentFeature}>
                           <CheckCircle2

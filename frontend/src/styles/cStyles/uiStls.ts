@@ -50,7 +50,8 @@ export const checkbox = {
   // Корневой элемент — геометрия, цвет границы, тень, анимация
   root: [
     "peer size-4 shrink-0 rounded-lg border shadow-xs outline-none",
-    "border-input bg-input/80",
+    // Нейтральный фон/бордер заметнее на светлых таблицах, но остаётся мягким.
+    "border-border/90 bg-muted/70 hover:border-border",
     transition.shadow,
   ].join(" "),
 
@@ -187,6 +188,7 @@ export const dropdownMenu = {
   // Кликабельный пункт меню
   item: [
     "focus:bg-accent focus:text-accent-foreground",
+    "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
     `relative flex cursor-default items-center ${spacing.inlineGap} rounded-sm px-2 py-1.5 ${typography.bodySm} outline-none select-none`,
     "data-disabled:pointer-events-none data-disabled:opacity-50 data-inset:pl-8",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -218,7 +220,8 @@ export const modal = {
   ].join(" "),
 
   // Шапка — layout + нижний разделитель
-  header: `flex items-start justify-between gap-4 px-5 py-4 ${divider.horizontal}`,
+  header:
+    "flex items-start justify-between gap-4 px-5 py-4 border-b border-border/60",
 
   // Заголовок диалога
   title: typography.headingBase,
