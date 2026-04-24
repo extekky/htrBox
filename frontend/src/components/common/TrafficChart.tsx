@@ -1,53 +1,81 @@
-import { useMemo, useState } from "react";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  type PointerEvent as ReactPointerEvent,
+  useRef,
+  useState,
+} from "react";
+
 import { cn } from "@/lib/cn";
 import { styles } from "@/styles";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { useTraffic } from "@/hooks/useTraffic";
-import type { TrafficPoint } from "@/hooks/useTraffic";
+import { useTraffic, type TrafficDays } from "@/hooks/useTraffic";
+import {
+  buildAreaPath,
+  buildLinePath,
+  buildXTicks,
+  buildYScale,
+  downsampleTraffic,
+  findClosestPointIndexByX,
+  getPointBudget,
+  smoothTraffic,
+  toChartPoints,
+  type ChartFrame,
+} from "@/components/common/trafficChartModel";
 
 const s = styles.trafficChart;
 
-// -------------------------------------------------------------
-// Форматирование
-// -------------------------------------------------------------
+const DEFAULT_CHART_WIDTH = 320;
+const DEFAULT_CHART_HEIGHT = 236;
+const PADDING = {
+  top: 14,
+  right: 14,
+  bottom: 26,
+  left: 42,
+} as const;
 
-/** Для шапки — с пробелом и полной единицей */
-function fmtGb(gb: number): string {
+const RANGE_OPTIONS = [
+  { value: 1 as const, label: "24ч" },
+  { value: 3 as const, label: "3д" },
+  { value: 7 as const, label: "7д" },
+];
+
+interface TrafficChartProps {
+  username?: string;
+}
+
+function sanitizeUid(uid: string): string {
+  return uid.replace(/:/g, "");
+}
+
+function formatTraffic(gb: number): string {
   if (gb === 0) return "0 B";
   if (gb < 0.001) return `${(gb * 1024 * 1024).toFixed(0)} KB`;
   if (gb < 1) return `${(gb * 1024).toFixed(gb * 1024 < 10 ? 2 : 1)} MB`;
   return `${gb.toFixed(3)} GB`;
 }
 
-/** Для тиков оси Y — без пробела, компактно */
-function fmtYTick(gb: number): string {
+function formatYTick(gb: number): string {
   if (gb === 0) return "0";
   if (gb < 0.001) return `${(gb * 1024 * 1024).toFixed(0)}K`;
   if (gb < 1) return `${(gb * 1024).toFixed(0)}M`;
   return `${gb.toFixed(1)}G`;
 }
 
-/** Для тиков оси X */
-function fmtTick(ts: number): string {
-  return new Date(ts).toLocaleTimeString("ru-RU", {
+function formatXTick(ts: number, days: TrafficDays): string {
+  return new Date(ts).toLocaleString("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
+    day: days >= 7 ? "numeric" : undefined,
+    month: days >= 7 ? "short" : undefined,
     timeZone: "Europe/Moscow",
   });
 }
 
-/** Для tooltip */
-function fmtTooltipLabel(ts: number, days: number): string {
+function formatTooltipLabel(ts: number, days: TrafficDays): string {
   const date = new Date(ts);
   if (days === 1) {
     return date.toLocaleTimeString("ru-RU", {
@@ -56,6 +84,7 @@ function fmtTooltipLabel(ts: number, days: number): string {
       timeZone: "Europe/Moscow",
     });
   }
+
   return date.toLocaleString("ru-RU", {
     day: "numeric",
     month: "short",
@@ -65,102 +94,95 @@ function fmtTooltipLabel(ts: number, days: number): string {
   });
 }
 
-// -------------------------------------------------------------
-// Тики оси X
-// -------------------------------------------------------------
-
-const TICK_INTERVAL: Record<number, number> = {
-  1: 3 * 60 * 60 * 1000,
-  2: 6 * 60 * 60 * 1000,
-  3: 8 * 60 * 60 * 1000,
-};
-
-function buildTicks(data: TrafficPoint[], days: number): number[] {
-  if (data.length === 0) return [];
-  const interval = TICK_INTERVAL[days] ?? TICK_INTERVAL[3];
-  const first = data[0].ts;
-  const last = data[data.length - 1].ts;
-  const ticks: number[] = [];
-  const aligned = Math.ceil(first / interval) * interval;
-  for (let t = aligned; t <= last; t += interval) {
-    ticks.push(t);
-  }
-  return ticks;
-}
-
-// -------------------------------------------------------------
-// Сглаживание данных (скользящее среднее по окну)
-// -------------------------------------------------------------
-
-function smoothData(data: TrafficPoint[], radius = 3): TrafficPoint[] {
-  if (data.length === 0) return data;
-  return data.map((point, i) => {
-    const start = Math.max(0, i - radius);
-    const end = Math.min(data.length - 1, i + radius);
-    let sum = 0;
-    let count = 0;
-    for (let j = start; j <= end; j++) {
-      // Вес убывает от центра — треугольное окно
-      const w = radius + 1 - Math.abs(j - i);
-      sum += data[j].delta_gb * w;
-      count += w;
-    }
-    return { ...point, delta_gb: sum / count };
+function useElementSize<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [size, setSize] = useState({
+    width: DEFAULT_CHART_WIDTH,
+    height: DEFAULT_CHART_HEIGHT,
   });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let rafId = 0;
+
+    const update = (nextWidth: number, nextHeight: number) => {
+      const width = Math.max(1, Math.round(nextWidth));
+      const height = Math.max(1, Math.round(nextHeight));
+
+      setSize((prev) =>
+        prev.width === width && prev.height === height
+          ? prev
+          : { width, height },
+      );
+    };
+
+    const rect = el.getBoundingClientRect();
+    update(rect.width, rect.height);
+
+    if (typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        update(entry.contentRect.width, entry.contentRect.height);
+      });
+    });
+
+    observer.observe(el);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
+  }, []);
+
+  return { ref, size };
 }
 
-// -------------------------------------------------------------
-// Кастомный Tooltip
-// -------------------------------------------------------------
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-interface TooltipProps {
-  active?: boolean;
-  payload?: Array<{ value: number }>;
-  label?: number;
-  days: number;
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPrefersReducedMotion(media.matches);
+
+    sync();
+
+    if (media.addEventListener) {
+      media.addEventListener("change", sync);
+      return () => media.removeEventListener("change", sync);
+    }
+
+    media.addListener(sync);
+    return () => media.removeListener(sync);
+  }, []);
+
+  return prefersReducedMotion;
 }
 
-function ChartTooltip({ active, payload, label, days }: TooltipProps) {
-  if (!active || !payload?.length || label === undefined) return null;
-  const val = payload[0].value;
-  return (
-    <div className={s.tooltipRoot}>
-      <p className={s.tooltipLabel}>{fmtTooltipLabel(label, days)}</p>
-      <p className={s.tooltipValue}>{fmtGb(val)}</p>
-    </div>
-  );
+function getDevicePixelRatio(): number {
+  if (typeof window === "undefined") return 1;
+  return Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 }
 
-// -------------------------------------------------------------
-// Табы
-// -------------------------------------------------------------
-
-const DAY_OPTIONS = [
-  { value: 1 as const, label: "1 день" },
-  { value: 2 as const, label: "2 дня" },
-  { value: 3 as const, label: "3 дня" },
-];
-
-// -------------------------------------------------------------
-// Компонент
-// -------------------------------------------------------------
-
-interface TrafficChartProps {
-  username?: string;
-}
-
-/**
- * Компонент для отображения графика трафика.
- *  - Если `username` не передан, показывает трафик текущего пользователя.
- *  - Включает табы для выбора периода (1, 2 или 3 дня).
- *  - Показывает общую сумму трафика в шапке.
- *  - Использует Recharts для отрисовки графика с кастомным tooltip.
- *  - Подбирает интервалы и форматирование тиков в зависимости от выбранного периода и данных.
- */
 export function TrafficChart({ username }: TrafficChartProps = {}) {
-  const [days, setDays] = useState<1 | 2 | 3>(1);
+  const [days, setDays] = useState<TrafficDays>(3);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // username пробрасывается в хук — без него возвращает трафик текущего пользователя
+  const chartUid = sanitizeUid(useId());
+  const gradientId = `traffic-chart-gradient-${chartUid}`;
+  const panelId = `traffic-chart-panel-${chartUid}`;
+
+  const { ref: chartRef, size } = useElementSize<HTMLDivElement>();
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   const {
     data: rawData,
     totalGb,
@@ -168,97 +190,206 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
     isError,
   } = useTraffic(days, username);
 
-  // Сглаживаем данные для плавной кривой
-  const data = useMemo(() => smoothData(rawData, 4), [rawData]);
+  const pointBudget = useMemo(
+    () => getPointBudget(size.width, getDevicePixelRatio()),
+    [size.width],
+  );
 
-  const ticks = useMemo(() => buildTicks(data, days), [data, days]);
+  const sampledData = useMemo(
+    () => downsampleTraffic(rawData, pointBudget),
+    [rawData, pointBudget],
+  );
 
-  const yMax = useMemo(() => {
-    const peak = Math.max(...data.map((p) => p.delta_gb), 0);
-    return peak > 0 ? peak * 1.3 : 0.001;
-  }, [data]);
+  const chartData = useMemo(() => smoothTraffic(sampledData, 2), [sampledData]);
 
-  const yWidth = useMemo(() => {
-    if (yMax < 1) return yMax * 1024 >= 100 ? 48 : 40;
-    return 44;
-  }, [yMax]);
+  const peakValue = useMemo(
+    () => Math.max(...chartData.map((p) => p.delta_gb), 0),
+    [chartData],
+  );
+
+  const yScale = useMemo(() => buildYScale(peakValue, 5), [peakValue]);
+
+  const frame = useMemo<ChartFrame>(
+    () => ({ width: size.width, height: size.height, padding: PADDING }),
+    [size.width, size.height],
+  );
+
+  const points = useMemo(
+    () => toChartPoints(chartData, frame, yScale.domainMax),
+    [chartData, frame, yScale.domainMax],
+  );
+
+  const areaPath = useMemo(() => {
+    const baselineY = frame.height - frame.padding.bottom;
+    return buildAreaPath(points, baselineY);
+  }, [points, frame.height, frame.padding.bottom]);
+
+  const linePath = useMemo(() => buildLinePath(points), [points]);
+
+  const xTicks = useMemo(
+    () => buildXTicks(rawData, size.width),
+    [rawData, size.width],
+  );
+
+  const xTickPositions = useMemo(() => {
+    if (rawData.length < 2) return [] as Array<{ ts: number; x: number }>;
+
+    const minTs = rawData[0].ts;
+    const maxTs = rawData[rawData.length - 1].ts;
+    const span = Math.max(1, maxTs - minTs);
+    const innerWidth = Math.max(
+      1,
+      frame.width - frame.padding.left - frame.padding.right,
+    );
+
+    return xTicks.map((ts) => ({
+      ts,
+      x: frame.padding.left + ((ts - minTs) / span) * innerWidth,
+    }));
+  }, [rawData, xTicks, frame]);
+
+  const hoverPoint = hoveredIndex !== null ? points[hoveredIndex] : null;
+
+  const tooltipStyle = useMemo(() => {
+    if (!hoverPoint) return undefined;
+
+    const margin = 8;
+    const tooltipWidth = 150;
+    const tooltipHeight = 64;
+
+    const left = Math.max(
+      margin,
+      Math.min(
+        hoverPoint.x - tooltipWidth / 2,
+        frame.width - tooltipWidth - margin,
+      ),
+    );
+
+    const top =
+      hoverPoint.y > frame.height / 2
+        ? Math.max(margin, hoverPoint.y - tooltipHeight - 12)
+        : Math.min(frame.height - tooltipHeight - margin, hoverPoint.y + 12);
+
+    return { left, top };
+  }, [hoverPoint, frame.width, frame.height]);
+
+  const moveRafRef = useRef(0);
+
+  const clearHover = useCallback(() => {
+    setHoveredIndex(null);
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (points.length === 0) return;
+
+      const rect = event.currentTarget.getBoundingClientRect();
+      const nextX = event.clientX - rect.left;
+
+      if (moveRafRef.current) cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = requestAnimationFrame(() => {
+        const index = findClosestPointIndexByX(points, nextX);
+        setHoveredIndex(index);
+      });
+    },
+    [points],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (moveRafRef.current) cancelAnimationFrame(moveRafRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    setHoveredIndex(null);
+  }, [days, username, pointBudget]);
+
+  const hasData = chartData.length > 0;
 
   return (
     <Card className={s.root}>
-      {/* Шапка */}
       <div className={s.header}>
         <div className={s.headerBody}>
-          <p className={s.title}>График</p>
+          <p className={s.title}>Трафик</p>
           <p className={s.total}>
             {isLoading ? (
               <span className={s.totalPlaceholder}>—</span>
             ) : (
-              fmtGb(totalGb)
+              formatTraffic(totalGb)
             )}
+          </p>
+          <p className={s.subtitle}>
+            {isLoading
+              ? "Обновляем данные"
+              : `${chartData.length} точек на экране`}
           </p>
         </div>
 
-        {/* Табы */}
-        <div className={s.tabs}>
-          {DAY_OPTIONS.map((opt) => (
+        <div
+          className={s.tabs}
+          role="tablist"
+          aria-label="Период графика трафика"
+        >
+          {RANGE_OPTIONS.map((option) => (
             <button
+              key={option.value}
               type="button"
-              key={opt.value}
-              onClick={() => setDays(opt.value)}
+              id={`traffic-tab-${chartUid}-${option.value}`}
+              role="tab"
+              aria-selected={days === option.value}
+              aria-controls={panelId}
+              tabIndex={days === option.value ? 0 : -1}
               className={cn(
                 s.tabButton,
-                days === opt.value
-                  ? s.tabButtonActive
-                  : s.tabButtonDefault,
+                days === option.value ? s.tabButtonActive : s.tabButtonDefault,
               )}
+              onClick={() => setDays(option.value)}
             >
-              {opt.label}
+              {option.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* График */}
-      <div className={s.chartWrap}>
+      <div
+        ref={chartRef}
+        className={s.chartSurface}
+        role="tabpanel"
+        id={panelId}
+        aria-labelledby={`traffic-tab-${chartUid}-${days}`}
+      >
         {isLoading ? (
-          <div className={s.chartState}>
+          <div className={s.stateWrap}>
             <Spinner className={s.spinner} />
           </div>
         ) : isError ? (
-          <div className={s.chartState}>
-            <p className={s.errorText}>Не удалось загрузить данные</p>
+          <div className={s.stateWrap}>
+            <p className={s.stateText}>Не удалось загрузить трафик</p>
+          </div>
+        ) : !hasData ? (
+          <div className={s.stateWrap}>
+            <p className={s.stateText}>За выбранный период нет данных</p>
           </div>
         ) : (
-          // Добавлены minHeight и initialDimension в ResponsiveContainer.
-          // Проблема библиотеки при использовании height="100%"
-          // на первом рендере, когда реальные размеры контейнера ещё не посчитаны.
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-            minHeight={160}
-            initialDimension={{ width: 300, height: 176 }}
-          >
-            <AreaChart
-              data={data}
-              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+          <>
+            <svg
+              viewBox={`0 0 ${frame.width} ${frame.height}`}
+              className={s.chartSvg}
+              aria-label="График трафика"
+              role="img"
             >
               <defs>
-                <linearGradient
-                  id="trafficGradient"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
                     stopColor="var(--color-primary)"
-                    stopOpacity={0.55}
+                    stopOpacity={0.32}
                   />
                   <stop
-                    offset="60%"
+                    offset="70%"
                     stopColor="var(--color-primary)"
-                    stopOpacity={0.12}
+                    stopOpacity={0.08}
                   />
                   <stop
                     offset="100%"
@@ -268,64 +399,108 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
                 </linearGradient>
               </defs>
 
-              <CartesianGrid
-                vertical={false}
-                stroke="var(--color-border)"
-                strokeOpacity={0.5}
-              />
+              {yScale.ticks.map((tick) => {
+                const baselineY = frame.height - frame.padding.bottom;
+                const innerHeight = Math.max(
+                  1,
+                  frame.height - frame.padding.top - frame.padding.bottom,
+                );
+                const y = baselineY - (tick / yScale.domainMax) * innerHeight;
 
-              <XAxis
-                dataKey="ts"
-                type="number"
-                scale="time"
-                domain={["dataMin", "dataMax"]}
-                ticks={ticks}
-                tickFormatter={fmtTick}
-                tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }}
-                tickLine={false}
-                axisLine={false}
-                minTickGap={40}
-              />
+                return (
+                  <g key={tick}>
+                    <line
+                      x1={frame.padding.left}
+                      y1={y}
+                      x2={frame.width - frame.padding.right}
+                      y2={y}
+                      stroke="var(--color-border)"
+                      strokeOpacity={0.45}
+                      strokeDasharray="3 3"
+                    />
+                    <text
+                      x={frame.padding.left - 8}
+                      y={y + 3}
+                      textAnchor="end"
+                      className={s.axisLabel}
+                    >
+                      {formatYTick(tick)}
+                    </text>
+                  </g>
+                );
+              })}
 
-              <YAxis
-                tickFormatter={fmtYTick}
-                tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }}
-                tickLine={false}
-                axisLine={false}
-                width={yWidth}
-                domain={[0, yMax]}
-                tickCount={5}
-              />
+              {xTickPositions.map((tick) => (
+                <text
+                  key={tick.ts}
+                  x={tick.x}
+                  y={frame.height - 8}
+                  textAnchor="middle"
+                  className={s.axisLabel}
+                >
+                  {formatXTick(tick.ts, days)}
+                </text>
+              ))}
 
-              <Tooltip
-                content={<ChartTooltip days={days} />}
-                cursor={{
-                  stroke: "var(--color-primary)",
-                  strokeWidth: 1,
-                  strokeOpacity: 0.4,
-                  strokeDasharray: "4 4",
-                }}
-              />
+              <path d={areaPath} fill={`url(#${gradientId})`} />
 
-              <Area
-                type="basis"
-                dataKey="delta_gb"
+              <path
+                d={linePath}
+                fill="none"
                 stroke="var(--color-primary)"
                 strokeWidth={2}
-                fill="url(#trafficGradient)"
-                isAnimationActive={true}
-                animationDuration={600}
-                animationEasing="ease-out"
-                dot={false}
-                activeDot={{
-                  r: 4,
-                  fill: "var(--color-primary)",
-                  stroke: "var(--color-card)",
-                  strokeWidth: 2,
-                }}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                style={
+                  prefersReducedMotion
+                    ? undefined
+                    : { transition: "d 220ms ease-out" }
+                }
               />
-            </AreaChart>
-          </ResponsiveContainer>
+
+              {hoverPoint && (
+                <>
+                  <line
+                    x1={hoverPoint.x}
+                    y1={frame.padding.top}
+                    x2={hoverPoint.x}
+                    y2={frame.height - frame.padding.bottom}
+                    stroke="var(--color-primary)"
+                    strokeOpacity={0.35}
+                    strokeDasharray="4 4"
+                  />
+                  <circle
+                    cx={hoverPoint.x}
+                    cy={hoverPoint.y}
+                    r={4}
+                    fill="var(--color-primary)"
+                    stroke="var(--color-card)"
+                    strokeWidth={2}
+                  />
+                </>
+              )}
+            </svg>
+
+            <div
+              className={s.chartOverlay}
+              onPointerMove={handlePointerMove}
+              onPointerEnter={handlePointerMove}
+              onPointerLeave={clearHover}
+              onPointerCancel={clearHover}
+            />
+
+            {hoverPoint && tooltipStyle && (
+              <div className={s.tooltipRoot} style={tooltipStyle}>
+                <p className={s.tooltipLabel}>
+                  {formatTooltipLabel(hoverPoint.ts, days)}
+                </p>
+                <p className={s.tooltipValue}>
+                  {formatTraffic(hoverPoint.delta_gb)}
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </Card>

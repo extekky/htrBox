@@ -29,6 +29,8 @@ export interface UseTrafficResult {
   isError: boolean;
 }
 
+export type TrafficDays = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
 // -------------------------------------------------------------
 // Хелперы
 // -------------------------------------------------------------
@@ -72,10 +74,10 @@ function fillBuckets(
  * Хук для получения трафика.
  * - Без `username` — возвращает трафик текущего авторизованного пользователя.
  * - С `username` — возвращает трафик конкретного пользователя (для админа).
- * - `days` может быть 1, 2 или 3 — период выборки.
+ * - `days` может быть от 1 до 7 — период выборки.
  */
 export function useTraffic(
-  days: 1 | 2 | 3,
+  days: TrafficDays,
   username?: string,
 ): UseTrafficResult {
   const {

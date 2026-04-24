@@ -356,28 +356,34 @@ export const guide = {
 export const trafficChart = {
   root: "p-5 flex flex-col gap-4",
 
-  header: "flex items-start justify-between gap-2",
-  headerBody: "flex flex-col",
+  header: "flex items-start justify-between gap-3",
+  headerBody: "min-w-0 flex-1",
   title: "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
   total: "text-2xl font-bold text-foreground tabular-nums mt-1",
   totalPlaceholder: "text-muted-foreground",
+  subtitle: "mt-1 text-xs text-muted-foreground",
 
-  tabs: "flex items-center gap-1",
+  tabs: "flex items-center gap-1 rounded-xl border border-border/70 bg-muted/35 p-1",
   tabButton: [
-    "inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg",
+    "inline-flex items-center justify-center h-8 px-3 rounded-lg",
     "text-xs font-medium border",
     transition.colors,
   ].join(" "),
   tabButtonActive: "bg-primary/12 text-primary border-primary/24 hover:bg-primary/18",
   tabButtonDefault:
-    "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80",
+    "bg-card text-muted-foreground border-border/70 hover:bg-secondary/80 hover:text-foreground",
 
-  chartWrap: "h-44 w-full",
-  chartState: "flex items-center justify-center h-full",
+  chartSurface: "relative h-[236px] rounded-xl border border-border/65 bg-card/35 overflow-hidden",
+  chartSvg: "absolute inset-0 w-full h-full",
+  axisLabel: "fill-muted-foreground text-[10px]",
+  chartOverlay: "absolute inset-0",
+
+  stateWrap: "flex items-center justify-center h-full",
   spinner: "size-5",
-  errorText: "text-xs text-muted-foreground",
+  stateText: "text-xs text-muted-foreground",
 
-  tooltipRoot: "rounded-xl border border-border bg-popover px-3 py-2 shadow-lg text-xs",
+  tooltipRoot:
+    "pointer-events-none absolute w-[152px] rounded-xl border border-border bg-popover px-3 py-2 shadow-lg text-xs",
   tooltipLabel: "text-muted-foreground mb-1",
   tooltipValue: "font-semibold text-foreground tabular-nums",
 } as const;
