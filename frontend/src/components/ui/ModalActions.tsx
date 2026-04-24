@@ -8,6 +8,9 @@
  * <Modal footer={<ModalActions formId="my-form" label="Создать" onCancel={onClose} loading={isPending} />}>
  */
 
+import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
+
 interface ModalActionsProps {
   /** id формы, к которой привязана кнопка submit (form="..."). */
   formId: string;
@@ -28,12 +31,13 @@ export function ModalActions({
   loading,
   cancelLabel = "Отмена",
 }: ModalActionsProps) {
+  const s = styles.modalActions;
   return (
     <>
       <button
         type="button"
         onClick={onCancel}
-        className="h-9 px-4 rounded-lg text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+        className={cn(s.btn, s.btnCancel)}
       >
         {cancelLabel}
       </button>
@@ -42,11 +46,9 @@ export function ModalActions({
         type="submit"
         form={formId}
         disabled={loading}
-        className="h-9 px-4 rounded-lg text-sm font-medium inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className={cn(s.btn, s.btnSubmit)}
       >
-        {loading && (
-          <span className="h-3.5 w-3.5 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-        )}
+        {loading && <span className={s.spinner} />}
         {label}
       </button>
     </>

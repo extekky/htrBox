@@ -12,6 +12,7 @@ import { ApiRequestError } from "@/api/client";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/cn";
+import { styles, loading } from "@/styles";
 
 /**
  * Компонент карточки подключения (ConnectionCard).
@@ -41,6 +42,8 @@ export function ConnectionCard() {
     ? (urlMap[selectedServer.id] ?? null)
     : null;
 
+  const s = styles.connectionCard;
+
   /**
    * Обработчик принудительного обновления данных серверов.
    * Перезапрашивает список серверов и генерирует новые URL для текущего пользователя.
@@ -66,21 +69,17 @@ export function ConnectionCard() {
   }
 
   return (
-    <div className="p-4.5 flex flex-col gap-3">
+    <div className={s.root}>
       {/* -- Заголовок карточки ------------------------------------------ */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+      <div className={s.header}>
+        <div className={s.headerLeft}>
           {/* Иконка ссылки в стилизованном контейнере */}
-          <div className="flex items-center justify-center w-7.5 h-7.5 rounded-[9px] bg-primary/10 text-primary shrink-0">
+          <div className={s.iconWrap}>
             <Link2 size={13} />
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground leading-none">
-              Ключ доступа
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Скопируйте в VPN-клиент
-            </p>
+            <p className={s.title}>Ключ доступа</p>
+            <p className={s.subtitle}>Скопируйте в VPN-клиент</p>
           </div>
         </div>
 
@@ -90,62 +89,45 @@ export function ConnectionCard() {
           disabled={refreshing}
           title="Обновить ключи"
           aria-label="Обновить ключи"
-          className={cn(
-            "flex items-center justify-center px-3 h-8 rounded-lg gap-2",
-            "border border-primary/40 bg-primary/12 text-primary",
-            "hover:bg-muted/60 hover:text-foreground",
-            "transition-colors disabled:opacity-40",
-          )}
+          className={s.refreshBtn}
         >
-          <RefreshCw size={12} className={cn(refreshing && "animate-spin")} />
-          <span className="text-xs font-medium">Обновить</span>
+          <RefreshCw size={12} className={cn(refreshing && loading.spin)} />
+          <span className={s.refreshLabel}>Обновить</span>
         </button>
       </div>
 
       {/* -- Информация о выбранном сервере ------------------------------ */}
       {selectedServer && (
-        <div className="inline-flex items-center gap-1.5 self-start px-2 py-1 rounded-full bg-muted border border-border">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-          <span className="text-xs text-foreground font-medium">
-            {selectedServer.country}
-          </span>
-          <span className="text-xs text-muted-foreground">—</span>
-          <span className="text-xs text-muted-foreground">
-            {selectedServer.city}
-          </span>
+        <div className={s.serverBadge}>
+          <span className={s.serverDot} />
+          <span className={s.serverCountry}>{selectedServer.country}</span>
+          <span className={s.serverCity}>—</span>
+          <span className={s.serverCity}>{selectedServer.city}</span>
         </div>
       )}
 
       {/* -- Основная область контента (URL или Состояния) --------------- */}
       {!selectedServer ? (
         // Состояние: Сервер еще не выбран
-        <div className="flex items-center justify-center h-10 rounded-xl border border-dashed border-border text-sm text-muted-foreground">
+        <div className={s.statePlaceholder}>
           Выберите сервер для получения ключа
         </div>
       ) : !connectionUrl ? (
         // Состояние: Сервер выбран, но URL еще загружается
-        <div className="flex items-center justify-center h-10 rounded-xl text-sm text-muted-foreground gap-2">
-          <RefreshCw size={13} className="animate-spin" />
+        <div className={s.stateLoading}>
+          <RefreshCw size={13} className={loading.spin} />
           Загрузка ключа...
         </div>
       ) : (
         // Состояние: URL успешно получен и готов к копированию
         <>
           {/* Блок с отображением URL */}
-          <div className="rounded-xl border border-border bg-muted/30 px-3 py-2.5">
-            <p className="text-[9px] font-medium uppercase tracking-[0.09em] text-muted-foreground mb-1.5">
-              Hysteria2 URL
-            </p>
-            <code className="text-[11px] font-mono text-foreground break-all leading-relaxed select-all">
-              {connectionUrl}
-            </code>
+          <div className={s.urlBox}>
+            <p className={s.urlLabel}>Hysteria2 URL</p>
+            <code className={s.urlCode}>{connectionUrl}</code>
           </div>
 
-          <CopyButton
-            variant="block"
-            text={connectionUrl}
-            label="Скопировать ключ"
-          />
+          <CopyButton variant="block" text={connectionUrl} />
         </>
       )}
     </div>

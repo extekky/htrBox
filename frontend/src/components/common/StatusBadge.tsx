@@ -1,4 +1,8 @@
+import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 import { getExpiryTier, formatDaysLeft } from "@/lib/formatters";
+
+const s = styles.statusBadge;
 
 // -------------------------------------------------------------
 // Базовый компонент для "пилюль" (pill-shaped badge)
@@ -10,17 +14,7 @@ interface PillProps {
 }
 
 function Pill({ children, className = "" }: PillProps) {
-  return (
-    <span
-      className={`
-        inline-flex items-center rounded-full px-2.5 py-0.5
-        text-xs font-medium whitespace-nowrap border
-        ${className}
-      `}
-    >
-      {children}
-    </span>
-  );
+  return <span className={cn(s.pill, className)}>{children}</span>;
 }
 
 // -------------------------------------------------------------
@@ -33,13 +27,9 @@ interface AllowedBadgeProps {
 
 function AllowedBadge({ value }: AllowedBadgeProps) {
   return value ? (
-    <Pill className="bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/20">
-      Ок
-    </Pill>
+    <Pill className={s.allowed}>Ок</Pill>
   ) : (
-    <Pill className="bg-destructive/10 text-destructive border-destructive/20">
-      Бан
-    </Pill>
+    <Pill className={s.danger}>Бан</Pill>
   );
 }
 
@@ -53,13 +43,9 @@ interface ActiveBadgeProps {
 
 function ActiveBadge({ value }: ActiveBadgeProps) {
   return value ? (
-    <Pill className="bg-primary/10 text-primary border-primary/20">
-      Активен
-    </Pill>
+    <Pill className={s.primary}>Активен</Pill>
   ) : (
-    <Pill className="bg-muted text-muted-foreground border-muted">
-      Неактивен
-    </Pill>
+    <Pill className={s.neutral}>Неактивен</Pill>
   );
 }
 
@@ -73,13 +59,9 @@ interface RoleBadgeProps {
 
 function RoleBadge({ role }: RoleBadgeProps) {
   return role === "admin" ? (
-    <Pill className="bg-amber-500/10 text-amber-500/90 border-amber-500/30">
-      Админ
-    </Pill>
+    <Pill className={s.admin}>Админ</Pill>
   ) : (
-    <Pill className="bg-muted text-muted-foreground border-muted">
-      Пользователь
-    </Pill>
+    <Pill className={s.neutral}>Пользователь</Pill>
   );
 }
 
@@ -96,12 +78,11 @@ function ExpiryBadge({ iso }: ExpiryBadgeProps) {
   const label = formatDaysLeft(iso);
 
   const styleMap: Record<typeof tier, string> = {
-    none: "bg-muted text-muted-foreground border-muted",
-    ok: "bg-muted text-muted-foreground border-muted",
-    warning:
-      "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-    critical: "bg-destructive/10 text-destructive border-destructive/20",
-    expired: "bg-destructive/10 text-destructive border-destructive/20",
+    none: s.neutral,
+    ok: s.neutral,
+    warning: s.warning,
+    critical: s.danger,
+    expired: s.danger,
   };
 
   return <Pill className={styleMap[tier]}>{label}</Pill>;

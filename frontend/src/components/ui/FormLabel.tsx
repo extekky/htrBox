@@ -2,13 +2,14 @@
 // Используется для отображения меток полей в модальных формах.
 // -------------------------------------------------------------
 
+import { styles } from "@/styles";
+
 interface FormLabelProps {
   children: React.ReactNode;
   htmlFor?: string;
 }
 
-const CLS =
-  "text-xs font-medium text-muted-foreground uppercase tracking-wider";
+const s = styles.formLabel;
 
 /**
  * Компонент для отображения метки формы.
@@ -21,10 +22,10 @@ const CLS =
 export function FormLabel({ children, htmlFor }: FormLabelProps) {
   if (htmlFor) {
     return (
-      <label htmlFor={htmlFor} className={CLS}>
+      <label htmlFor={htmlFor} className={s.root}>
         {children}
       </label>
     );
   }
-  return <span className={CLS}>{children}</span>;
+  return <span className={s.root}>{children}</span>;
 }

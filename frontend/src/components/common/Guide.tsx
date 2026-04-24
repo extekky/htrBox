@@ -15,6 +15,8 @@ import {
   ANDROID_ICON_PATH,
   LINUX_ICON_PATH,
 } from "@/lib/constants";
+import { styles } from "@/styles";
+
 // -------------------------------------------------------------
 // Иконки платформ
 // -------------------------------------------------------------
@@ -145,6 +147,8 @@ const PLATFORMS: Platform[] = [
 // Вспомогательные компоненты
 // -------------------------------------------------------------
 
+const s = styles.guide;
+
 /** Строка с иконкой и текстом — всегда выровнены по центру. */
 function Row({
   icon,
@@ -156,9 +160,9 @@ function Row({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <span className="shrink-0 flex items-center">{icon}</span>
-      <span className="leading-none">{children}</span>
+    <div className={cn(s.row, className)}>
+      <span className={s.rowIcon}>{icon}</span>
+      <span className={s.rowText}>{children}</span>
     </div>
   );
 }
@@ -172,8 +176,8 @@ function Badge({
   children: React.ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary leading-none">
-      <span className="shrink-0 flex items-center">{icon}</span>
+    <span className={s.badge}>
+      <span className={s.rowIcon}>{icon}</span>
       <span>{children}</span>
     </span>
   );
@@ -193,24 +197,20 @@ interface StepProps {
 
 function Step({ number, icon, title, last = false, children }: StepProps) {
   return (
-    <div className="flex gap-4">
+    <div className={s.stepRoot}>
       {/* Номер шага и вертикальная линия */}
-      <div className="flex flex-col items-center">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-sm font-semibold text-primary">
-          {number}
-        </div>
-        {!last && (
-          <div className="mt-1 w-0.5 flex-1 min-h-6 rounded-full bg-primary/20" />
-        )}
+      <div className={s.stepAside}>
+        <div className={s.stepNumber}>{number}</div>
+        {!last && <div className={s.stepLine} />}
       </div>
 
       {/* Содержимое шага */}
-      <div className={cn("flex-1 pb-6", last && "pb-2")}>
+      <div className={cn(last ? s.stepBodyLast : s.stepBody)}>
         <Row
-          icon={<span className="text-primary flex items-center">{icon}</span>}
-          className="mb-2.5"
+          icon={<span className={s.stepIconWrap}>{icon}</span>}
+          className={s.stepTitleRow}
         >
-          <span className="text-sm font-semibold text-foreground">{title}</span>
+          <span className={s.stepTitle}>{title}</span>
         </Row>
         {children}
       </div>
@@ -236,18 +236,14 @@ function PlatformButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl border transition-all shrink-0",
-        isSelected
-          ? "border-primary/50 bg-primary/10 text-primary"
-          : "border-border/50 bg-muted/30 text-muted-foreground hover:border-border hover:text-foreground hover:bg-muted/50",
+        s.platformBtn,
+        isSelected ? s.platformBtnSelected : s.platformBtnDefault,
       )}
     >
-      <span className="flex items-center justify-center">
+      <span className={s.platformBtnIcon}>
         <platform.Icon size={20} />
       </span>
-      <span className="text-[11px] font-medium leading-none">
-        {platform.name}
-      </span>
+      <span className={s.platformBtnLabel}>{platform.name}</span>
     </button>
   );
 }
@@ -258,22 +254,18 @@ function PlatformButton({
 
 function ClientCard({ platform }: { platform: Platform }) {
   return (
-    <div className="animate-fade-in flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground leading-none mb-1">
-          {platform.clientName}
-        </p>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          {platform.clientDescription}
-        </p>
+    <div className={s.clientCard}>
+      <div className={s.clientCardBody}>
+        <p className={s.clientName}>{platform.clientName}</p>
+        <p className={s.clientDesc}>{platform.clientDescription}</p>
       </div>
       <a
         href={platform.downloadUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline shrink-0"
+        className={s.clientDownloadLink}
       >
-        <ExternalLink size={11} className="shrink-0" />
+        <ExternalLink size={11} className={s.rowIcon} />
         <span>{platform.downloadLabel}</span>
       </a>
     </div>
@@ -291,16 +283,7 @@ function InfoBlock({
   children: React.ReactNode;
   className?: string;
 }) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5 text-sm text-muted-foreground leading-relaxed space-y-2.5",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
+  return <div className={cn(s.infoBlock, className)}>{children}</div>;
 }
 
 // -------------------------------------------------------------
@@ -312,12 +295,10 @@ export function Guide() {
   const platform = PLATFORMS.find((p) => p.id === selectedId) ?? null;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 glass">
-      <h2 className="mb-5 text-base font-semibold text-foreground tracking-tight">
-        Как начать пользоваться
-      </h2>
+    <div className={s.root}>
+      <h2 className={s.guideTitle}>Как начать пользоваться</h2>
 
-      <div className="space-y-2">
+      <div className={s.stepsWrap}>
         {/* Шаг 1 — связаться с администратором */}
         <Step
           number={1}
@@ -332,20 +313,16 @@ export function Guide() {
               href="https://t.me/stdoq"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/8 px-3 py-2.5 hover:bg-primary/12 transition-colors"
+              className={s.telegramLink}
             >
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <div className={s.telegramAvatar}>
                 <MessageCircle size={15} />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-primary leading-none mb-1">
-                  @stdoq
-                </p>
-                <p className="text-xs text-muted-foreground leading-none">
-                  Telegram
-                </p>
+              <div className={s.telegramBody}>
+                <p className={s.telegramName}>@stdoq</p>
+                <p className={s.telegramPlatformLabel}>Telegram</p>
               </div>
-              <ExternalLink size={13} className="shrink-0 text-primary/50" />
+              <ExternalLink size={13} className={s.telegramExternalIcon} />
             </a>
           </InfoBlock>
         </Step>
@@ -356,12 +333,12 @@ export function Guide() {
           icon={<Download size={15} />}
           title="Установить клиент"
         >
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground leading-relaxed">
+          <div className={s.platformSection}>
+            <p className={s.platformHint}>
               Выберите Вашу платформу — мы подберём подходящее приложение:
             </p>
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-3 gap-2">
+            <div className={s.platformGrid}>
+              <div className={s.platformRow3}>
                 {PLATFORMS.slice(0, 3).map((p) => (
                   <PlatformButton
                     key={p.id}
@@ -373,7 +350,7 @@ export function Guide() {
                   />
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className={s.platformRow2}>
                 {PLATFORMS.slice(3).map((p) => (
                   <PlatformButton
                     key={p.id}
@@ -398,7 +375,7 @@ export function Guide() {
                 Ключ подключения — это адрес сервера и Ваши данные доступа,
                 упакованные в одну строку.
               </p>
-              <div className="h-px bg-border/40" />
+              <div className={s.infoSeparator} />
               <p>
                 На странице профиля выберите{" "}
                 <strong className="text-foreground">сервер</strong> из списка
@@ -426,7 +403,7 @@ export function Guide() {
                   {platform.clientName}
                 </strong>
                 . Найдите кнопку{" "}
-                <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-primary">
+                <span className={s.plusBadge}>
                   <Plus size={11} strokeWidth={2.5} />
                 </span>{" "}
                 — обычно она находится вверху экрана.
@@ -448,17 +425,12 @@ export function Guide() {
                 В открывшемся меню выберите{" "}
                 <Badge icon={null}>Импорт из буфера обмена</Badge>
               </p>
-              <div className="h-px bg-border/40" />
+              <div className={s.infoSeparator} />
               <p>
                 Приложение само прочитает скопированный ключ и создаст профиль —
-                вам ничего вводить вручную не нужно.
+                вам ничего вводить вручную не нужно. Профиль появится в списке подключений (иногда его надо развернуть).
               </p>
-              <Row
-                icon={<Check size={13} className="text-emerald-500" />}
-                className="rounded-lg bg-emerald-500/6 border border-emerald-500/25 px-3 py-2 text-emerald-500 text-sm"
-              >
-                Профиль появится в списке подключений
-              </Row>
+                
             </InfoBlock>
           </Step>
         )}
@@ -471,19 +443,17 @@ export function Guide() {
             title="Подключиться"
             last
           >
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/6 px-4 py-4 space-y-3">
+            <div className={s.successBlock}>
               <Row
                 icon={
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
+                  <div className={s.successAvatar}>
                     <CheckCircle2 size={15} />
                   </div>
                 }
               >
-                <span className="text-sm font-semibold text-emerald-500">
-                  Готово!
-                </span>
+                <span className={s.successTitle}>Готово!</span>
               </Row>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className={s.successDesc}>
                 Выберите созданный профиль и включите соединение — интернет без
                 ограничений.
               </p>

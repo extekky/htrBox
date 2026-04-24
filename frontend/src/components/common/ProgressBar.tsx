@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 
 // -------------------------------------------------------------
 // Типы
@@ -19,19 +20,21 @@ export interface ProgressBarProps {
 // Цветовые хелперы
 // -------------------------------------------------------------
 
+const s = styles.progressBar;
+
 /** Возвращает класс цвета заполнения в зависимости от процента потреблённого трафика. */
 function getTrafficFill(pct: number): string {
-  if (pct >= 90) return "bg-red-500";
-  if (pct >= 70) return "bg-amber-500";
-  return "bg-primary";
+  if (pct >= 90) return s.fillDanger;
+  if (pct >= 70) return s.fillWarning;
+  return s.fillPrimary;
 }
 
 /** Возвращает класс цвета заполнения в зависимости от оставшегося срока действия. */
 function getExpiryFill(pct: number): string {
-  if (pct <= 0) return "bg-muted";
-  if (pct <= 10) return "bg-red-500";
-  if (pct <= 30) return "bg-amber-500";
-  return "bg-primary";
+  if (pct <= 0) return s.fillMuted;
+  if (pct <= 10) return s.fillDanger;
+  if (pct <= 30) return s.fillWarning;
+  return s.fillPrimary;
 }
 
 export function ProgressBar({ value, variant, className }: ProgressBarProps) {
@@ -40,16 +43,8 @@ export function ProgressBar({ value, variant, className }: ProgressBarProps) {
     variant === "traffic" ? getTrafficFill(clamped) : getExpiryFill(clamped);
 
   return (
-    <div
-      className={cn(
-        "h-1 w-full rounded-full bg-muted overflow-hidden",
-        className,
-      )}
-    >
-      <div
-        className={cn("h-full rounded-full transition-all duration-500", fill)}
-        style={{ width: `${clamped}%` }}
-      />
+    <div className={cn(s.root, className)}>
+      <div className={cn(s.track, fill)} style={{ width: `${clamped}%` }} />
     </div>
   );
 }

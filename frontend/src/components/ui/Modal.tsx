@@ -1,6 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 
 // -------------------------------------------------------------
 // Карта размеров модального окна
@@ -70,65 +71,37 @@ export function Modal({
   children,
   className,
 }: ModalProps) {
+  const s = styles.modal;
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         {/* Фон */}
-        <Dialog.Overlay
-          className={cn(
-            "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm",
-            "data-[state=open]:animate-in data-[state=open]:fade-in-0",
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
-          )}
-        />
+        <Dialog.Overlay className={s.overlay} />
 
         {/* Панель содержимого */}
-        <Dialog.Content
-          className={cn(
-            // Позиционирование
-            "fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-            // Форма
-            "w-full bg-card border border-border rounded-xl shadow-2xl",
-            // Анимация
-            "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-            "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
-            "duration-150",
-            // Размер
-            SIZE_CLASS[size],
-            className,
-          )}
-        >
+        <Dialog.Content className={cn(s.content, SIZE_CLASS[size], className)}>
           {/* Заголовок */}
-          <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-border">
+          <div className={s.header}>
             <div>
-              <Dialog.Title className="text-sm font-semibold text-foreground leading-snug">
-                {title}
-              </Dialog.Title>
+              <Dialog.Title className={s.title}>{title}</Dialog.Title>
               {description && (
-                <Dialog.Description className="text-xs text-muted-foreground mt-0.5">
+                <Dialog.Description className={s.description}>
                   {description}
                 </Dialog.Description>
               )}
             </div>
 
-            <Dialog.Close
-              onClick={onClose}
-              className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            >
+            <Dialog.Close onClick={onClose} className={s.closeBtn}>
               <X size={15} />
               <span className="sr-only">Close</span>
             </Dialog.Close>
           </div>
 
           {/* Тело */}
-          <div className="px-5 py-4">{children}</div>
+          <div className={s.body}>{children}</div>
 
           {/* Нижний колонтитул (опционально) */}
-          {footer && (
-            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border">
-              {footer}
-            </div>
-          )}
+          {footer && <div className={s.footer}>{footer}</div>}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

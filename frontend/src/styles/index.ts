@@ -46,7 +46,27 @@ import {
 // commonStls.ts
 // -------------------------------------------------------------
 
-import { progressBar, statusBadge } from "./cStyles/commonStls";
+import {
+  progressBar,
+  statusBadge,
+  toaster,
+  serverSelector,
+  connectionCard,
+  guide,
+  confirmDialog,
+} from "./cStyles/commonStls";
+
+// -------------------------------------------------------------
+// layoutStls.ts
+// -------------------------------------------------------------
+
+import { bottomBar, appShell } from "./cStyles/layoutStls";
+
+// -------------------------------------------------------------
+// pagesStls.ts
+// -------------------------------------------------------------
+
+import { profilePage } from "./cStyles/pagesStls";
 
 export const styles = {
   formLabel,
@@ -62,4 +82,12 @@ export const styles = {
   dropdownMenu,
   progressBar,
   statusBadge,
+  toaster,
+  serverSelector,
+  connectionCard,
+  guide,
+  confirmDialog,
+  bottomBar,
+  appShell,
+  profilePage,
 } as const;

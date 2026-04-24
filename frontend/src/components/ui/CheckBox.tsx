@@ -2,11 +2,14 @@ import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 
 // -------------------------------------------------------------
 // Компонент Checkbox
 // Базируется на Radix UI Checkbox Primitive.
 // -------------------------------------------------------------
+
+const s = styles.checkbox;
 
 /**
  * Кастомный чекбокс с поддержкой состояний (checked, disabled, invalid).
@@ -20,18 +23,11 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        // Базовые стили и цвета границ
-        "peer border-input dark:bg-input/30",
-        // Стили для активного состояния (выбрано)
-        "data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary",
-        // Стили фокуса и доступности
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        // Стили для состояния ошибки
-        "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
-        // Размеры, скругления и анимации
-        "size-4 shrink-0 rounded-lg border shadow-xs transition-shadow outline-none",
-        // Состояние заблокированного элемента
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        s.root,
+        s.checked,
+        s.focus,
+        s.invalid,
+        s.disabled,
         className,
       )}
       {...props}
@@ -39,9 +35,9 @@ function Checkbox({
       {/* Индикатор выбора (появляется при checked) */}
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="flex items-center justify-center text-current transition-none"
+        className={s.indicator}
       >
-        <CheckIcon className="size-3.5" />
+        <CheckIcon className={s.icon} />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );

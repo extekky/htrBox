@@ -22,6 +22,9 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/DropDownMenu";
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
+
+const s = styles.appShell;
 
 // -------------------------------------------------------------
 // Типы
@@ -74,8 +77,8 @@ function UserAvatarButton() {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-border bg-muted flex items-center justify-center">
-      <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
+    <div className={s.avatarWrap}>
+      <div className={s.avatarInitial}>
         {user?.username?.[0]?.toUpperCase() ?? "?"}
       </div>
     </div>
@@ -98,7 +101,7 @@ function DesktopNav() {
   );
 
   return (
-    <nav className="hidden md:flex items-center gap-0.5 ml-6">
+    <nav className={s.desktopNav}>
       {visibleItems.map((item) => {
         const active = isActivePath(location, item.href);
         return (
@@ -106,20 +109,16 @@ function DesktopNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              "relative flex items-center gap-1.5 h-8 px-3 rounded-md text-sm font-medium transition-colors",
+              s.navItem,
               // Активный пункт — выделяем фоном и цветом текста
-              active
-                ? "text-foreground bg-muted"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+              active ? s.navItemActive : s.navItemDefault,
             )}
           >
             <item.icon size={14} />
             <span>{item.label}</span>
 
             {/* Точка-индикатор активного пункта под текстом */}
-            {active && (
-              <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-            )}
+            {active && <span className={s.navDot} />}
           </Link>
         );
       })}
@@ -138,53 +137,47 @@ function TopHeader() {
   const { mutate: doLogout, isPending } = useLogout();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <div className="relative flex items-center justify-between h-14 px-4 sm:px-6">
-        {/* Левая часть — логотип и десктопная навигация */}
-        <div className="flex items-center">
+    <header className={s.header}>
+      <div className={s.headerInner}>
+        {/* Левая часть — логотип */}
+        <div className={s.headerLeft}>
           <Link href="/">
-            <div className="flex items-center gap-2.5 cursor-pointer group shrink-0">
-              <span className="font-bold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-                HtrBox
-              </span>
+            <div className={s.logoWrap}>
+              <span className={s.logoText}>HtrBox</span>
             </div>
           </Link>
-          <DesktopNav />
         </div>
 
+        {/* Центр — десктопная навигация, абсолютно по центру шапки */}
+        <DesktopNav />
+
         {/* Правая часть — бейдж Beta (десктоп), Telegram, меню пользователя */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className={s.headerRight}>
           {/* Ссылка на Telegram-канал поддержки */}
           <a
             href="https://t.me/stdoq"
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(
-              "inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-lg text-xs font-medium",
-              "bg-primary/10 text-primary hover:bg-primary/20 transition-colors",
-            )}
+            className={s.telegramLink}
           >
             <Send size={14} />
             {/* Ник скрыт на маленьких экранах — остаётся только иконка */}
-            <span className="hidden sm:inline">@stdoq</span>
+            <span className={s.telegramNick}>@stdoq</span>
           </a>
 
           {/* Выпадающее меню пользователя — триггер это аватар */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                aria-label="Меню пользователя"
-                className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
+              <button aria-label="Меню пользователя" className={s.avatarBtn}>
                 <UserAvatarButton />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className={s.dropdownWidth}>
               {/* Пункт выхода — красный, заблокирован во время запроса */}
               <DropdownMenuItem
                 onClick={() => doLogout()}
                 disabled={isPending}
-                className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                className={s.logoutItem}
               >
                 <LogOut size={14} />
                 Выйти
@@ -230,15 +223,15 @@ export function AppShell({ children }: AppShellProps) {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className={s.root}>
       {/* Скрываем шапку на странице 404 */}
       {!isNotFound && <TopHeader />}
 
       <main
         className={cn(
-          "flex-1 flex flex-col min-h-0 overflow-x-hidden",
+          s.main,
           // На мобильных добавляем отступ снизу, только если виден BottomBar
-          isMobile && !isNotFound && "pb-20",
+          isMobile && !isNotFound && s.mainMobilePad,
         )}
       >
         {children}

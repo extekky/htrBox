@@ -1,11 +1,13 @@
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { X } from "lucide-react";
 
+import { DEFAULT_TOAST_DURATION } from "@/lib/constants";
 import { useToastStore } from "@/stores/toastStore";
 import type { ToastItem, ToastVariant } from "@/stores/toastStore";
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 
-const DEFAULT_TOAST_DURATION = 3000;
+const s = styles.toaster;
 
 // -------------------------------------------------------------
 // Стили по вариантам — фон, рамка, цвет текста
@@ -13,16 +15,16 @@ const DEFAULT_TOAST_DURATION = 3000;
 // -------------------------------------------------------------
 
 const VARIANT_ROOT: Record<ToastVariant, string> = {
-  default: "bg-card border-border text-white",
-  destructive: "bg-red-500/10 border-red-500/20 text-white",
-  success: "bg-emerald-500/10 border-emerald-500/20 text-white",
+  default: s.variantDefault,
+  destructive: s.variantDestructive,
+  success: s.variantSuccess,
 };
 
 // Прогресс-бар внизу тоста
 const VARIANT_PROGRESS: Record<ToastVariant, string> = {
-  default: "bg-muted-foreground/50",
-  destructive: "bg-red-500",
-  success: "bg-emerald-500",
+  default: s.progressDefault,
+  destructive: s.progressDestructive,
+  success: s.progressSuccess,
 };
 
 // -------------------------------------------------------------
@@ -30,15 +32,7 @@ const VARIANT_PROGRESS: Record<ToastVariant, string> = {
 // -------------------------------------------------------------
 
 function ToastViewport() {
-  return (
-    <ToastPrimitives.Viewport
-      className={cn(
-        "fixed bottom-4 right-4 z-100 outline-none",
-        "flex max-h-screen w-full max-w-104 flex-col-reverse gap-2 p-4",
-        "sm:bottom-8 sm:right-8 sm:flex-col sm:p-0",
-      )}
-    />
-  );
+  return <ToastPrimitives.Viewport className={s.viewport} />;
 }
 
 // -------------------------------------------------------------
@@ -62,36 +56,24 @@ function ToastItem({
       onOpenChange={(open) => {
         if (!open) onRemove(id);
       }}
-      className={cn(
-        // Базовые стили
-        "group relative w-full overflow-hidden rounded-lg border p-4 shadow-lg",
-        // Анимации входа / выхода (Radix data-state)
-        "data-[state=open]:animate-in data-[state=open]:fade-in",
-        "data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full",
-        "data-[state=closed]:animate-out data-[state=closed]:fade-out-80",
-        "data-[state=closed]:slide-out-to-right-full",
-        VARIANT_ROOT[variant],
-      )}
+      className={cn(s.root, s.animate, VARIANT_ROOT[variant])}
     >
       {/* Прогресс-бар (требует @keyframes shrink в глобальных стилях) */}
       <div
-        className={cn(
-          "absolute bottom-0 left-0 h-1 w-full origin-left animate-shrink",
-          VARIANT_PROGRESS[variant],
-        )}
+        className={cn(s.progress, VARIANT_PROGRESS[variant])}
         style={{ "--toast-duration": `${duration}ms` } as React.CSSProperties}
       />
 
-      <div className="flex items-start justify-between gap-3">
+      <div className={s.header}>
         {/* Текстовый блок */}
-        <div className="grid flex-1 gap-1">
+        <div className={s.body}>
           {title && (
-            <ToastPrimitives.Title className="text-sm font-semibold leading-tight">
+            <ToastPrimitives.Title className={s.title}>
               {title}
             </ToastPrimitives.Title>
           )}
           {description && (
-            <ToastPrimitives.Description className="text-sm leading-relaxed opacity-80">
+            <ToastPrimitives.Description className={s.description}>
               {description}
             </ToastPrimitives.Description>
           )}
@@ -100,13 +82,9 @@ function ToastItem({
         {/* Кнопка закрытия */}
         <ToastPrimitives.Close
           aria-label="Закрыть уведомление"
-          className={cn(
-            "rounded-md p-1.5 opacity-60",
-            "transition-opacity hover:opacity-100 focus:opacity-100",
-            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-          )}
+          className={s.closeBtn}
         >
-          <X className="h-4 w-4" />
+          <X className={s.closeIcon} />
         </ToastPrimitives.Close>
       </div>
     </ToastPrimitives.Root>

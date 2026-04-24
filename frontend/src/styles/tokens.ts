@@ -45,10 +45,9 @@ export const typography = {
   inputText: "text-[14px] text-foreground",
 
   // Вспомогательный / второстепенный текст
-  mutedMd: "text-[14px] leading-relaxed text-muted-foreground",
-  mutedMdCompact: "text-[14px] leading-snug text-muted-foreground",
-  mutedSm: "text-[13px] leading-relaxed text-muted-foreground",
-  mutedXs: "text-[11px] leading-relaxed text-muted-foreground",
+  mutedMd: "text-[14px] text-muted-foreground",
+  mutedSm: "text-[13px] text-muted-foreground",
+  mutedXs: "text-[11px] text-muted-foreground",
 
   // Числа / данные (tabular для выравнивания в таблицах и KPI)
   numericLg: "text-[28px] font-semibold tabular-nums text-foreground",

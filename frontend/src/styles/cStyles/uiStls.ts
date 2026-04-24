@@ -256,7 +256,7 @@ export const card = {
   title: typography.headingLg,
 
   // Подзаголовок / описание
-  description: typography.mutedMdCompact,
+  description: typography.mutedSm,
 
   // Основное содержимое — padding без верхнего
   content: `${spacing.cardPadding} pt-0`,

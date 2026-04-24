@@ -13,6 +13,9 @@ export const transition = {
   opacity: "transition-opacity duration-150 ease-in-out",
   shadow: "transition-shadow duration-200 ease-in-out",
 
+  // Трансформации — scale, translate (иконки, hover-эффекты)
+  transform: "transition-transform duration-150 ease-in-out",
+
   // Медленнее — для модалок, оверлеев
   slow: "transition-all duration-300 ease-in-out",
 } as const;

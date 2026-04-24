@@ -11,6 +11,7 @@ import {
 import { useAuthStore, selectIsAdmin } from "@/stores/authStore";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 
 // ---------------------------------------------------------------------------
 // Типы и конфигурация навигации
@@ -54,6 +55,7 @@ function isActivePath(location: string, href: string): boolean {
 function MobileBottomBar() {
   const [location] = useLocation();
   const isAdmin = useAuthStore(selectIsAdmin);
+  const s = styles.bottomBar;
 
   // Фильтруем пункты — adminOnly скрываем от обычных пользователей, userOnly от админов
   const visibleItems = NAV_ITEMS.filter(
@@ -61,17 +63,8 @@ function MobileBottomBar() {
   );
 
   return (
-    <nav
-      className={cn(
-        "fixed bottom-0 left-0 right-0 z-30",
-        "flex items-stretch",
-        "bg-background/90 backdrop-blur-md",
-        "border-t border-border/60",
-        // pb-safe — отступ для телефонов с вырезом/индикатором (iOS home bar)
-        "pb-safe",
-      )}
-    >
-      <div className="flex w-full items-stretch h-16">
+    <nav className={s.root}>
+      <div className={s.inner}>
         {visibleItems.map((item) => {
           const active = isActivePath(location, item.href);
 
@@ -79,36 +72,22 @@ function MobileBottomBar() {
             <Link
               key={item.href}
               href={item.href}
-              className={cn(
-                // flex-1 — каждый пункт занимает равную долю ширины панели
-                "flex-1 flex flex-col items-center justify-center gap-1 relative",
-                "transition-colors duration-150",
-                active ? "text-primary" : "text-muted-foreground",
-              )}
+              className={cn(s.item, active ? s.itemActive : s.itemDefault)}
             >
               {/* Подсветка активного пункта — скруглённая pill-форма за иконкой */}
-              {active && (
-                <span className="absolute inset-x-2 top-1.5 bottom-1.5 rounded-xl bg-primary/10" />
-              )}
+              {active && <span className={s.activePill} />}
 
               <item.icon
                 size={19}
                 className={cn(
                   // z-10 — иконка поверх подсветки
-                  "relative z-10 transition-transform duration-150",
+                  s.icon,
                   // Лёгкое увеличение иконки при активном состоянии
-                  active && "scale-110",
+                  active && s.iconActive,
                 )}
               />
 
-              <span
-                className={cn(
-                  "relative z-10 text-[9px] font-medium tracking-wide leading-none",
-                  active ? "text-primary" : "text-muted-foreground",
-                )}
-              >
-                {item.label}
-              </span>
+              <span className={s.label}>{item.label}</span>
             </Link>
           );
         })}

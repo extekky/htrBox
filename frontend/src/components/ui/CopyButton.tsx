@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 
 const RESET_DELAY_MS = 1000;
 
@@ -29,7 +31,6 @@ async function copyToClipboard(text: string): Promise<void> {
     );
     document.body.appendChild(textarea);
     textarea.select();
-    document.execCommand("copy");
     document.body.removeChild(textarea);
   }
 }
@@ -55,6 +56,8 @@ interface IconCopyButtonProps extends BaseCopyButtonProps {
   /** Вариант отображения кнопки. По умолчанию "icon". */
   variant?: "icon";
 }
+
+const s = styles.copyButton;
 
 /**
  * Компонент `IconCopyButton` представляет собой компактную кнопку с иконкой для копирования текста.
@@ -87,15 +90,10 @@ function IconCopyButton({
       disabled={disabled}
       aria-label={copied ? "Скопировано" : "Копировать в буфер обмена"}
       title={copied ? "Скопировано!" : "Копировать"}
-      className={`
-        p-1.5 rounded-md transition-colors
-        text-muted-foreground hover:text-foreground hover:bg-secondary/80
-        focus:outline-none focus:ring-2 focus:ring-primary/40
-        disabled:opacity-40 disabled:cursor-not-allowed
-      `}
+      className={s.iconRoot}
     >
       {copied ? (
-        <Check size={14} className="text-primary" />
+        <Check size={14} className={s.iconCopied} />
       ) : (
         <Copy size={14} />
       )}
@@ -125,7 +123,7 @@ interface BlockCopyButtonProps extends BaseCopyButtonProps {
  */
 function BlockCopyButton({
   text,
-  label = "Копировать",
+  label = "Скопировать ключ",
   onCopied,
   disabled = false,
 }: BlockCopyButtonProps) {
@@ -146,17 +144,7 @@ function BlockCopyButton({
       onClick={handleClick}
       disabled={disabled}
       aria-label={copied ? "Скопировано" : label}
-      className={`
-        flex w-full items-center justify-center gap-2.5
-        rounded-xl border px-5 py-3.5 text-sm font-medium
-        transition-all duration-150 active:scale-[0.98]
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${
-          copied
-            ? "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-300"
-            : "border-primary/40 bg-primary/20 text-primary hover:bg-primary/28"
-        }
-      `}
+      className={cn(s.blockRoot, copied ? s.blockCopied : s.blockDefault)}
     >
       {copied ? (
         <>

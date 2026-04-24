@@ -33,6 +33,9 @@ import {
   getSubscriptionValue,
   getExpiryPct,
 } from "@/lib/utils";
+import { styles } from "@/styles";
+
+const s = styles.profilePage;
 
 // -------------------------------------------------------------
 // Состояние загрузки — центрированный спиннер
@@ -41,7 +44,7 @@ import {
 function LoadingState() {
   return (
     <AppShell>
-      <div className="flex justify-center items-center flex-1 py-20">
+      <div className={s.stateWrap}>
         <Spinner className="size-7" />
       </div>
     </AppShell>
@@ -55,15 +58,13 @@ function LoadingState() {
 function ErrorState() {
   return (
     <AppShell>
-      <div className="flex justify-center items-center flex-1 py-20">
-        <div className="flex flex-col items-center gap-3 text-center px-6">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
-            <AlertTriangle size={22} className="text-destructive" />
+      <div className={s.stateWrap}>
+        <div className={s.stateInner}>
+          <div className={s.stateIconWrap}>
+            <AlertTriangle size={22} className={s.stateIcon} />
           </div>
-          <p className="text-sm font-medium text-foreground">
-            Не удалось загрузить профиль
-          </p>
-          <p className="text-xs text-muted-foreground">
+          <p className={s.stateTitle}>Не удалось загрузить профиль</p>
+          <p className={s.stateHint}>
             Проверьте соединение или обновите страницу
           </p>
         </div>
@@ -133,72 +134,55 @@ export function ProfilePage() {
   // -- Рендер ----------------------------------------------
   return (
     <AppShell>
-      <div className="flex justify-center py-8 px-4">
-        <div className="w-full max-w-150 flex flex-col gap-4 animate-fade-in">
+      <div className={s.root}>
+        <div className={s.inner}>
           {/* -- Герой: аватар + имя + статус + дата истечения -- */}
-          <Card className="p-5 flex items-center gap-4">
+          <Card className={s.heroCard}>
             <UserAvatar />
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
+            <div className={s.heroContent}>
+              <div className={s.heroTop}>
                 {/* Имя + бейдж статуса */}
-                <div className="flex items-center gap-2.5 flex-wrap min-w-0">
-                  <h1 className="text-xl font-bold text-foreground truncate">
-                    {profile.username}
-                  </h1>
-                  <span
-                    className={cn(
-                      "text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0",
-                      accountStatus.color,
-                    )}
-                  >
+                <div className={s.heroNameWrap}>
+                  <h1 className={s.heroName}>{profile.username}</h1>
+                  <span className={cn(s.statusBadge, accountStatus.color)}>
                     {accountStatus.label}
                   </span>
                 </div>
 
                 {/* Дата окончания подписки */}
-                <div className="text-right shrink-0">
-                  <p className="text-[11px] text-muted-foreground">
-                    Действует до
-                  </p>
-                  <p className="text-xs text-foreground mt-0.5">
+                <div className={s.heroExpiry}>
+                  <p className={s.heroExpiryLabel}>Действует до</p>
+                  <p className={s.heroExpiryDate}>
                     {expiryDateLine ?? "Не установлена"}
                   </p>
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground mt-0.5">Участник</p>
+              <p className={s.heroRole}>Участник</p>
             </div>
           </Card>
 
           {/* -- Статистика: трафик + подписка ------------------- */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={s.statsGrid}>
             {/* Плитка трафика */}
-            <Card className="px-4 py-4 flex flex-col gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Трафик
-              </p>
+            <Card className={s.statCard}>
+              <p className={s.statLabel}>Трафик</p>
               <div>
-                <p className="text-2xl font-bold text-foreground tabular-nums">
+                <p className={s.statValue}>
                   {usedGb.toFixed(2)}
-                  <span className="text-sm font-normal text-muted-foreground ml-1">
-                    GB
-                  </span>
+                  <span className={s.statUnit}>GB</span>
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  из {DEFAULT_TRAFFIC_LIMIT_GB} GB
-                </p>
+                <p className={s.statSub}>из {DEFAULT_TRAFFIC_LIMIT_GB} GB</p>
               </div>
               <ProgressBar value={trafficPct} variant="traffic" />
             </Card>
 
             {/* Плитка подписки — значение зависит от expiryTier */}
-            <Card className="px-4 py-4 flex flex-col gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Подписка
-              </p>
+            <Card className={s.statCard}>
+              <p className={s.statLabel}>Подписка</p>
               <div>
-                <div className="flex items-baseline gap-1.5">
+                <div className={s.subValueWrap}>
                   {/* Иконка часов — только когда меньше суток */}
                   {"icon" in subscriptionValue && (
                     <Clock
@@ -208,7 +192,7 @@ export function ProfilePage() {
                   )}
                   <p
                     className={cn(
-                      "text-2xl font-bold tabular-nums leading-none",
+                      s.subValue,
                       "color" in subscriptionValue
                         ? subscriptionValue.color
                         : "text-foreground",
@@ -218,14 +202,10 @@ export function ProfilePage() {
                   </p>
                   {/* Единица измерения «дн.» — только для дней */}
                   {"unit" in subscriptionValue && (
-                    <span className="text-sm font-normal text-muted-foreground">
-                      {subscriptionValue.unit}
-                    </span>
+                    <span className={s.subUnit}>{subscriptionValue.unit}</span>
                   )}
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  {subscriptionValue.sub}
-                </p>
+                <p className={s.subValueSub}>{subscriptionValue.sub}</p>
               </div>
               <ProgressBar value={expiryPct} variant="expiry" />
             </Card>
@@ -241,58 +221,37 @@ export function ProfilePage() {
               `Для продолжения работы оформите подписку у администратора.\n` +
               `Стабильность работы не гарантируется — возможны перебои.`
             }
-            variant="amber"
+            variant="warning"
           />
-
-          {/* -- Предупреждение: allowed, но подписка не активирована -- */}
-          {/* {profile.allowed && !profile.active && (
-                        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3.5 flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 shrink-0">
-                                <AlertTriangle size={16} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-semibold text-amber-500">
-                                    Подписка неактивна
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                    VPN-подключение недоступно — обратитесь к администратору
-                                </p>
-                            </div>
-                        </div>
-                    )} */}
 
           {/* -- Онбординг-гайд — показываем пока нет даты истечения -- */}
           {!expiresAt && <Guide />}
 
           {/* -- Строка подключения + выбор сервера ------------------ */}
           {isActive && (
-            <Card className="overflow-hidden">
+            <Card className={s.connectionCard}>
               <ConnectionCard />
 
-              <div className="h-px bg-border mx-5" />
+              <div className={s.connectionDivider} />
 
-              <div className="p-5 pt-4">
+              <div className={s.serverSection}>
                 {/* Заголовок блока серверов */}
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Сервер
-                  </p>
-                  <span className="text-[11px] text-muted-foreground">
+                <div className={s.serverHeader}>
+                  <p className={s.serverLabel}>Сервер</p>
+                  <span className={s.serverCount}>
                     {activeServers.length} доступно
                   </span>
                 </div>
 
                 {activeServers.length === 0 ? (
                   // Заглушка — нет активных серверов
-                  <div className="flex flex-col items-center gap-2 py-6 text-center">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted text-muted-foreground">
+                  <div className={s.emptyState}>
+                    <div className={s.emptyIcon}>
                       <ServerOff size={18} />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-foreground">
-                        Нет доступных серверов
-                      </p>
-                      <p className="text-xs text-muted-foreground px-4">
+                    <div className={s.emptyText}>
+                      <p className={s.emptyTitle}>Нет доступных серверов</p>
+                      <p className={s.emptyHint}>
                         Активные серверы временно недоступны
                       </p>
                     </div>
