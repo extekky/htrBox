@@ -38,9 +38,9 @@ const PADDING = {
 } as const;
 
 const RANGE_OPTIONS = [
-  { value: 1 as const, label: "24ч" },
-  { value: 3 as const, label: "3д" },
-  { value: 7 as const, label: "7д" },
+  { value: 1 as const, label: "1д" },
+  { value: 3 as const, label: "2д" },
+  { value: 7 as const, label: "3д" },
 ];
 
 interface TrafficChartProps {
