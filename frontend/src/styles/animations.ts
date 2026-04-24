@@ -8,16 +8,17 @@
 
 export const transition = {
   // Универсальный — цвета, тени, opacity
-  base: "transition-all duration-150 ease-in-out",
-  colors: "transition-colors duration-150 ease-in-out",
-  opacity: "transition-opacity duration-150 ease-in-out",
-  shadow: "transition-shadow duration-200 ease-in-out",
+  base: "transition-all duration-180 ease-[cubic-bezier(.2,.8,.2,1)]",
+  colors: "transition-colors duration-160 ease-[cubic-bezier(.2,.8,.2,1)]",
+  opacity: "transition-opacity duration-160 ease-[cubic-bezier(.2,.8,.2,1)]",
+  shadow: "transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)]",
 
   // Трансформации — scale, translate (иконки, hover-эффекты)
-  transform: "transition-transform duration-150 ease-in-out",
+  transform:
+    "transition-transform duration-180 ease-[cubic-bezier(.2,.8,.2,1)]",
 
   // Медленнее — для модалок, оверлеев
-  slow: "transition-all duration-300 ease-in-out",
+  slow: "transition-all duration-280 ease-[cubic-bezier(.2,.8,.2,1)]",
 } as const;
 
 // -------------------------------------------------------------
@@ -26,11 +27,11 @@ export const transition = {
 
 export const hover = {
   // Стандартный hover для строк, карточек, пунктов меню
-  subtle: "hover:bg-accent/60",
+  subtle: "hover:bg-accent/70",
   // Hover для кнопок-призраков
-  ghost: "hover:bg-secondary/70",
+  ghost: "hover:bg-secondary/80",
   // Hover для деструктивных элементов
-  danger: "hover:bg-destructive/10",
+  danger: "hover:bg-destructive/14",
   // Hover для nav-ссылок
   nav: "hover:bg-muted/60 hover:text-foreground",
 } as const;
@@ -41,7 +42,7 @@ export const hover = {
 
 export const press = {
   // Для кнопок с визуальным откликом на нажатие
-  subtle: "active:scale-[0.98] active:opacity-80",
+  subtle: "active:scale-[0.985] active:opacity-85",
   // Для кнопок в таблицах и списках
   row: "active:bg-accent/80",
 } as const;

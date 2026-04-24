@@ -74,12 +74,8 @@ export function ConnectionCard() {
       <div className={s.header}>
         <div className={s.headerLeft}>
           {/* Иконка ссылки в стилизованном контейнере */}
-          <div className={s.iconWrap}>
-            <Link2 size={13} />
-          </div>
           <div>
             <p className={s.title}>Ключ доступа</p>
-            <p className={s.subtitle}>Скопируйте в VPN-клиент</p>
           </div>
         </div>
 
@@ -95,16 +91,6 @@ export function ConnectionCard() {
           <span className={s.refreshLabel}>Обновить</span>
         </button>
       </div>
-
-      {/* -- Информация о выбранном сервере ------------------------------ */}
-      {selectedServer && (
-        <div className={s.serverBadge}>
-          <span className={s.serverDot} />
-          <span className={s.serverCountry}>{selectedServer.country}</span>
-          <span className={s.serverCity}>—</span>
-          <span className={s.serverCity}>{selectedServer.city}</span>
-        </div>
-      )}
 
       {/* -- Основная область контента (URL или Состояния) --------------- */}
       {!selectedServer ? (

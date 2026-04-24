@@ -1,5 +1,8 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Guide } from "@/components/common/Guide";
+import { styles } from "@/styles";
+
+const s = styles.chekavoPage;
 
 // -------------------------------------------------------------
 // Страница "ЧеКаво"
@@ -8,14 +11,12 @@ import { Guide } from "@/components/common/Guide";
 export function ChekavoPage() {
   return (
     <AppShell>
-      <div className="flex justify-center py-8 px-4">
-        <div className="w-full max-w-150 flex flex-col gap-4 animate-fade-in">
+      <div className={s.root}>
+        <div className={s.inner}>
           {/* Заголовок */}
           <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              ЧеКаво
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <h1 className={s.title}>ЧеКаво</h1>
+            <p className={s.subtitle}>
               Пошаговый гайд — с нуля до работающего YouTube за 5 минут
             </p>
           </div>

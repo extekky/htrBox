@@ -40,7 +40,9 @@ import {
   changePasswordSchema,
   type ChangePasswordFormValues,
 } from "@/lib/validators";
-import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
+
+const s = styles.settingsPage;
 
 // -------------------------------------------------------------
 // Секция: Hysteria VPN — перегенерация пароля
@@ -70,35 +72,31 @@ function HysteriaSection({ username }: { username: string }) {
   return (
     <>
       <Card>
-        <CardHeader className="flex-row items-start gap-4 p-5 pb-0">
+        <CardHeader className={s.sectionHeader}>
           {/* Иконка секции */}
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0 mt-0.5">
+          <div className={s.sectionIconWrap}>
             <Key size={18} />
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-base">Hysteria VPN пароль</CardTitle>
-            <CardDescription className="mt-1">
+          <div className={s.sectionInfo}>
+            <CardTitle className={s.sectionTitle}>
+              Hysteria VPN пароль
+            </CardTitle>
+            <CardDescription className={s.sectionDescription}>
               Пароль используется в VPN-клиенте для подключения. После
               перегенерации текущая сессия будет прервана.
             </CardDescription>
           </div>
         </CardHeader>
 
-        <CardContent className="p-5 pt-4">
+        <CardContent className={s.hysteriaContent}>
           <button
             type="button"
             onClick={() => setConfirmOpen(true)}
             disabled={isPending}
-            className={cn(
-              "inline-flex items-center gap-2",
-              "h-10 px-5 rounded-xl text-sm font-medium",
-              "bg-primary/10 text-primary border border-primary/20",
-              "hover:bg-primary/15 transition-colors duration-150",
-              "disabled:opacity-60 disabled:pointer-events-none",
-            )}
+            className={s.actionButton}
           >
             {isPending ? (
-              <Loader2 size={15} className="animate-spin" />
+              <Loader2 size={15} className={s.spinIcon} />
             ) : (
               <RefreshCw size={15} />
             )}
@@ -204,25 +202,25 @@ function AccountPasswordSection({
   return (
     <>
       <Card>
-        <CardHeader className="flex-row items-start gap-4 p-5 pb-0">
+        <CardHeader className={s.sectionHeader}>
           {/* Иконка секции */}
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary shrink-0 mt-0.5">
+          <div className={s.sectionIconWrap}>
             <ShieldCheck size={18} />
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-base">Пароль аккаунта</CardTitle>
-            <CardDescription className="mt-1">
+          <div className={s.sectionInfo}>
+            <CardTitle className={s.sectionTitle}>Пароль аккаунта</CardTitle>
+            <CardDescription className={s.sectionDescription}>
               Пароль для входа в личный кабинет. После смены все активные сессии
               будут отозваны.
             </CardDescription>
           </div>
         </CardHeader>
 
-        <CardContent className="p-5 pt-5">
+        <CardContent className={s.accountContent}>
           <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate
-            className="flex flex-col gap-4"
+            className={s.accountForm}
           >
             {/* Текущий пароль — только для обычных пользователей */}
             {!isAdmin && (
@@ -260,25 +258,13 @@ function AccountPasswordSection({
               {...register("confirm_password")}
             />
 
-            {/* Чекбокс: синхронизировать с Hysteria-паролем */}
-            <label className="flex items-center gap-2.5 cursor-pointer select-none">
-              <Checkbox
-                id="apply-hy"
-                checked={applyHy}
-                onCheckedChange={(checked) => setValue("apply_hy", !!checked)}
-              />
-              <span className="text-sm text-muted-foreground">
-                Также обновить Hysteria-пароль
-              </span>
-            </label>
-
             {/* Панель действий */}
-            <div className="flex items-center justify-between gap-4 pt-4 border-t border-border">
+            <div className={s.actions}>
               {/* Кнопка показать/скрыть пароли — управляет всеми тремя полями */}
               <button
                 type="button"
                 onClick={() => setShowPasswords((v) => !v)}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className={s.togglePasswordButton}
               >
                 {showPasswords ? (
                   <>
@@ -295,15 +281,9 @@ function AccountPasswordSection({
               <button
                 type="submit"
                 disabled={isPending}
-                className={cn(
-                  "inline-flex items-center gap-2",
-                  "h-10 px-6 rounded-xl text-sm font-medium",
-                  "bg-primary/10 text-primary border border-primary/20",
-                  "hover:bg-primary/15 transition-colors duration-150",
-                  "disabled:opacity-60 disabled:pointer-events-none",
-                )}
+                className={s.saveButton}
               >
-                {isPending && <Loader2 size={14} className="animate-spin" />}
+                {isPending && <Loader2 size={14} className={s.spinIcon} />}
                 Сохранить изменения
               </button>
             </div>
@@ -340,14 +320,12 @@ export function SettingsPage() {
 
   return (
     <AppShell>
-      <div className="flex justify-center py-8 px-4">
-        <div className="w-full max-w-150 flex flex-col gap-4 animate-fade-in">
+      <div className={s.root}>
+        <div className={s.inner}>
           {/* Заголовок страницы */}
-          <div className="mb-1">
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              Настройки
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+          <div className={s.header}>
+            <h1 className={s.title}>Настройки</h1>
+            <p className={s.subtitle}>
               Управление паролями аккаунта и VPN-подключения
             </p>
           </div>

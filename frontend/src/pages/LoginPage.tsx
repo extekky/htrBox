@@ -1,7 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, HeartHandshake } from "lucide-react";
 
 import { login } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";
@@ -10,10 +10,12 @@ import { useRestore } from "@/hooks/useRestore";
 import { initServerData } from "@/hooks/useServers";
 import { ApiRequestError } from "@/api/client";
 import { loginSchema, type LoginFormValues } from "@/lib/validators";
-import { cn } from "@/lib/cn";
 import { Card, CardContent } from "@/components/ui/Card";
 import { FormInput } from "@/components/ui/FormInput";
+import { styles } from "@/styles";
 // import { Shader } from "@/components/common/Shader";
+
+const s = styles.loginPage;
 
 export function LoginPage() {
   // navigate(path) — программный переход на другую страницу
@@ -75,10 +77,10 @@ export function LoginPage() {
 
   if (restoring) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Loader2 size={28} className="animate-spin" />
-          <span className="text-sm">Восстановление сессии...</span>
+      <div className={s.restoreRoot}>
+        <div className={s.restoreInner}>
+          <Loader2 size={28} className={s.restoreIcon} />
+          <span className={s.restoreText}>Восстановление сессии...</span>
         </div>
       </div>
     );
@@ -86,26 +88,22 @@ export function LoginPage() {
 
   return (
     // Центрируем карточку на весь экран
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-background">
+    <div className={s.root}>
       {/* <Shader /> */}
-      <div className="relative z-10 w-full max-w-sm mx-4 animate-fade-in">
+      <div className={s.inner}>
         {/* Заголовок над карточкой */}
-        <div className="flex flex-col items-center gap-3 mb-8 text-center">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            HtrBox
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Войдите в свой аккаунт
-          </p>
+        <div className={s.header}>
+          <h1 className={s.title}>HtrBox</h1>
+          <p className={s.subtitle}>Войдите в свой аккаунт</p>
         </div>
 
         {/* Карточка с формой */}
-        <Card className="card-auth">
-          <CardContent className="p-6">
+        <Card className={s.card}>
+          <CardContent className={s.cardContent}>
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate // отключаем браузерную валидацию — используем Zod
-              className="flex flex-col gap-4"
+              className={s.form}
             >
               {/* Поле: имя пользователя */}
               <FormInput
@@ -122,7 +120,7 @@ export function LoginPage() {
                 label="Пароль"
                 type="password"
                 autoComplete="current-password"
-                placeholder="••••••••"
+                placeholder="O_o"
                 error={errors.password?.message}
                 {...register("password")}
               />
@@ -131,18 +129,12 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting} // блокируем повторный клик во время запроса
-                className={cn(
-                  "mt-1 h-10 w-full rounded-lg text-sm font-medium",
-                  "bg-primary text-primary-foreground hover:bg-primary/90",
-                  "active:scale-[0.98] transition-all duration-150",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "flex items-center justify-center gap-2",
-                )}
+                className={s.submitButton}
               >
                 {/* Пока идёт запрос — показываем спиннер и текст "Вход..." */}
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <Loader2 size={15} className={s.submitIcon} />
                     Вход...
                   </>
                 ) : (
@@ -154,14 +146,22 @@ export function LoginPage() {
         </Card>
 
         {/* Ссылка на страницу регистрации */}
-        <div className="flex items-center justify-center mt-5">
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
+        <div className={s.footer}>
+          <Link href="/register" className={s.footerLink}>
             <UserPlus size={14} />
             Нет аккаунта? Зарегистрироваться
           </Link>
+        </div>
+        <div className={s.footer}>
+          <a
+            className={s.footerLink}
+            href="https://t.me/stdoq"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <HeartHandshake size={14} />
+            Написать в поддержку
+          </a>
         </div>
       </div>
     </div>

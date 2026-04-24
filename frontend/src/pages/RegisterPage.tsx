@@ -1,7 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, HeartHandshake } from "lucide-react";
 
 import { register as registerUser } from "@/api/users";
 import { login } from "@/api/auth";
@@ -9,9 +9,11 @@ import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "@/hooks/useToast";
 import { ApiRequestError } from "@/api/client";
 import { registerSchema, type RegisterFormValues } from "@/lib/validators";
-import { cn } from "@/lib/cn";
 import { Card, CardContent } from "@/components/ui/Card";
 import { FormInput } from "@/components/ui/FormInput";
+import { styles } from "@/styles";
+
+const s = styles.registerPage;
 
 export function RegisterPage() {
   // navigate(path) — программный переход на другую страницу
@@ -89,25 +91,21 @@ export function RegisterPage() {
 
   return (
     // Центрируем карточку на весь экран
-    <div className="relative flex items-center justify-center min-h-screen overflow-hidden bg-background">
-      <div className="relative z-10 w-full max-w-sm mx-4 animate-fade-in">
+    <div className={s.root}>
+      <div className={s.inner}>
         {/* Заголовок над карточкой */}
-        <div className="flex flex-col items-center gap-3 mb-8 text-center">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            HtrBox
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Пройдите регистрацию
-          </p>
+        <div className={s.header}>
+          <h1 className={s.title}>HtrBox</h1>
+          <p className={s.subtitle}>Пройдите регистрацию</p>
         </div>
 
         {/* Карточка с формой */}
-        <Card className="card-auth">
-          <CardContent className="p-6">
+        <Card className={s.card}>
+          <CardContent className={s.cardContent}>
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate // отключаем браузерную валидацию — используем Zod
-              className="flex flex-col gap-4"
+              className={s.form}
             >
               {/* Поле: имя пользователя */}
               <FormInput
@@ -124,7 +122,7 @@ export function RegisterPage() {
                 label="Пароль"
                 type="password"
                 autoComplete="new-password"
-                placeholder="••••••••"
+                placeholder="O_o"
                 error={errors.password?.message}
                 {...register("password")}
               />
@@ -134,7 +132,7 @@ export function RegisterPage() {
                 label="Подтверждение"
                 type="password"
                 autoComplete="new-password"
-                placeholder="••••••••"
+                placeholder="o_O"
                 error={errors.confirm_password?.message}
                 {...register("confirm_password")}
               />
@@ -143,18 +141,12 @@ export function RegisterPage() {
               <button
                 type="submit"
                 disabled={isSubmitting} // блокируем повторный клик во время запроса
-                className={cn(
-                  "mt-1 h-10 w-full rounded-lg text-sm font-medium",
-                  "bg-primary text-primary-foreground hover:bg-primary/90",
-                  "active:scale-[0.98] transition-all duration-150",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "flex items-center justify-center gap-2",
-                )}
+                className={s.submitButton}
               >
                 {/* Пока идёт запрос — показываем спиннер и текст "Регистрация..." */}
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <Loader2 size={15} className={s.submitIcon} />
                     Регистрация...
                   </>
                 ) : (
@@ -166,14 +158,22 @@ export function RegisterPage() {
         </Card>
 
         {/* Ссылка на страницу входа */}
-        <div className="flex items-center justify-center mt-5">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
+        <div className={s.footer}>
+          <Link href="/login" className={s.footerLink}>
             <ArrowLeft size={14} />
             Уже зарегистрированы? Войти
           </Link>
+        </div>
+        <div className={s.footer}>
+          <a
+            className={s.footerLink}
+            href="https://t.me/stdoq"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <HeartHandshake size={14} />
+            Написать в поддержку
+          </a>
         </div>
       </div>
     </div>

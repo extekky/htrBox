@@ -24,16 +24,16 @@ import { colorScheme } from "@/styles/variants";
 
 export const progressBar = {
   // Корневой трек — тонкая полоса с bg-muted и обрезкой
-  root: `h-1 w-full ${radius.full} bg-muted overflow-hidden`,
+  root: `h-1.5 w-full ${radius.full} bg-muted/80 overflow-hidden`,
 
   // Заполнение трека — высота + форма + замедленная анимация ширины (500ms — медленнее transition.slow намеренно)
   track: `h-full ${radius.full} ${transition.slow} duration-500`,
 
   // Цветовые варианты заполнения — берём solid из colorScheme
-  fillDanger: colorScheme.danger.solid, // bg-destructive
-  fillWarning: colorScheme.warning.solid, // bg-amber-500
-  fillPrimary: colorScheme.primary.solid, // bg-primary
-  fillMuted: "bg-muted", // нет совпадения в colorScheme.solid
+  fillDanger: "bg-gradient-to-r from-destructive to-red-500", // bg-destructive
+  fillWarning: "bg-gradient-to-r from-amber-500 to-amber-400", // bg-amber-500
+  fillPrimary: "bg-gradient-to-r from-primary to-indigo-500/90", // bg-primary
+  fillMuted: "bg-muted-foreground/35", // нет совпадения в colorScheme.solid
 } as const;
 
 // -------------------------------------------------------------
@@ -48,7 +48,7 @@ export const statusBadge = {
   neutral: "bg-muted text-muted-foreground border-muted",
 
   // Разрешён — зелёный с повышенным контрастом текста (dark-aware)
-  allowed: `${colorScheme.success.bg} ${colorScheme.success.border} text-green-700 dark:text-green-300`,
+  allowed: `${colorScheme.success.bg} ${colorScheme.success.border} ${colorScheme.success.text}`,
 
   // Заблокирован / критично / истёк — danger
   danger: `${colorScheme.danger.bg} ${colorScheme.danger.text} ${colorScheme.danger.border}`,
@@ -57,10 +57,10 @@ export const statusBadge = {
   primary: `${colorScheme.primary.bg} ${colorScheme.primary.text} ${colorScheme.primary.border}`,
 
   // Роль Админ — amber с приглушённым текстом (/90)
-  admin: `${colorScheme.warning.bg} ${colorScheme.warning.border} text-amber-500/90`,
+  admin: `${colorScheme.warning.bg} ${colorScheme.warning.border} text-amber-700`,
 
   // Предупреждение (expiry warning) — amber с повышенным контрастом (dark-aware)
-  warning: `${colorScheme.warning.bg} ${colorScheme.warning.border} text-amber-700 dark:text-amber-300`,
+  warning: `${colorScheme.warning.bg} ${colorScheme.warning.border} text-amber-700`,
 } as const;
 
 // -------------------------------------------------------------
@@ -76,7 +76,7 @@ export const toaster = {
   ].join(" "),
 
   // Корень одного тоста — геометрия, тень
-  root: "group relative w-full overflow-hidden rounded-lg border p-4 shadow-lg",
+  root: "group relative w-full overflow-hidden rounded-xl border border-border/70 p-4 shadow-lg shadow-slate-900/12",
 
   // Анимации входа / выхода (Radix data-state)
   animate: [
@@ -87,15 +87,15 @@ export const toaster = {
   ].join(" "),
 
   // Цветовые варианты корня — фон, рамка, текст
-  variantDefault: `${surface.card} text-white`,
-  variantDestructive: `${colorScheme.danger.bg} ${colorScheme.danger.border} text-white`,
-  variantSuccess: `${colorScheme.success.bg} ${colorScheme.success.border} text-white`,
+  variantDefault: `${surface.card} text-foreground`,
+  variantDestructive: `${colorScheme.danger.bg} ${colorScheme.danger.border} ${colorScheme.danger.text}`,
+  variantSuccess: `${colorScheme.success.bg} ${colorScheme.success.border} ${colorScheme.success.text}`,
 
   // Прогресс-бар внизу тоста
   progress: "absolute bottom-0 left-0 h-1 w-full origin-left animate-shrink",
 
   // Цветовые варианты прогресс-бара
-  progressDefault: "bg-muted-foreground/50",
+  progressDefault: "bg-primary/35",
   progressDestructive: colorScheme.danger.solid,
   progressSuccess: colorScheme.success.solid,
 
@@ -105,11 +105,11 @@ export const toaster = {
 
   // Текстовые слоты
   title: "text-sm font-semibold leading-tight",
-  description: "text-sm leading-relaxed opacity-80",
+  description: "text-sm leading-relaxed text-muted-foreground",
 
   // Кнопка закрытия
   closeBtn: [
-    "rounded-md p-1.5 opacity-60",
+    "rounded-md p-1.5 text-muted-foreground opacity-70",
     "transition-opacity hover:opacity-100 focus:opacity-100",
     "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   ].join(" "),
@@ -125,36 +125,37 @@ export const serverSelector = {
   empty: "flex flex-col items-center gap-2 py-6 text-center",
 
   // Иконка пустого состояния — квадратный кружок
-  emptyIcon: `flex items-center justify-center w-10 h-10 ${radius.md} bg-muted text-muted-foreground/40`,
+  emptyIcon: `flex items-center justify-center w-10 h-10 ${radius.md} bg-muted/80 text-muted-foreground/55`,
 
   // Текст пустого состояния
   emptyTitle: typography.componentMd,
   emptyHint: "text-xs text-muted-foreground mt-0.5",
 
   // Список серверов
-  list: "flex flex-col gap-1",
+  list: "flex flex-col gap-1.5",
 
   // Кнопка одного сервера — базовая геометрия + анимация
-  item: `w-full flex items-center gap-3 ${radius.md} px-3 py-2.5 text-left border transition-all duration-110`,
+  item: `w-full flex items-center gap-3 ${radius.md} px-3 py-2.5 text-left border transition-all duration-150`,
 
   // Состояния кнопки
-  itemSelected: "bg-primary/20 border-primary/40",
-  itemDefault: "border-transparent hover:bg-muted/50 hover:border-border/50",
+  itemSelected: "bg-primary/12 border-primary/28 shadow-sm shadow-primary/12",
+  itemDefault:
+    "border-border/45 bg-card/75 hover:bg-muted/55 hover:border-border/70",
 
   // Radio-индикатор
-  radio: `w-3.75 h-3.75 ${radius.full} border-[1.5px] shrink-0 flex items-center justify-center transition-colors`,
-  radioSelected: `${colorScheme.primary.border} ${colorScheme.primary.solid}`,
-  radioDefault: "border-muted-foreground/30",
+  radio: `w-4 h-4 ${radius.full} border-[1.5px] shrink-0 flex items-center justify-center transition-colors`,
+  radioSelected: `border-primary/45 ${colorScheme.primary.bg}`,
+  radioDefault: "border-muted-foreground/35 bg-card",
 
   // Точка внутри radio при выборе
-  radioDot: `w-1.5 h-1.5 ${radius.full} bg-primary-foreground`,
+  radioDot: `w-2 h-2 ${radius.full} bg-primary`,
 
   // Тело кнопки — текстовый блок
   itemBody: "flex-1 min-w-0",
 
   // Название страны
-  itemNameSelected: "text-sm font-medium truncate text-foreground",
-  itemNameDefault: "text-sm font-medium truncate text-foreground/80",
+  itemNameSelected: "text-sm font-semibold truncate text-foreground",
+  itemNameDefault: "text-sm font-medium truncate text-foreground/88",
 
   // Город
   itemCity: `${typography.mutedXs} truncate mt-0.5`,
@@ -166,43 +167,43 @@ export const serverSelector = {
 
 export const connectionCard = {
   // Корневой контейнер
-  root: "p-4.5 flex flex-col gap-3",
+  root: "p-4.5 flex flex-col gap-3.5",
 
   // Шапка — заголовок + кнопка обновления
-  header: "flex items-center justify-between",
+  header: "flex items-start justify-between gap-3",
   headerLeft: "flex items-center gap-2.5",
 
   // Иконка ссылки — нестандартный радиус rounded-[9px]
   iconWrap:
-    "flex items-center justify-center w-7.5 h-7.5 rounded-[9px] bg-primary/10 text-primary shrink-0",
+    "flex items-center justify-center w-8 h-8 rounded-[10px] bg-primary/12 text-primary shrink-0 border border-primary/20",
 
   // Заголовок и подпись
-  title: `${typography.componentMd} leading-none`,
-  subtitle: `${typography.mutedXs} mt-0.5`,
+  title: "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+  subtitle: `${typography.mutedXs} mt-1`,
 
   // Кнопка обновления
   refreshBtn: [
-    "flex items-center justify-center px-3 h-8 rounded-lg gap-2",
-    `${colorScheme.primary.border} ${colorScheme.primary.bg} text-primary`,
-    "hover:bg-muted/60 hover:text-foreground",
+    "flex items-center justify-center px-3 h-8 rounded-lg gap-2 shrink-0",
+    `${colorScheme.primary.border} ${colorScheme.primary.bg} text-primary border`,
+    "hover:bg-primary/18 hover:text-primary",
     "transition-colors disabled:opacity-40",
   ].join(" "),
   refreshLabel: "text-xs font-medium",
 
   // Бейдж выбранного сервера
-  serverBadge: `inline-flex items-center gap-1.5 self-start px-2 py-1 ${radius.full} bg-muted border border-border`,
+  serverBadge: `inline-flex items-center gap-1.5 self-start px-2.5 py-1 ${radius.full} bg-muted/75 border border-border/70`,
   serverDot: `w-1.5 h-1.5 ${radius.full} ${colorScheme.success.solid} shrink-0`,
   serverCountry: "text-xs text-foreground font-medium",
   serverCity: "text-xs text-muted-foreground",
 
   // Состояния основной области
-  statePlaceholder: `flex items-center justify-center h-10 ${radius.md} border border-dashed border-border text-sm text-muted-foreground`,
-  stateLoading: `flex items-center justify-center h-10 ${radius.md} text-sm text-muted-foreground gap-2`,
+  statePlaceholder: `flex items-center justify-center h-10 ${radius.md} border border-dashed border-border/70 bg-muted/20 text-sm text-muted-foreground`,
+  stateLoading: `flex items-center justify-center h-10 ${radius.md} bg-muted/20 text-sm text-muted-foreground gap-2`,
 
   // Блок с URL
-  urlBox: `${radius.md} border border-border bg-muted/30 px-3 py-2.5`,
+  urlBox: `${radius.md} border border-border/70 bg-muted/35 px-3 py-2.5`,
   urlLabel: `${typography.labelCaps} text-[9px] tracking-[0.09em] mb-1.5`,
-  urlCode: `${typography.urlCode} text-[11px] font-mono break-all select-all`,
+  urlCode: `${typography.urlCode} text-[11px] font-mono break-all select-all leading-relaxed`,
 } as const;
 
 // -------------------------------------------------------------
@@ -211,27 +212,33 @@ export const connectionCard = {
 
 export const guide = {
   // Корневой контейнер
-  root: `${radius.lg} ${surface.card} ${spacing.cardPaddingMd} glass`,
+  root: `${radius.lg} ${surface.card} ${spacing.cardPaddingMd} glass shadow-lg shadow-slate-900/8`,
 
   // Заголовок гайда
-  guideTitle: "mb-5 text-base font-semibold text-foreground tracking-tight",
+  guideTitle: "mb-2 text-base font-semibold text-foreground tracking-tight",
+
+  // Вводный блок
+  intro: `${radius.md} border border-border/60 bg-muted/35 px-4 py-3.5 mb-5 space-y-2`,
+  introText: "text-sm text-muted-foreground leading-relaxed",
+  introMeta: "flex flex-wrap items-center gap-2",
+  introMetaItem: `inline-flex items-center gap-1.5 ${radius.full} px-2.5 py-1 text-[11px] font-medium border border-border/70 bg-card text-foreground`,
 
   // Обёртка списка шагов
   stepsWrap: "space-y-2",
 
   // ── Row ──────────────────────────────────────────────────────
   // Базовая строка иконка + текст
-  row: "flex items-center gap-2",
+  row: "flex items-start gap-2.5",
 
   // Обёртка иконки
-  rowIcon: "shrink-0 flex items-center",
+  rowIcon: "shrink-0 flex items-center justify-center",
 
   // Текст строки
-  rowText: "leading-none",
+  rowText: "min-w-0 text-sm leading-relaxed text-foreground",
 
   // ── Badge ────────────────────────────────────────────────────
   // Инлайн-бейдж с иконкой
-  badge: `inline-flex items-center gap-1 ${radius.sm} border border-primary/30 ${colorScheme.primary.bg} px-2 py-0.5 text-xs font-semibold ${colorScheme.primary.text} leading-none`,
+  badge: `inline-flex items-center gap-1 ${radius.sm} border border-primary/30 ${colorScheme.primary.bg} px-2 py-0.5 text-xs font-semibold ${colorScheme.primary.text} leading-snug`,
 
   // ── Step ─────────────────────────────────────────────────────
   // Корневой flex шага
@@ -253,24 +260,28 @@ export const guide = {
   stepBodyLast: "flex-1 pb-2",
 
   // Строка-заголовок шага (Row с mb)
-  stepTitleRow: "mb-2.5",
+  stepTitleRow: "mb-1.5",
 
   // Обёртка иконки в заголовке шага
   stepIconWrap: `${colorScheme.primary.text} flex items-center`,
 
   // Текст заголовка шага
-  stepTitle: "text-sm font-semibold text-foreground",
+  stepTitle: "text-[15px] font-semibold text-foreground leading-snug",
+  stepHint: "mb-3 text-xs text-muted-foreground leading-relaxed",
+  stepKey: "font-semibold text-foreground",
+  stepCode: `inline-flex items-center ${radius.sm} border border-border/70 bg-card px-1.5 py-0.5 text-[11px] font-medium text-foreground`,
+  selectedBadge: `inline-flex items-center ${spacing.inlineGapSm} ${radius.full} px-2.5 py-1 border border-primary/28 ${colorScheme.primary.bg} text-[11px] font-medium ${colorScheme.primary.text}`,
 
   // ── PlatformButton ───────────────────────────────────────────
   // Базовая кнопка платформы
   platformBtn: `flex flex-col items-center gap-1.5 px-3 py-2.5 ${radius.md} border ${transition.base} shrink-0`,
 
   // Выбранное состояние
-  platformBtnSelected: `border-primary/50 ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+  platformBtnSelected: `border-primary/36 ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
 
   // Невыбранное состояние
   platformBtnDefault:
-    "border-border/50 bg-muted/30 text-muted-foreground hover:border-border hover:text-foreground hover:bg-muted/50",
+    "border-border/55 bg-muted/35 text-muted-foreground hover:border-border/80 hover:text-foreground hover:bg-muted/55",
 
   // Иконка платформы
   platformBtnIcon: "flex items-center justify-center",
@@ -280,7 +291,7 @@ export const guide = {
 
   // ── ClientCard ───────────────────────────────────────────────
   // Карточка выбранного клиента
-  clientCard: `animate-fade-in flex items-center justify-between gap-3 ${radius.md} border border-border/50 bg-muted/30 px-4 py-3`,
+  clientCard: `animate-fade-in flex items-center justify-between gap-3 ${radius.md} border border-border/55 bg-muted/35 px-4 py-3`,
 
   // Левый блок карточки
   clientCardBody: "min-w-0",
@@ -296,7 +307,14 @@ export const guide = {
 
   // ── InfoBlock ────────────────────────────────────────────────
   // Обёртка информационного блока
-  infoBlock: `${radius.md} border border-border/50 bg-muted/30 px-4 py-3.5 text-sm text-muted-foreground leading-relaxed space-y-2.5`,
+  infoBlock: `${radius.md} border border-border/55 bg-muted/35 px-4 py-3.5 space-y-2.5`,
+  infoText: "text-sm text-muted-foreground leading-relaxed",
+  infoList: "space-y-2",
+  infoListItem:
+    "relative pl-4 text-sm text-muted-foreground leading-relaxed before:absolute before:left-0.5 before:top-[0.62em] before:size-1.5 before:rounded-full before:bg-primary/45",
+  pendingNote: `${radius.md} border border-dashed border-border/75 bg-card/80 px-3.5 py-3`,
+  pendingTitle: "text-sm font-medium text-foreground",
+  pendingText: "mt-1 text-xs text-muted-foreground leading-relaxed",
 
   // Разделитель внутри InfoBlock
   infoSeparator: "h-px bg-border/40",
@@ -316,17 +334,19 @@ export const guide = {
   telegramPlatformLabel: "text-xs text-muted-foreground leading-none",
   telegramExternalIcon: "shrink-0 text-primary/50",
 
-  // ── Шаг 5 — строка успеха ────────────────────────────────────
-  successRow: `${radius.sm} ${colorScheme.success.bg} border ${colorScheme.success.border} px-3 py-2 ${colorScheme.success.text} text-sm`,
-
-  // ── Шаг 6 — финальный блок ───────────────────────────────────
-  successBlock: `${radius.md} border ${colorScheme.success.border} ${colorScheme.success.bg} px-4 py-4 space-y-3`,
+  // ── Шаг 5/6 — финальные блоки ───────────────────────────────
+  successRow: `${radius.sm} ${colorScheme.success.bg} border ${colorScheme.success.border} px-3 py-2 ${colorScheme.success.text} text-sm leading-relaxed`,
   successAvatar: `flex size-8 shrink-0 items-center justify-center ${radius.full} ${colorScheme.success.bg} ${colorScheme.success.text}`,
   successTitle: `text-sm font-semibold ${colorScheme.success.text}`,
   successDesc: "text-sm text-muted-foreground leading-relaxed",
+  troubleList: "space-y-2",
+  troubleItem:
+    "text-sm text-muted-foreground leading-relaxed border border-border/55 bg-card/85 rounded-lg px-3 py-2.5",
+  supportLink:
+    "inline-flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-primary/12 text-primary border border-primary/24 hover:bg-primary/18 transition-colors",
 
   // ── Кнопка «+» инлайн ────────────────────────────────────────
-  plusBadge: `inline-flex size-5 shrink-0 items-center justify-center ${radius.full} border border-primary/40 ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+  plusBadge: `inline-flex size-5 shrink-0 items-center justify-center ${radius.full} border border-primary/34 ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
 } as const;
 
 // -------------------------------------------------------------
@@ -336,14 +356,14 @@ export const guide = {
 export const confirmDialog = {
   // Затемнение фона
   overlay: [
-    "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm",
+    "fixed inset-0 z-40 bg-black/45 backdrop-blur-sm",
     enter.overlay,
   ].join(" "),
 
   // Панель диалога — позиционирование + геометрия + анимация
   content: [
     "fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-    `w-full max-w-sm ${surface.card} ${radius.md} ${shadow.xl}`,
+    `w-full max-w-sm ${surface.card} ${radius.lg} ${shadow.xl}`,
     `${enter.modal} ${spacing.cardPaddingMd} flex flex-col gap-4`,
   ].join(" "),
 
@@ -363,7 +383,7 @@ export const confirmDialog = {
   cancelBtn: [
     "h-8 px-3 rounded-lg text-xs font-medium",
     "bg-secondary text-secondary-foreground",
-    "hover:bg-secondary/80 transition-colors",
+    "hover:bg-secondary/90 transition-colors",
     "disabled:opacity-50 disabled:cursor-not-allowed",
   ].join(" "),
 
@@ -380,4 +400,33 @@ export const confirmDialog = {
 
   // Вариант default — primary-кнопка
   confirmBtnDefault: `${colorScheme.primary.bg} ${colorScheme.primary.text} ${colorScheme.primary.border} ${colorScheme.primary.hover}`,
+} as const;
+
+// -------------------------------------------------------------
+// NotifyBanner — информационный баннер с иконкой и крестиком
+// -------------------------------------------------------------
+
+export const notifyBanner = {
+  // Корневая обёртка — горизонтальная строка: иконка → текст → крестик
+  root: `${radius.lg} border px-4 py-3.5 flex items-center ${spacing.inlineGap} shadow-sm shadow-slate-900/6`,
+
+  // Враппер иконки — цветной кружок, размер фиксирован
+  iconWrap: `flex items-center justify-center w-8 h-8 ${radius.md} shrink-0`,
+
+  // Текстовая зона — растягивается, обрезает длинный контент
+  body: "flex-1 min-w-0",
+
+  // Заголовок баннера — полужирный, цвет задаётся вариантом colorScheme
+  title: "font-semibold text-[14px] leading-snug tracking-tight",
+
+  // Описание под заголовком
+  description:
+    "mt-0.5 text-[12px] leading-relaxed text-muted-foreground whitespace-pre-line",
+
+  // Кнопка закрытия
+  closeBtn: [
+    "shrink-0 flex items-center justify-center w-7 h-7",
+    radius.sm,
+    transition.colors,
+  ].join(" "),
 } as const;

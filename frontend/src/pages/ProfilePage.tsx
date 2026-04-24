@@ -33,7 +33,7 @@ import {
   getSubscriptionValue,
   getExpiryPct,
 } from "@/lib/utils";
-import { styles } from "@/styles";
+import { styles, colorScheme } from "@/styles";
 
 const s = styles.profilePage;
 
@@ -45,7 +45,7 @@ function LoadingState() {
   return (
     <AppShell>
       <div className={s.stateWrap}>
-        <Spinner className="size-7" />
+        <Spinner size="lg" />
       </div>
     </AppShell>
   );
@@ -118,6 +118,19 @@ export function ProfilePage() {
 
   // Бейдж статуса (цвет + лейбл) из общей утилиты
   const accountStatus = getAccountStatus(profile);
+  const accountStatusTone = !profile.allowed
+    ? colorScheme.danger
+    : !profile.active
+      ? colorScheme.warning
+      : colorScheme.success;
+
+  const accountStatusClass = cn(
+    s.statusBadge,
+    accountStatusTone.text,
+    accountStatusTone.bg,
+    accountStatusTone.border,
+  );
+
   // Данные плитки «Подписка» (текст, юниты, цвет)
   const subscriptionValue = getSubscriptionValue(
     expiresAt,
@@ -125,6 +138,18 @@ export function ProfilePage() {
     timeLeft,
     expiryTier,
   );
+
+  const subscriptionColor = !expiresAt
+    ? s.subValueToneDefault
+    : daysLeft !== null && daysLeft < 0
+      ? s.subValueToneDanger
+      : daysLeft === 0 && timeLeft
+        ? timeLeft.hours < 1
+          ? s.subValueToneDanger
+          : s.subValueToneWarning
+        : expiryTier === "critical" || expiryTier === "warning"
+          ? s.subValueToneWarning
+          : s.subValueToneDefault;
 
   // Строка «дата, время» для блока «Подписка до»
   const expiryDateLine = expiresAt
@@ -145,7 +170,7 @@ export function ProfilePage() {
                 {/* Имя + бейдж статуса */}
                 <div className={s.heroNameWrap}>
                   <h1 className={s.heroName}>{profile.username}</h1>
-                  <span className={cn(s.statusBadge, accountStatus.color)}>
+                  <span className={accountStatusClass}>
                     {accountStatus.label}
                   </span>
                 </div>
@@ -168,12 +193,12 @@ export function ProfilePage() {
             {/* Плитка трафика */}
             <Card className={s.statCard}>
               <p className={s.statLabel}>Трафик</p>
-              <div>
+              <div className={s.statBody}>
                 <p className={s.statValue}>
                   {usedGb.toFixed(2)}
-                  <span className={s.statUnit}>GB</span>
+                  <span className={s.statUnit}>Гб</span>
                 </p>
-                <p className={s.statSub}>из {DEFAULT_TRAFFIC_LIMIT_GB} GB</p>
+                <p className={s.statSub}>из {DEFAULT_TRAFFIC_LIMIT_GB} Гб</p>
               </div>
               <ProgressBar value={trafficPct} variant="traffic" />
             </Card>
@@ -181,23 +206,13 @@ export function ProfilePage() {
             {/* Плитка подписки — значение зависит от expiryTier */}
             <Card className={s.statCard}>
               <p className={s.statLabel}>Подписка</p>
-              <div>
+              <div className={s.statBody}>
                 <div className={s.subValueWrap}>
                   {/* Иконка часов — только когда меньше суток */}
                   {"icon" in subscriptionValue && (
-                    <Clock
-                      size={14}
-                      className={cn("shrink-0 mb-0.5", subscriptionValue.color)}
-                    />
+                    <Clock size={14} className={subscriptionColor} />
                   )}
-                  <p
-                    className={cn(
-                      s.subValue,
-                      "color" in subscriptionValue
-                        ? subscriptionValue.color
-                        : "text-foreground",
-                    )}
-                  >
+                  <p className={cn(s.subValue, subscriptionColor)}>
                     {subscriptionValue.text}
                   </p>
                   {/* Единица измерения «дн.» — только для дней */}

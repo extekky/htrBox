@@ -14,8 +14,78 @@
  * ПРАВИЛО: если ты пишешь className="" в JSX — это ошибка.
  */
 
+import { loading, transition } from "@/styles/animations";
 import { colorScheme } from "@/styles/variants";
 import { typography, radius, spacing } from "@/styles/tokens";
+
+// -------------------------------------------------------------
+// LoginPage — страница входа
+// -------------------------------------------------------------
+
+export const loginPage = {
+  restoreRoot: "flex items-center justify-center min-h-screen bg-background",
+  restoreInner: "flex flex-col items-center gap-3 text-muted-foreground",
+  restoreIcon: loading.spin,
+  restoreText: "text-sm",
+
+  root: "relative flex items-center justify-center min-h-screen overflow-hidden bg-background",
+  inner: "relative z-10 w-full max-w-sm mx-4 animate-fade-in",
+
+  header: "flex flex-col items-center gap-3 mb-5 text-center",
+  title: "text-xl font-semibold tracking-tight text-foreground",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  card: "card-auth",
+  cardContent: "p-6",
+  form: `flex flex-col ${spacing.sectionGapSm}`,
+
+  submitButton: [
+    `mt-1 h-10 w-full ${radius.sm}`,
+    "text-sm font-medium",
+    "bg-primary text-primary-foreground hover:bg-primary/92",
+    "active:scale-[0.98]",
+    transition.base,
+    "disabled:opacity-50 disabled:cursor-not-allowed",
+    "flex items-center justify-center gap-2",
+  ].join(" "),
+  submitIcon: loading.spin,
+
+  footer: "flex items-center justify-center mt-5",
+  footerLink:
+    "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors",
+} as const;
+
+// -------------------------------------------------------------
+// RegisterPage — страница регистрации
+// -------------------------------------------------------------
+
+export const registerPage = {
+  root: "relative flex items-center justify-center min-h-screen overflow-hidden bg-background",
+  inner: "relative z-10 w-full max-w-sm mx-4 animate-fade-in",
+
+  header: "flex flex-col items-center gap-3 mb-5 text-center",
+  title: "text-xl font-semibold tracking-tight text-foreground",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  card: "card-auth",
+  cardContent: "p-6",
+  form: `flex flex-col ${spacing.sectionGapSm}`,
+
+  submitButton: [
+    `mt-1 h-10 w-full ${radius.sm}`,
+    "text-sm font-medium",
+    "bg-primary text-primary-foreground hover:bg-primary/92",
+    "active:scale-[0.98]",
+    transition.base,
+    "disabled:opacity-50 disabled:cursor-not-allowed",
+    "flex items-center justify-center gap-2",
+  ].join(" "),
+  submitIcon: loading.spin,
+
+  footer: "flex items-center justify-center mt-5",
+  footerLink:
+    "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors",
+} as const;
 
 // -------------------------------------------------------------
 // ProfilePage — страница профиля пользователя
@@ -82,6 +152,10 @@ export const profilePage = {
   // Карточка-плитка статистики
   statCard: `px-4 py-4 flex flex-col ${spacing.formGapSm}`,
 
+  // Тело статистической плитки — растягивается, чтобы прогрессбары
+  // в соседних карточках всегда стояли на одной вертикали
+  statBody: "flex-1",
+
   // Метка плитки — caps-стиль
   // tracking-wider намеренно отличается от labelCaps (tracking-widest) — меньше разрядка
   statLabel:
@@ -108,11 +182,16 @@ export const profilePage = {
   // Подпись под значением подписки
   subValueSub: `${typography.mutedXs} mt-1`,
 
+  // Цветовые тона значения подписки
+  subValueToneDefault: colorScheme.neutral.text,
+  subValueToneWarning: "text-amber-500",
+  subValueToneDanger: colorScheme.danger.text,
+
   // Карточка подключения — скрывает overflow для разделителя
   connectionCard: "overflow-hidden",
 
   // Разделитель между ConnectionCard и блоком серверов
-  connectionDivider: "h-px bg-border mx-5",
+  connectionDivider: "h-px bg-border/70 mx-5",
 
   // Секция выбора сервера
   serverSection: "p-5 pt-4",
@@ -141,4 +220,188 @@ export const profilePage = {
 
   // Подсказка заглушки
   emptyHint: "text-xs text-muted-foreground px-4",
+} as const;
+
+// -------------------------------------------------------------
+// SettingsPage — настройки аккаунта и VPN
+// -------------------------------------------------------------
+
+export const settingsPage = {
+  root: "flex justify-center py-8 px-4",
+  inner: "w-full max-w-150 flex flex-col gap-4 animate-fade-in",
+
+  header: "mb-1",
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  sectionHeader: "flex-row items-start gap-4 p-5 pb-0",
+  sectionIconWrap: `flex items-center justify-center w-10 h-10 rounded-xl shrink-0 mt-0.5 ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+  sectionInfo: "flex-1",
+  sectionTitle: "text-base",
+  sectionDescription: "mt-1",
+
+  hysteriaContent: "p-5 pt-4",
+  accountContent: "p-5 pt-5",
+  accountForm: "flex flex-col gap-4",
+
+  actionButton: [
+    "inline-flex items-center gap-2",
+    "h-10 px-5 rounded-xl text-sm font-medium",
+    `${colorScheme.primary.bg} ${colorScheme.primary.text} border ${colorScheme.primary.border}`,
+    colorScheme.primary.hover,
+    transition.colors,
+    "disabled:opacity-60 disabled:pointer-events-none",
+  ].join(" "),
+  saveButton: [
+    "inline-flex items-center gap-2",
+    "h-10 px-6 rounded-xl text-sm font-medium",
+    `${colorScheme.primary.bg} ${colorScheme.primary.text} border ${colorScheme.primary.border}`,
+    colorScheme.primary.hover,
+    transition.colors,
+    "disabled:opacity-60 disabled:pointer-events-none",
+  ].join(" "),
+  spinIcon: loading.spin,
+
+  applyHyLabel: "flex items-center gap-2.5 cursor-pointer select-none",
+  applyHyText: "text-sm text-muted-foreground",
+
+  actions:
+    "flex items-center justify-between gap-4 pt-4 border-t border-border",
+  togglePasswordButton:
+    "inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors",
+} as const;
+
+// -------------------------------------------------------------
+// ManualPage — правила и справка
+// -------------------------------------------------------------
+
+export const manualPage = {
+  root: "flex justify-center py-8 px-4",
+  inner: "w-full max-w-150 flex flex-col gap-4 animate-fade-in",
+
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+  sections: "flex flex-col gap-3",
+
+  sectionCard: "overflow-hidden transition-colors duration-200",
+  sectionCardClosed: "border-border/60 hover:border-border/90",
+  sectionButton:
+    "w-full flex items-center justify-between px-5 py-4 hover:bg-muted/45 transition-colors text-left",
+  sectionHead: "flex items-center gap-3",
+  sectionAccentBase:
+    "flex items-center justify-center w-8 h-8 rounded-xl shrink-0",
+  sectionAccentPrimary: `${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+  sectionAccentEmerald: `${colorScheme.success.bg} ${colorScheme.success.text}`,
+  sectionAccentAmber: `${colorScheme.warning.bg} ${colorScheme.warning.text}`,
+  sectionAccentBlue: `${colorScheme.info.bg} ${colorScheme.info.text}`,
+  sectionAccentRose: "bg-rose-500/10 text-rose-500",
+  sectionTitle: "text-sm font-semibold text-foreground",
+  sectionChevron:
+    "text-muted-foreground shrink-0 transition-transform duration-200",
+  sectionChevronOpen: "rotate-180",
+  sectionBody:
+    "px-5 pb-5 pt-1 border-t border-border/60 text-sm text-foreground leading-relaxed",
+
+  sectionInner: "flex flex-col gap-3 pt-3",
+  sectionInnerRules: "flex flex-col gap-2.5 pt-3",
+
+  textMuted: "text-muted-foreground",
+  textStrong: "text-foreground",
+
+  aboutTiles: "grid grid-cols-2 gap-2",
+  aboutTile:
+    "flex items-center gap-2.5 p-3 rounded-xl bg-muted/50 border border-border/60",
+  aboutTileIcon: "text-primary shrink-0",
+  aboutTileText: "text-xs text-muted-foreground",
+
+  statusCard: "flex items-center gap-3 p-4 rounded-xl border",
+  statusIcon: "shrink-0 mt-0.5",
+  statusLabel: "text-sm font-semibold",
+  statusDescription: "text-sm text-muted-foreground mt-0.5",
+  statusSuccessWrap: `${colorScheme.success.bg} ${colorScheme.success.border}`,
+  statusSuccessIcon: colorScheme.success.text,
+  statusSuccessLabel: colorScheme.success.text,
+  statusWarningWrap: `${colorScheme.warning.bg} ${colorScheme.warning.border}`,
+  statusWarningIcon: colorScheme.warning.text,
+  statusWarningLabel: colorScheme.warning.text,
+  statusMutedWrap: "bg-secondary/80 border-border/70",
+  statusMutedIcon: "text-muted-foreground",
+  statusMutedLabel: "text-foreground",
+
+  ruleCard: "flex gap-3 p-3 rounded-xl border items-center",
+  ruleIcon: "shrink-0 mt-0.5",
+  ruleText: "text-sm leading-relaxed",
+  ruleDefaultWrap: "bg-secondary/80 border-border/70",
+  ruleDefaultIcon: colorScheme.primary.text,
+  ruleDefaultText: "text-muted-foreground",
+  ruleWarningWrap: `${colorScheme.warning.bg} ${colorScheme.warning.border}`,
+  ruleWarningIcon: colorScheme.warning.text,
+  ruleWarningText: colorScheme.warning.text,
+  ruleDangerWrap: `${colorScheme.danger.bg} ${colorScheme.danger.border}`,
+  ruleDangerIcon: colorScheme.danger.text,
+  ruleDangerText: colorScheme.danger.text,
+
+  note: "flex items-start gap-2.5 px-3.5 py-3 rounded-xl border text-xs",
+  noteIcon: "shrink-0 mt-0.5",
+  noteDefaultWrap: "bg-muted/50 border-border/60 text-muted-foreground",
+  noteDefaultIcon: "text-muted-foreground",
+  noteWarningWrap: `${colorScheme.warning.bg} ${colorScheme.warning.border} ${colorScheme.warning.text}`,
+  noteWarningIcon: colorScheme.warning.text,
+
+  paymentGrid: "grid grid-cols-1 sm:grid-cols-2 gap-3",
+  paymentPlanCard: `flex flex-col gap-3 p-4 ${radius.lg} ${colorScheme.success.bg} border ${colorScheme.success.border}`,
+  paymentPlanHeader: "flex items-center gap-2",
+  paymentPlanIcon: colorScheme.success.text,
+  paymentPlanTitle: `text-xs font-bold uppercase tracking-widest ${colorScheme.success.text}`,
+  paymentPrice: "flex items-end gap-1",
+  paymentPriceValue: "text-3xl font-black text-foreground leading-none",
+  paymentPriceUnit: "text-sm text-muted-foreground mb-0.5",
+  paymentFeatures: "flex flex-col gap-1.5 pt-2 border-t border-emerald-500/20",
+  paymentFeature: "flex items-center gap-2 text-xs text-muted-foreground",
+  paymentFeatureIcon: `${colorScheme.success.text} shrink-0`,
+
+  paymentHelp:
+    "flex gap-3 p-4 rounded-xl bg-secondary/70 border border-border items-center",
+  paymentHelpIcon: "text-primary shrink-0 mt-0.5",
+  paymentHelpTitle: "text-sm font-medium text-foreground",
+  paymentHelpText: "text-sm text-muted-foreground mt-0.5",
+
+  supportLink:
+    "self-start inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-medium bg-primary/12 text-primary border border-primary/24 hover:bg-primary/18 transition-colors",
+} as const;
+
+// -------------------------------------------------------------
+// ChekavoPage — пошаговый гайд
+// -------------------------------------------------------------
+
+export const chekavoPage = {
+  root: "flex justify-center py-8 px-4",
+  inner: "w-full max-w-150 flex flex-col gap-4 animate-fade-in",
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+} as const;
+
+// -------------------------------------------------------------
+// NotFoundPage — страница 404
+// -------------------------------------------------------------
+
+export const notFoundPage = {
+  root: "flex justify-center items-center min-h-screen px-4",
+  inner: "w-full max-w-150 flex flex-col gap-4 animate-fade-in",
+
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  card: "p-8 flex flex-col items-center gap-6 text-center",
+  iconWrap: "relative",
+  iconPulse: `absolute inset-0 ${radius.full} ${colorScheme.danger.bg} ${loading.pulse} scale-125`,
+  iconInner: `relative flex items-center justify-center w-16 h-16 ${radius.full} ${colorScheme.danger.bg}`,
+  icon: colorScheme.danger.text,
+
+  codeWrap: "flex flex-col gap-2",
+  code: "text-6xl font-extrabold text-foreground tracking-tight leading-none",
+  description: "text-sm text-muted-foreground max-w-xs",
+
+  backButton:
+    "inline-flex items-center gap-1.5 h-9 px-4 rounded-lg text-sm font-medium bg-primary/12 text-primary border border-primary/24 hover:bg-primary/18 transition-colors",
 } as const;

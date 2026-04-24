@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
+  AlertTriangle,
+  CheckCircle2,
+  Copy,
+  Download,
   ExternalLink,
   MessageCircle,
-  Download,
-  Copy,
-  Check,
-  CheckCircle2,
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -91,6 +91,8 @@ interface Platform {
   clientDescription: string;
   downloadUrl: string;
   downloadLabel: string;
+  importAction: string;
+  connectAction: string;
 }
 
 const PLATFORMS: Platform[] = [
@@ -99,49 +101,74 @@ const PLATFORMS: Platform[] = [
     name: "iPhone",
     Icon: IconApple,
     clientName: "Streisand",
-    clientDescription: "Удобный и функциональный клиент для iOS",
+    clientDescription: "Стабильный клиент для iOS с простым импортом из буфера",
     downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
     downloadLabel: "App Store",
+    importAction: "Import from Clipboard",
+    connectAction: "Откройте профиль и включите VPN",
   },
   {
     id: "android",
     name: "Android",
     Icon: IconAndroid,
     clientName: "v2RayTun",
-    clientDescription:
-      "Поддерживает все современные протоколы, включая Hysteria2",
+    clientDescription: "Поддерживает Hysteria2, импорт одним нажатием",
     downloadUrl:
       "https://play.google.com/store/apps/details?id=com.v2raytun.android",
     downloadLabel: "Google Play",
+    importAction: "Импорт из буфера обмена",
+    connectAction: "Выберите профиль и нажмите Connect",
   },
   {
     id: "macos",
     name: "macOS",
     Icon: IconApple,
     clientName: "Streisand",
-    clientDescription: "Родное приложение для macOS из App Store",
+    clientDescription: "Нативное приложение из App Store для macOS",
     downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
     downloadLabel: "Mac App Store",
+    importAction: "Import from Clipboard",
+    connectAction: "Активируйте профиль в списке подключений",
   },
   {
     id: "windows",
     name: "Windows",
     Icon: IconWindows,
     clientName: "Hiddify",
-    clientDescription: "Полная поддержка Hysteria2, установщик AppImage / exe",
+    clientDescription: "Полная поддержка Hysteria2, быстрая настройка на ПК",
     downloadUrl: "https://github.com/hiddify/hiddify-next/releases/latest",
     downloadLabel: "GitHub",
+    importAction: "Add Profile > From Clipboard",
+    connectAction: "Включите профиль кнопкой подключения",
   },
   {
     id: "linux",
     name: "Linux",
     Icon: IconLinux,
     clientName: "Hiddify",
-    clientDescription: "AppImage / .deb — простота установки",
+    clientDescription: "AppImage/.deb с поддержкой Hysteria2",
     downloadUrl: "https://github.com/hiddify/hiddify-next/releases/latest",
     downloadLabel: "GitHub",
+    importAction: "Add Profile > From Clipboard",
+    connectAction: "Выберите профиль и запустите соединение",
   },
 ];
+
+function detectPlatform(): PlatformId | null {
+  if (typeof navigator === "undefined") return null;
+
+  const ua = navigator.userAgent.toLowerCase();
+
+  if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) {
+    return "ios";
+  }
+  if (ua.includes("android")) return "android";
+  if (ua.includes("mac os") || ua.includes("macintosh")) return "macos";
+  if (ua.includes("windows")) return "windows";
+  if (ua.includes("linux")) return "linux";
+
+  return null;
+}
 
 // -------------------------------------------------------------
 // Вспомогательные компоненты
@@ -149,7 +176,7 @@ const PLATFORMS: Platform[] = [
 
 const s = styles.guide;
 
-/** Строка с иконкой и текстом — всегда выровнены по центру. */
+/** Строка с иконкой и текстом — единая типографика по гайду. */
 function Row({
   icon,
   children,
@@ -172,12 +199,12 @@ function Badge({
   icon,
   children,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <span className={s.badge}>
-      <span className={s.rowIcon}>{icon}</span>
+      {icon ? <span className={s.rowIcon}>{icon}</span> : null}
       <span>{children}</span>
     </span>
   );
@@ -191,11 +218,19 @@ interface StepProps {
   number: number;
   icon: React.ReactNode;
   title: string;
+  hint?: string;
   last?: boolean;
   children: React.ReactNode;
 }
 
-function Step({ number, icon, title, last = false, children }: StepProps) {
+function Step({
+  number,
+  icon,
+  title,
+  hint,
+  last = false,
+  children,
+}: StepProps) {
   return (
     <div className={s.stepRoot}>
       {/* Номер шага и вертикальная линия */}
@@ -212,6 +247,8 @@ function Step({ number, icon, title, last = false, children }: StepProps) {
         >
           <span className={s.stepTitle}>{title}</span>
         </Row>
+
+        {hint ? <p className={s.stepHint}>{hint}</p> : null}
         {children}
       </div>
     </div>
@@ -291,23 +328,28 @@ function InfoBlock({
 // -------------------------------------------------------------
 
 export function Guide() {
-  const [selectedId, setSelectedId] = useState<PlatformId | null>(null);
+  const [selectedId, setSelectedId] = useState<PlatformId | null>(() =>
+    detectPlatform(),
+  );
+
   const platform = PLATFORMS.find((p) => p.id === selectedId) ?? null;
 
   return (
     <div className={s.root}>
-      <h2 className={s.guideTitle}>Как начать пользоваться</h2>
+      <h2 className={s.guideTitle}>Пошаговая настройка VPN</h2>
 
       <div className={s.stepsWrap}>
         {/* Шаг 1 — связаться с администратором */}
         <Step
           number={1}
           icon={<MessageCircle size={15} />}
-          title="Связаться с администратором"
+          title="Активировать аккаунт"
+          hint="Без активации VPN-ссылка не будет работать."
         >
           <InfoBlock>
-            <p>
-              Напишите администратору — он активирует аккаунт и сообщит цену
+            <p className={s.infoText}>
+              Напишите администратору — он активирует аккаунт и сообщит цену.
+              При обращении укажите имя пользователя.
             </p>
             <a
               href="https://t.me/stdoq"
@@ -331,12 +373,10 @@ export function Guide() {
         <Step
           number={2}
           icon={<Download size={15} />}
-          title="Установить клиент"
+          title="Установить VPN-клиент"
+          hint="Выберите платформу, и мы покажем рекомендуемое приложение."
         >
           <div className={s.platformSection}>
-            <p className={s.platformHint}>
-              Выберите Вашу платформу — мы подберём подходящее приложение:
-            </p>
             <div className={s.platformGrid}>
               <div className={s.platformRow3}>
                 {PLATFORMS.slice(0, 3).map((p) => (
@@ -363,103 +403,124 @@ export function Guide() {
                 ))}
               </div>
             </div>
-            {platform && <ClientCard platform={platform} />}
+            {platform ? (
+              <ClientCard platform={platform} />
+            ) : (
+              <div className={s.pendingNote}>
+                <p className={s.pendingTitle}>Платформа не выбрана</p>
+                <p className={s.pendingText}>
+                  Выберите устройство, чтобы получить точные подсказки.
+                </p>
+              </div>
+            )}
           </div>
         </Step>
 
         {/* Шаг 3 — получить ключ */}
-        {platform && (
-          <Step number={3} icon={<Copy size={15} />} title="Скопировать ключ">
-            <InfoBlock>
-              <p>
-                Ключ подключения — это адрес сервера и Ваши данные доступа,
-                упакованные в одну строку.
-              </p>
-              <div className={s.infoSeparator} />
-              <p>
-                На странице профиля выберите{" "}
-                <strong className="text-foreground">сервер</strong> из списка
-                доступных — каждый сервер имеет свой ключ.
-              </p>
-              <p className="flex flex-wrap items-center gap-1.5">
-                После выбора нажмите{" "}
-                <Badge icon={<Copy size={11} />}>Скопировать ключ</Badge>.
-              </p>
-            </InfoBlock>
-          </Step>
-        )}
+        <Step
+          number={3}
+          icon={<Copy size={15} />}
+          title="Скопировать ключ из профиля"
+          hint="Ключ содержит адрес сервера и ваши данные доступа."
+        >
+          <InfoBlock>
+            <p className={s.infoText}>
+              Bыберите сервер, нажмите кнопку{" "}
+              <Badge icon={<Copy size={11} />}>Скопировать ключ</Badge>
+            </p>
+            <div className={s.infoSeparator} />
+            <ul className={s.infoList}>
+              <li className={s.infoListItem}>Не редактируйте ключ вручную.</li>
+              <li className={s.infoListItem}>
+                Если сменили сервер, скопируйте ключ заново.
+              </li>
+            </ul>
+          </InfoBlock>
+        </Step>
 
-        {/* Шаг 4 — открыть приложение */}
-        {platform && (
-          <Step
-            number={4}
-            icon={<Plus size={15} />}
-            title={`Открыть ${platform.clientName}`}
-          >
-            <InfoBlock>
-              <p className="flex flex-wrap items-center gap-1.5">
-                Откройте{" "}
-                <strong className="text-foreground">
-                  {platform.clientName}
-                </strong>
-                . Найдите кнопку{" "}
-                <span className={s.plusBadge}>
-                  <Plus size={11} strokeWidth={2.5} />
-                </span>{" "}
-                — обычно она находится вверху экрана.
-              </p>
-              <p>Эта кнопка открывает меню добавления нового подключения.</p>
-            </InfoBlock>
-          </Step>
-        )}
+        {/* Шаг 4 — импортировать конфигурацию */}
+        <Step
+          number={4}
+          icon={<Plus size={15} />}
+          title="Импортировать ключ в клиент"
+          hint="В большинстве приложений это делается через кнопку добавления профиля."
+        >
+          <InfoBlock>
+            {platform ? (
+              <>
+                <p className={s.infoText}>
+                  Откройте{" "}
+                  <span className={s.stepKey}>{platform.clientName}</span> и
+                  выберите <Badge>{platform.importAction}</Badge>
+                </p>
+                <div className={s.infoSeparator} />
+                <p className={s.infoText}>
+                  Приложение автоматически создаст профиль из скопированного
+                  ключа. Разверните список, если профиль не видно (неочевидный UI клиента).
+                </p>
+              </>
+            ) : (
+              <div className={s.pendingNote}>
+                <p className={s.pendingTitle}>Нужна выбранная платформа</p>
+                <p className={s.pendingText}>
+                  Вернитесь к шагу 2 и выберите устройство, чтобы увидеть точное
+                  название пункта импорта.
+                </p>
+              </div>
+            )}
+          </InfoBlock>
+        </Step>
 
-        {/* Шаг 5 — импортировать конфигурацию */}
-        {platform && (
-          <Step
-            number={5}
-            icon={<Download size={15} />}
-            title="Импортировать конфигурацию"
-          >
-            <InfoBlock>
-              <p className="flex flex-wrap items-center gap-1.5">
-                В открывшемся меню выберите{" "}
-                <Badge icon={null}>Импорт из буфера обмена</Badge>
-              </p>
-              <div className={s.infoSeparator} />
-              <p>
-                Приложение само прочитает скопированный ключ и создаст профиль —
-                вам ничего вводить вручную не нужно. Профиль появится в списке подключений (иногда его надо развернуть).
-              </p>
-                
-            </InfoBlock>
-          </Step>
-        )}
+        {/* Шаг 5 — подключиться */}
+        <Step
+          number={5}
+          icon={<CheckCircle2 size={15} />}
+          title="Включить VPN и проверить"
+          hint="После подключения интернет должен работать стабильно без ограничений."
+        >
+          <InfoBlock>
+            <p className={s.infoText}>
+              {platform
+                ? platform.connectAction
+                : "Откройте созданный профиль и включите соединение."}
+            </p>
+            <div className={s.infoSeparator} />
+            <ul className={s.infoList}>
+              <li className={s.infoListItem}>
+                Проверьте, что статус соединения активен.
+              </li>
+              <li className={s.infoListItem}>
+                Откройте сайт или видео для быстрой проверки.
+              </li>
+            </ul>
+            <p className={s.successRow}>
+              Если всё подключилось — настройка завершена.
+            </p>
+          </InfoBlock>
+        </Step>
 
-        {/* Шаг 6 — подключиться */}
-        {platform && (
-          <Step
-            number={6}
-            icon={<CheckCircle2 size={15} />}
-            title="Подключиться"
-            last
-          >
-            <div className={s.successBlock}>
-              <Row
-                icon={
-                  <div className={s.successAvatar}>
-                    <CheckCircle2 size={15} />
-                  </div>
-                }
-              >
-                <span className={s.successTitle}>Готово!</span>
-              </Row>
-              <p className={s.successDesc}>
-                Выберите созданный профиль и включите соединение — интернет без
-                ограничений.
-              </p>
-            </div>
-          </Step>
-        )}
+        {/* Шаг 6 — диагностика */}
+        <Step
+          number={6}
+          icon={<AlertTriangle size={15} />}
+          title="Если не подключается"
+          hint="Ниже самые частые причины и как их быстро проверить."
+          last
+        >
+          <InfoBlock>
+            <ul className={s.infoList}>
+              <li className={s.infoListItem}>
+                Перекопируйте ключ в профиле и импортируйте заново.
+              </li>
+              <li className={s.infoListItem}>
+                Проверьте, что аккаунт активен и выбран рабочий сервер.
+              </li>
+              <li className={s.infoListItem}>
+                Перезапустите клиент и попробуйте подключиться снова.
+              </li>
+            </ul>
+          </InfoBlock>
+        </Step>
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ export const checkbox = {
   // Корневой элемент — геометрия, цвет границы, тень, анимация
   root: [
     "peer size-4 shrink-0 rounded-lg border shadow-xs outline-none",
-    "border-input dark:bg-input/30",
+    "border-input bg-input/80",
     transition.shadow,
   ].join(" "),
 
@@ -85,7 +85,7 @@ export const copyButton = {
   // Корень icon-кнопки — геометрия, hover, фокус, disabled
   iconRoot: [
     "p-1.5 rounded-md",
-    "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
+    "text-muted-foreground hover:text-foreground hover:bg-secondary/90",
     "focus:outline-none focus:ring-2 focus:ring-primary/40",
     "disabled:opacity-40 disabled:cursor-not-allowed",
     transition.colors,
@@ -106,12 +106,11 @@ export const copyButton = {
   ].join(" "),
 
   // Состояние "скопировано" — emerald совпадает с colorScheme.success
-  blockCopied:
-    "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  blockCopied: "border-emerald-500/30 bg-emerald-500/14 text-emerald-700",
 
   // Базовое состояние
   blockDefault:
-    "border-primary/40 bg-primary/20 text-primary hover:bg-primary/28",
+    "border-primary/30 bg-primary/14 text-primary hover:bg-primary/20",
 } as const;
 
 // -------------------------------------------------------------
@@ -138,7 +137,7 @@ export const formInput = {
   input: [
     "w-full h-10 rounded-lg border bg-input",
     typography.inputText,
-    "placeholder:text-muted-foreground/40",
+    "placeholder:text-muted-foreground/55",
     "[&::-webkit-calendar-picker-indicator]:invert",
     focus.input,
     transition.colors,
@@ -187,7 +186,7 @@ export const dropdownMenu = {
   // Кликабельный пункт меню
   item: [
     "focus:bg-accent focus:text-accent-foreground",
-    `relative flex cursor-default items-center ${spacing.inlineGap} rounded-sm px-2 py-1.5 ${typography.bodyMd} outline-none select-none`,
+    `relative flex cursor-default items-center ${spacing.inlineGap} rounded-sm px-2 py-1.5 ${typography.bodySm} outline-none select-none`,
     "data-disabled:pointer-events-none data-disabled:opacity-50 data-inset:pl-8",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ].join(" "),
@@ -206,14 +205,14 @@ export const dropdownMenu = {
 export const modal = {
   // Затемняющий оверлей
   overlay: [
-    "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm",
+    "fixed inset-0 z-40 bg-black/45 backdrop-blur-sm",
     enter.overlay,
   ].join(" "),
 
   // Панель содержимого — позиционирование + форма + анимация
   content: [
     "fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-    `w-full bg-card border border-border ${radius.md} shadow-2xl`,
+    `w-full bg-card border border-border/70 ${radius.lg} shadow-2xl shadow-slate-900/14`,
     enter.modal,
   ].join(" "),
 
@@ -282,7 +281,7 @@ export const modalActions = {
   // Кнопка «Подтвердить» — layout + цвет + disabled
   btnSubmit: [
     `inline-flex items-center ${spacing.inlineGap}`,
-    "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15",
+    "bg-primary/12 text-primary border border-primary/24 hover:bg-primary/18",
     disabled.base,
   ].join(" "),
 
@@ -307,7 +306,7 @@ export const toggleCard = {
   rootChecked: "border-primary/30 bg-primary/5",
 
   // Состояние: не выбрано — нейтральная граница + hover
-  rootUnchecked: `border-border ${hover.ghost}`,
+  rootUnchecked: `border-border/70 ${hover.ghost}`,
 
   // Текстовый блок — метка
   label: typography.componentMd,
@@ -323,32 +322,4 @@ export const toggleCard = {
 
   // Индикатор: не выбрано
   indicatorUnchecked: "border-border bg-transparent",
-} as const;
-
-// -------------------------------------------------------------
-// NotifyBanner — информационный баннер с иконкой и крестиком
-// -------------------------------------------------------------
-
-export const notifyBanner = {
-  // Корневая обёртка — горизонтальная строка: иконка → текст → крестик
-  root: `${radius.lg} border px-4 py-3.5 flex items-center ${spacing.inlineGap}`,
-
-  // Враппер иконки — цветной кружок, размер фиксирован
-  iconWrap: `flex items-center justify-center w-8 h-8 ${radius.md} shrink-0`,
-
-  // Текстовая зона — растягивается, обрезает длинный контент
-  body: "flex-1 min-w-0",
-
-  // Заголовок баннера — полужирный, цвет задаётся вариантом colorScheme
-  title: "font-semibold text-[14px] leading-snug",
-
-  // Описание под заголовком
-  description: `${typography.hintText} mt-0.5 whitespace-pre-line`,
-
-  // Кнопка закрытия
-  closeBtn: [
-    "shrink-0 flex items-center justify-center w-7 h-7",
-    radius.sm,
-    transition.colors,
-  ].join(" "),
 } as const;

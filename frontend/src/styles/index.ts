@@ -31,7 +31,6 @@ export type { ColorScheme } from "./variants";
 import {
   formLabel,
   formInput,
-  notifyBanner,
   spinner,
   checkbox,
   copyButton,
@@ -54,6 +53,7 @@ import {
   connectionCard,
   guide,
   confirmDialog,
+  notifyBanner,
 } from "./cStyles/commonStls";
 
 // -------------------------------------------------------------
@@ -66,7 +66,15 @@ import { bottomBar, appShell } from "./cStyles/layoutStls";
 // pagesStls.ts
 // -------------------------------------------------------------
 
-import { profilePage } from "./cStyles/pagesStls";
+import {
+  loginPage,
+  registerPage,
+  profilePage,
+  settingsPage,
+  manualPage,
+  chekavoPage,
+  notFoundPage,
+} from "./cStyles/pagesStls";
 
 export const styles = {
   formLabel,
@@ -89,5 +97,11 @@ export const styles = {
   confirmDialog,
   bottomBar,
   appShell,
+  loginPage,
+  registerPage,
   profilePage,
+  settingsPage,
+  manualPage,
+  chekavoPage,
+  notFoundPage,
 } as const;

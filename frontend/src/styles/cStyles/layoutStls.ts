@@ -28,8 +28,9 @@ export const bottomBar = {
   root: [
     "fixed bottom-0 left-0 right-0 z-30",
     "flex items-stretch",
-    "bg-background/90 backdrop-blur-md",
+    "bg-background/92 backdrop-blur-md",
     "border-t border-border/60",
+    "shadow-[0_-10px_24px_-18px_rgba(15,23,42,0.35)]",
     "pb-safe",
   ].join(" "),
 
@@ -46,7 +47,7 @@ export const bottomBar = {
   itemDefault: "text-muted-foreground",
 
   // Подсветка активного пункта — pill за иконкой
-  activePill: `absolute inset-x-2 top-1.5 bottom-1.5 rounded-xl ${colorScheme.primary.bg}`,
+  activePill: `absolute inset-x-2 top-1.5 bottom-1.5 rounded-xl border border-primary/20 ${colorScheme.primary.bg}`,
 
   // Иконка пункта
   icon: `relative z-10 ${transition.transform}`,
@@ -55,7 +56,7 @@ export const bottomBar = {
   iconActive: "scale-110",
 
   // Подпись пункта
-  label: "relative z-10 text-[9px] font-medium tracking-wide leading-none",
+  label: "relative z-10 text-[9px] font-medium tracking-[0.02em] leading-none",
 } as const;
 
 // -------------------------------------------------------------
@@ -69,7 +70,7 @@ export const appShell = {
   // Залипающая шапка — frosted-фон + нижняя граница
   // z-40 намеренно выше bottomBar (z-30), sticky вместо fixed
   header:
-    "sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md",
+    "sticky top-0 z-40 border-b border-border/60 bg-background/88 backdrop-blur-md",
 
   // Внутренняя строка шапки
   headerInner: "relative flex items-center justify-between h-14 px-4 sm:px-6",
@@ -93,7 +94,7 @@ export const appShell = {
   navItem: `relative flex items-center ${spacing.inlineGapSm} h-8 px-3 ${radius.sm} text-sm font-medium ${transition.colors}`,
 
   // Пункт активен
-  navItemActive: "text-foreground bg-muted",
+  navItemActive: "text-primary bg-primary/12",
 
   // Пункт неактивен
   navItemDefault: `text-muted-foreground ${hover.nav}`,
@@ -106,6 +107,8 @@ export const appShell = {
     `inline-flex items-center ${spacing.inlineGapSm} h-8 px-2.5 sm:px-3 rounded-lg text-xs font-medium`,
     colorScheme.primary.bg,
     colorScheme.primary.text,
+    colorScheme.primary.border,
+    "border",
     `${colorScheme.primary.hover} ${transition.colors}`,
   ].join(" "),
 
@@ -117,7 +120,7 @@ export const appShell = {
   avatarBtn: `${radius.full} focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`,
 
   // Аватар — круглая обёртка
-  avatarWrap: `w-8 h-8 ${radius.full} overflow-hidden shrink-0 ring-2 ring-border bg-muted flex items-center justify-center`,
+  avatarWrap: `w-8 h-8 ${radius.full} overflow-hidden shrink-0 ring-2 ring-border/70 bg-muted flex items-center justify-center`,
 
   // Аватар — инициал пользователя
   avatarInitial:

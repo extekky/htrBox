@@ -23,12 +23,15 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { cn } from "@/lib/cn";
 import { Card } from "@/components/ui/Card";
+import { styles } from "@/styles";
+
+const s = styles.manualPage;
 
 // -------------------------------------------------------------
 // Тип акцентного цвета — используется для иконок секций
 // -------------------------------------------------------------
 
-type Accent = "primary" | "emerald" | "amber" | "blue" | "rose";
+type Accent = "primary" | "emerald" | "amber" | "rose";
 
 // -------------------------------------------------------------
 // Сворачиваемая секция (аккордеон)
@@ -56,58 +59,46 @@ function Section({
 
   // Палитра акцентов для иконок
   const accentMap: Record<Accent, string> = {
-    primary: "bg-primary/10 text-primary",
-    emerald: "bg-emerald-500/10 text-emerald-500",
-    amber: "bg-amber-500/10 text-amber-500",
-    blue: "bg-blue-500/10 text-blue-500",
-    rose: "bg-rose-500/10 text-rose-500",
+    primary: s.sectionAccentPrimary,
+    emerald: s.sectionAccentEmerald,
+    amber: s.sectionAccentAmber,
+    rose: s.sectionAccentRose,
   };
 
   return (
     <Card
       className={cn(
-        "overflow-hidden transition-colors duration-200",
+        s.sectionCard,
         // Слегка приглушаем рамку, когда секция закрыта
-        !open && "border-border/60 hover:border-border",
+        !open && s.sectionCardClosed,
       )}
     >
       {/* Кнопка-заголовок секции */}
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors text-left"
+        className={s.sectionButton}
         aria-expanded={open}
         aria-controls={`sec-${id}`}
       >
-        <div className="flex items-center gap-3">
+        <div className={s.sectionHead}>
           {/* Иконка с акцентным фоном */}
-          <span
-            className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-xl shrink-0",
-              accentMap[accent],
-            )}
-          >
+          <span className={cn(s.sectionAccentBase, accentMap[accent])}>
             {icon}
           </span>
-          <span className="text-sm font-semibold text-foreground">{title}</span>
+          <span className={s.sectionTitle}>{title}</span>
         </div>
 
         {/* Стрелка — разворачивается при открытии */}
         <ChevronDown
           size={15}
-          className={cn(
-            "text-muted-foreground shrink-0 transition-transform duration-200",
-            open && "rotate-180",
-          )}
+          className={cn(s.sectionChevron, open && s.sectionChevronOpen)}
         />
       </button>
 
       {/* Тело секции — видимо только в открытом состоянии */}
       {open && (
-        <div
-          id={`sec-${id}`}
-          className="px-5 pb-5 pt-1 border-t border-border/60 text-sm text-foreground leading-relaxed"
-        >
+        <div id={`sec-${id}`} className={s.sectionBody}>
           {children}
         </div>
       )}
@@ -131,32 +122,30 @@ function StatusCard({ icon, label, description, color }: StatusCardProps) {
   // Цветовые токены для каждого состояния
   const palette = {
     emerald: {
-      wrap: "bg-emerald-500/10 border-emerald-500/20",
-      icon: "text-emerald-500",
-      label: "text-emerald-500",
+      wrap: s.statusSuccessWrap,
+      icon: s.statusSuccessIcon,
+      label: s.statusSuccessLabel,
     },
     amber: {
-      wrap: "bg-amber-500/10 border-amber-500/20",
-      icon: "text-amber-500",
-      label: "text-amber-500",
+      wrap: s.statusWarningWrap,
+      icon: s.statusWarningIcon,
+      label: s.statusWarningLabel,
     },
     muted: {
-      wrap: "bg-secondary/70 border-border",
-      icon: "text-muted-foreground",
-      label: "text-foreground",
+      wrap: s.statusMutedWrap,
+      icon: s.statusMutedIcon,
+      label: s.statusMutedLabel,
     },
   };
 
   const p = palette[color];
 
   return (
-    <div
-      className={cn("flex items-center gap-3 p-4 rounded-xl border", p.wrap)}
-    >
-      <span className={cn("shrink-0 mt-0.5", p.icon)}>{icon}</span>
+    <div className={cn(s.statusCard, p.wrap)}>
+      <span className={cn(s.statusIcon, p.icon)}>{icon}</span>
       <div>
-        <p className={cn("text-sm font-semibold", p.label)}>{label}</p>
-        <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+        <p className={cn(s.statusLabel, p.label)}>{label}</p>
+        <p className={s.statusDescription}>{description}</p>
       </div>
     </div>
   );
@@ -178,20 +167,19 @@ function RuleCard({
   return (
     <div
       className={cn(
-        "flex gap-3 p-3 rounded-xl border items-center",
-        // /8 -> /10 чтобы совпадать с bg-amber-500/10 из getAccountStatus
-        variant === "warning" && "bg-amber-500/10 border-amber-500/20",
-        variant === "danger" && "bg-red-500/10 border-red-500/20",
-        variant === "default" && "bg-secondary/70 border-border",
+        s.ruleCard,
+        variant === "warning" && s.ruleWarningWrap,
+        variant === "danger" && s.ruleDangerWrap,
+        variant === "default" && s.ruleDefaultWrap,
       )}
     >
       {/* Иконка с цветом под вариант */}
       <span
         className={cn(
-          "shrink-0 mt-0.5",
-          variant === "warning" && "text-amber-500",
-          variant === "danger" && "text-red-500",
-          variant === "default" && "text-primary",
+          s.ruleIcon,
+          variant === "warning" && s.ruleWarningIcon,
+          variant === "danger" && s.ruleDangerIcon,
+          variant === "default" && s.ruleDefaultIcon,
         )}
       >
         {icon}
@@ -200,11 +188,10 @@ function RuleCard({
       {/* Текст правила */}
       <span
         className={cn(
-          "text-sm leading-relaxed",
-          // text-amber-500 / text-red-500 — те же что в getAccountStatus
-          variant === "warning" && "text-amber-500",
-          variant === "danger" && "text-red-500",
-          variant === "default" && "text-muted-foreground",
+          s.ruleText,
+          variant === "warning" && s.ruleWarningText,
+          variant === "danger" && s.ruleDangerText,
+          variant === "default" && s.ruleDefaultText,
         )}
       >
         {text}
@@ -228,19 +215,13 @@ function Note({
 
   return (
     <div
-      className={cn(
-        "flex items-start gap-2.5 px-3.5 py-3 rounded-xl border text-xs",
-        isAmber
-          ? // bg-amber-500/8 -> /10, text совпадает с Warning-баннером ProfilePage
-            "bg-amber-500/10 border-amber-500/20 text-amber-500"
-          : "bg-muted/40 border-border/60 text-muted-foreground",
-      )}
+      className={cn(s.note, isAmber ? s.noteWarningWrap : s.noteDefaultWrap)}
     >
       <Info
         size={13}
         className={cn(
-          "shrink-0 mt-0.5",
-          isAmber ? "text-amber-500" : "text-muted-foreground",
+          s.noteIcon,
+          isAmber ? s.noteWarningIcon : s.noteDefaultIcon,
         )}
       />
       <span>{children}</span>
@@ -255,20 +236,16 @@ function Note({
 export function ManualPage() {
   return (
     <AppShell>
-      <div className="flex justify-center py-8 px-4">
-        <div className="w-full max-w-150 flex flex-col gap-4 animate-fade-in">
+      <div className={s.root}>
+        <div className={s.inner}>
           {/* -- Заголовок страницы -- */}
           <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              Правила и справка
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Всё о сервисе, тарифах и ограничениях
-            </p>
+            <h1 className={s.title}>Правила и справка</h1>
+            <p className={s.subtitle}>Всё о сервисе, тарифах и ограничениях</p>
           </div>
 
           {/* -- Список секций -- */}
-          <div className="flex flex-col gap-3">
+          <div className={s.sections}>
             {/* -------------------------------------------------------------
                             1. Как устроен сервис
                         ------------------------------------------------------------- */}
@@ -276,20 +253,20 @@ export function ManualPage() {
               id="about"
               icon={<BookOpen size={15} />}
               title="Как устроен сервис"
-              accent="blue"
+              accent="primary"
               defaultOpen
             >
-              <div className="flex flex-col gap-3 pt-3">
+              <div className={s.sectionInner}>
                 {/* Краткое описание */}
-                <p className="text-muted-foreground">
-                  <strong className="text-foreground">htrBox</strong> — личный
+                <p className={s.textMuted}>
+                  <strong className={s.textStrong}>HtrBox</strong> — личный
                   кабинет для VPN на основе{" "}
-                  <strong className="text-foreground">Hysteria2</strong>. Трафик
+                  <strong className={s.textStrong}>Hysteria2</strong>. Трафик
                   маскируется под HTTPS — соединение устойчиво к блокировкам.
                 </p>
 
                 {/* Плитка возможностей (2×2) */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className={s.aboutTiles}>
                   {[
                     {
                       icon: <KeyRound size={14} />,
@@ -305,14 +282,9 @@ export function ManualPage() {
                     },
                     { icon: <Server size={14} />, label: "Выбор сервера" },
                   ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/40 border border-border/50"
-                    >
-                      <span className="text-primary shrink-0">{item.icon}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {item.label}
-                      </span>
+                    <div key={item.label} className={s.aboutTile}>
+                      <span className={s.aboutTileIcon}>{item.icon}</span>
+                      <span className={s.aboutTileText}>{item.label}</span>
                     </div>
                   ))}
                 </div>
@@ -333,8 +305,8 @@ export function ManualPage() {
               title="Статус аккаунта"
               accent="emerald"
             >
-              <div className="flex flex-col gap-3 pt-3">
-                <p className="text-muted-foreground">
+              <div className={s.sectionInner}>
+                <p className={s.textMuted}>
                   Статус показывает, работает ли ваша VPN-ссылка прямо сейчас.
                 </p>
 
@@ -367,7 +339,7 @@ export function ManualPage() {
               title="Правила использования"
               accent="rose"
             >
-              <div className="flex flex-col gap-2.5 pt-3">
+              <div className={s.sectionInnerRules}>
                 {/* default — просто рекомендация */}
                 <RuleCard
                   icon={<Lock size={14} />}
@@ -405,67 +377,48 @@ export function ManualPage() {
               title="Оплата"
               accent="emerald"
             >
-              <div className="flex flex-col gap-3 pt-3">
+              <div className={s.sectionInner}>
                 {/* Карточки тарифов (сейчас только «Базовый») */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={s.paymentGrid}>
                   {/* Базовый тариф */}
-                  <div className="flex flex-col gap-3 p-4 bg-emerald-500/8 border border-emerald-500/20 rounded-2xl">
+                  <div className={s.paymentPlanCard}>
                     {/* Метка тарифа */}
-                    <div className="flex items-center gap-2">
-                      <Zap size={13} className="text-emerald-500" />
-                      <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">
-                        Базовый
-                      </span>
+                    <div className={s.paymentPlanHeader}>
+                      <Zap size={13} className={s.paymentPlanIcon} />
+                      <span className={s.paymentPlanTitle}>Базовый</span>
                     </div>
 
                     {/* Цена */}
-                    <div className="flex items-end gap-1">
-                      <span className="text-3xl font-black text-foreground leading-none">
-                        200
-                      </span>
-                      <span className="text-sm text-muted-foreground mb-0.5">
-                        ₽ / мес
-                      </span>
+                    <div className={s.paymentPrice}>
+                      <span className={s.paymentPriceValue}>200</span>
+                      <span className={s.paymentPriceUnit}>₽ / мес</span>
                     </div>
 
                     {/* Фичи тарифа */}
-                    <div className="flex flex-col gap-1.5 pt-2 border-t border-emerald-500/15">
+                    <div className={s.paymentFeatures}>
                       {[
                         "Hysteria2 протокол",
                         "До 10 ГБ трафика",
                         "2 устройства",
                       ].map((feature) => (
-                        <div
-                          key={feature}
-                          className="flex items-center gap-2 text-xs text-muted-foreground"
-                        >
+                        <div key={feature} className={s.paymentFeature}>
                           <CheckCircle2
                             size={11}
-                            className="text-emerald-500 shrink-0"
+                            className={s.paymentFeatureIcon}
                           />
                           {feature}
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  {/*
-                                        Тариф «Plus» — скрыт до запуска
-                                        Раскомментировать, когда будет готов
-                                    */}
                 </div>
 
                 {/* Инструкция по оплате */}
-                <div className="flex gap-3 p-4 rounded-xl bg-secondary/70 border border-border items-center">
-                  <MessageCircle
-                    size={15}
-                    className="text-primary shrink-0 mt-0.5"
-                  />
+                <div className={s.paymentHelp}>
+                  <MessageCircle size={15} className={s.paymentHelpIcon} />
                   <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Как оплатить
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-0.5">
+                    <p className={s.paymentHelpTitle}>Как оплатить</p>
+                    <p className={s.paymentHelpText}>
                       Оплата прямым переводом на карту. Реквизиты — в поддержке.
                     </p>
                   </div>
@@ -475,15 +428,15 @@ export function ManualPage() {
 
             {/* -------------------------------------------------------------
                             5. Поддержка
-                        ------------------------------------------------------------- */}
+                ------------------------------------------------------------- */}
             <Section
               id="support"
               icon={<MessageCircle size={15} />}
               title="Поддержка"
               accent="primary"
             >
-              <div className="flex flex-col gap-3 pt-3">
-                <p className="text-muted-foreground">
+              <div className={s.sectionInner}>
+                <p className={s.textMuted}>
                   Вопросы по подключению, оплате или аккаунту — пишите напрямую:
                 </p>
 
@@ -492,7 +445,7 @@ export function ManualPage() {
                   href="https://t.me/stdoq"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="self-start inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 transition-colors"
+                  className={s.supportLink}
                 >
                   <Send size={14} />
                   @stdoq

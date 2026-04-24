@@ -17,17 +17,17 @@
 export const typography = {
   // Заголовки страниц и секций
   displayLg:
-    "text-[28px] leading-tight  font-semibold tracking-tight text-foreground",
+    "text-[30px] leading-tight font-semibold tracking-tight text-foreground",
   displayMd:
-    "text-[22px] leading-tight  font-semibold tracking-tight text-foreground",
+    "text-[24px] leading-tight font-semibold tracking-tight text-foreground",
   displaySm:
-    "text-[17px] leading-snug   font-semibold tracking-tight text-foreground",
+    "text-[18px] leading-snug font-semibold tracking-tight text-foreground",
 
   // Заголовки карточек / модалок / страниц
-  headingLg: "text-[16px] leading-snug  font-semibold text-foreground",
-  headingMd: "text-[15px] leading-snug  font-semibold text-foreground",
-  headingBase: "text-[14px] leading-snug  font-semibold text-foreground",
-  headingSm: "text-[13px] leading-snug  font-medium   text-foreground",
+  headingLg: "text-[17px] leading-snug font-semibold text-foreground",
+  headingMd: "text-[15px] leading-snug font-semibold text-foreground",
+  headingBase: "text-[14px] leading-snug font-semibold text-foreground",
+  headingSm: "text-[13px] leading-snug font-medium text-foreground",
 
   // Метки над полями (caps, как в macOS System Preferences)
   labelCaps:
@@ -35,19 +35,19 @@ export const typography = {
   labelSm: "text-[12px] font-medium text-muted-foreground",
 
   // Основной текст интерфейса
-  bodyMd: "text-[14px] leading-relaxed text-foreground",
-  bodySm: "text-[13px] leading-relaxed text-foreground",
+  bodyMd: "text-[14px] leading-[1.55] text-foreground",
+  bodySm: "text-[13px] leading-[1.5] text-foreground",
 
   // Метка внутри компонента — 14px medium без leading (плотные layout'ы)
-  componentMd: "text-[14px] font-medium text-foreground",
+  componentMd: "text-[14px] leading-snug font-medium text-foreground",
 
   // Текст внутри поля ввода — размер и цвет, без leading (высота задана явно)
-  inputText: "text-[14px] text-foreground",
+  inputText: "text-[14px] leading-none text-foreground",
 
   // Вспомогательный / второстепенный текст
-  mutedMd: "text-[14px] text-muted-foreground",
-  mutedSm: "text-[13px] text-muted-foreground",
-  mutedXs: "text-[11px] text-muted-foreground",
+  mutedMd: "text-[14px] leading-[1.5] text-muted-foreground",
+  mutedSm: "text-[13px] leading-[1.45] text-muted-foreground",
+  mutedXs: "text-[11px] leading-tight text-muted-foreground",
 
   // Числа / данные (tabular для выравнивания в таблицах и KPI)
   numericLg: "text-[28px] font-semibold tabular-nums text-foreground",
@@ -57,8 +57,8 @@ export const typography = {
   urlCode: "text-[12px] leading-relaxed text-foreground",
 
   // Сообщения под полями ввода
-  errorText: "text-[12px] text-destructive",
-  hintText: "text-[12px] text-muted-foreground",
+  errorText: "text-[12px] leading-tight text-destructive",
+  hintText: "text-[12px] leading-tight text-muted-foreground",
 } as const;
 
 // -------------------------------------------------------------
@@ -70,19 +70,19 @@ export const surface = {
   page: "bg-background",
 
   // Карточка — белая с тонкой границей
-  card: "bg-card border border-border",
+  card: "bg-card border border-border/70",
 
   // Вложенная секция внутри карточки (чуть теплее)
-  cardInner: "bg-secondary/40 border border-border/60",
+  cardInner: "bg-secondary/55 border border-border/60",
 
   // Попоуэр / дропдаун / тултип
-  popover: "bg-card border border-border shadow-lg",
+  popover: "bg-card border border-border/70 shadow-lg shadow-slate-900/8",
 
   // Поверхность с frosted-glass (для хедера / ботбара)
-  frosted: "bg-background/80 backdrop-blur-xl border-border/60",
+  frosted: "bg-background/90 backdrop-blur-xl border-border/60",
 
   // Выделенный элемент (например активная строка таблицы)
-  highlighted: "bg-accent/60",
+  highlighted: "bg-primary/8",
 } as const;
 
 // -------------------------------------------------------------
@@ -103,10 +103,10 @@ export const radius = {
 
 export const shadow = {
   none: "shadow-none",
-  sm: "shadow-sm", // карточки в покое
-  md: "shadow-md", // карточки при hover
-  lg: "shadow-xl  shadow-black/5", // модалки, дропдауны
-  xl: "shadow-2xl shadow-black/8", // главный floating контент
+  sm: "shadow-sm shadow-slate-900/6", // карточки в покое
+  md: "shadow-md shadow-slate-900/8", // карточки при hover
+  lg: "shadow-xl shadow-slate-900/10", // модалки, дропдауны
+  xl: "shadow-2xl shadow-slate-900/14", // главный floating контент
 } as const;
 
 // -------------------------------------------------------------
@@ -149,7 +149,7 @@ export const focus = {
 // -------------------------------------------------------------
 
 export const disabled = {
-  base: "disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none",
+  base: "disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none",
 } as const;
 
 // -------------------------------------------------------------
