@@ -19,17 +19,47 @@ export {
   disabled,
   divider,
 } from "./tokens";
+
 export { transition, hover, press, enter, loading } from "./animations";
 export { colorScheme } from "./variants";
 export type { ColorScheme } from "./variants";
 
-// --- Компоненты ---------------------------------------------------------------
-export { formInput, notifyBanner } from "./components";
+// -------------------------------------------------------------
+// uiStls.ts
+// -------------------------------------------------------------
 
-// --- styles — главный объект для использования в JSX -------------------------
-import { formInput, notifyBanner } from "./components";
-
-export const styles = {
+import {
+  formLabel,
   formInput,
   notifyBanner,
+  spinner,
+  checkbox,
+  copyButton,
+  toggleCard,
+  modalActions,
+  card,
+  modal,
+  dropdownMenu,
+} from "./cStyles/uiStls";
+
+// -------------------------------------------------------------
+// commonStls.ts
+// -------------------------------------------------------------
+
+import { progressBar, statusBadge } from "./cStyles/commonStls";
+
+export const styles = {
+  formLabel,
+  formInput,
+  notifyBanner,
+  spinner,
+  checkbox,
+  copyButton,
+  toggleCard,
+  modalActions,
+  card,
+  modal,
+  dropdownMenu,
+  progressBar,
+  statusBadge,
 } as const;

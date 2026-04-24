@@ -23,8 +23,10 @@ export const typography = {
   displaySm:
     "text-[17px] leading-snug   font-semibold tracking-tight text-foreground",
 
-  // Заголовки карточек / модалок
+  // Заголовки карточек / модалок / страниц
+  headingLg: "text-[16px] leading-snug  font-semibold text-foreground",
   headingMd: "text-[15px] leading-snug  font-semibold text-foreground",
+  headingBase: "text-[14px] leading-snug  font-semibold text-foreground",
   headingSm: "text-[13px] leading-snug  font-medium   text-foreground",
 
   // Метки над полями (caps, как в macOS System Preferences)
@@ -36,8 +38,15 @@ export const typography = {
   bodyMd: "text-[14px] leading-relaxed text-foreground",
   bodySm: "text-[13px] leading-relaxed text-foreground",
 
+  // Метка внутри компонента — 14px medium без leading (плотные layout'ы)
+  componentMd: "text-[14px] font-medium text-foreground",
+
+  // Текст внутри поля ввода — размер и цвет, без leading (высота задана явно)
+  inputText: "text-[14px] text-foreground",
+
   // Вспомогательный / второстепенный текст
   mutedMd: "text-[14px] leading-relaxed text-muted-foreground",
+  mutedMdCompact: "text-[14px] leading-snug text-muted-foreground",
   mutedSm: "text-[13px] leading-relaxed text-muted-foreground",
   mutedXs: "text-[11px] leading-relaxed text-muted-foreground",
 
@@ -49,8 +58,8 @@ export const typography = {
   urlCode: "text-[12px] leading-relaxed text-foreground",
 
   // Сообщения под полями ввода
-  errorText: "text-xs text-destructive",
-  hintText: "text-xs text-muted-foreground",
+  errorText: "text-[12px] text-destructive",
+  hintText: "text-[12px] text-muted-foreground",
 } as const;
 
 // -------------------------------------------------------------
