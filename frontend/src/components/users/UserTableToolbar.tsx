@@ -1,6 +1,5 @@
 import { Search, ZapOff, ChevronDown } from "lucide-react";
 
-import { cn } from "@/lib/cn";
 import { Spinner } from "@/components/ui/Spinner";
 import {
   DropdownMenu,
@@ -9,6 +8,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "@/components/ui/DropDownMenu";
+import { styles } from "@/styles";
+
+const s = styles.userTableToolbar;
 
 // -------------------------------------------------------------
 // Типы и константы фильтрации
@@ -72,24 +74,16 @@ export function UserTableToolbar({
     STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label ?? "Все";
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+    <div className={s.root}>
       {/* Поле поиска */}
-      <div className="relative flex-1 sm:max-w-70">
-        <Search
-          size={16}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-        />
+      <div className={s.searchWrap}>
+        <Search size={16} className={s.searchIcon} />
         <input
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Поиск по имени..."
-          className={cn(
-            "h-10 w-full rounded-lg border border-border bg-card px-10 py-2.5",
-            "text-sm text-foreground placeholder:text-muted-foreground/60",
-            "focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring",
-            "transition-all duration-150",
-          )}
+          className={s.searchInput}
           aria-label="Поиск пользователей"
         />
       </div>
@@ -97,26 +91,20 @@ export function UserTableToolbar({
       {/* Выпадающий список фильтра по статусу */}
       <DropdownMenu>
         <DropdownMenuTrigger
-          className={cn(
-            "inline-flex items-center justify-between gap-2",
-            "h-10 min-w-40 rounded-lg border border-border bg-card px-3.5 py-2.5",
-            "text-sm text-foreground cursor-pointer",
-            "focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring",
-            "transition-all duration-150",
-          )}
+          className={s.filterTrigger}
           aria-label="Фильтр по статусу"
         >
           {currentLabel}
-          <ChevronDown size={14} className="opacity-50 shrink-0" />
+          <ChevronDown size={14} className={s.filterChevron} />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="min-w-40">
+        <DropdownMenuContent className={s.filterContent}>
           <DropdownMenuGroup>
             {STATUS_OPTIONS.map((option) => (
               <DropdownMenuItem
                 key={option.value}
                 onSelect={() => onStatusFilterChange(option.value)}
                 data-active={option.value === statusFilter}
-                className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                className={s.filterItemActive}
               >
                 {option.label}
               </DropdownMenuItem>
@@ -126,23 +114,17 @@ export function UserTableToolbar({
       </DropdownMenu>
 
       {/* Правая часть: кнопка массового отключения и счетчик */}
-      <div className="flex items-center gap-3 sm:ml-auto">
+      <div className={s.right}>
         {selectedCount > 0 && (
           <button
             type="button"
             onClick={onKick}
             disabled={kickPending}
-            className={cn(
-              "inline-flex items-center gap-2 h-10 px-4 rounded-lg",
-              "text-sm font-medium bg-destructive text-destructive-foreground",
-              "hover:bg-destructive/90 focus:bg-destructive/90",
-              "disabled:opacity-60 disabled:cursor-not-allowed",
-              "transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-            )}
+            className={s.kickButton}
             aria-label={`Отключить ${selectedCount} выбранных пользователей`}
           >
             {kickPending ? (
-              <Spinner size="sm" className="text-destructive-foreground" />
+              <Spinner size="sm" className={s.kickSpinner} />
             ) : (
               <ZapOff size={16} />
             )}
@@ -151,7 +133,7 @@ export function UserTableToolbar({
         )}
 
         {/* Счетчик результатов */}
-        <span className="text-sm text-muted-foreground whitespace-nowrap">
+        <span className={s.counter}>
           {filtered === total
             ? `${total} пользователь${total === 1 ? "" : "ей"}`
             : `${filtered} из ${total}`}

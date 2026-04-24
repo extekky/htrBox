@@ -37,6 +37,9 @@ import {
 import { DEFAULT_TRAFFIC_LIMIT_GB } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import type { UserResponse } from "@/api/types";
+import { styles } from "@/styles";
+
+const s = styles.userEditModal;
 
 type Tab = "main" | "access" | "traffic";
 
@@ -104,30 +107,30 @@ function AccessTab({
   const isAdmin = user.role === "admin";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={s.accessRoot}>
       {/* Смена роли */}
-      <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-muted/20">
-        <div className="flex items-center gap-3">
+      <div className={s.accessRoleCard}>
+        <div className={s.accessRoleHead}>
           <div
             className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center",
-              isAdmin
-                ? "bg-amber-500/10 text-amber-500"
-                : "bg-muted text-muted-foreground",
+              s.accessRoleIconWrap,
+              isAdmin ? s.accessRoleIconAdmin : s.accessRoleIconDefault,
             )}
           >
             {isAdmin ? <Shield size={15} /> : <ShieldOff size={15} />}
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">
+            <p className={s.accessRoleTitle}>
               Роль:{" "}
               <span
-                className={isAdmin ? "text-amber-500" : "text-muted-foreground"}
+                className={cn(
+                  isAdmin ? s.accessRoleValueAdmin : s.accessRoleValueDefault,
+                )}
               >
                 {user.role}
               </span>
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className={s.accessRoleHint}>
               {isAdmin ? "Полный доступ к панели" : "Обычный пользователь"}
             </p>
           </div>
@@ -136,10 +139,10 @@ function AccessTab({
           type="button"
           onClick={() => setConfirmRole(true)}
           disabled={rolePending}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 disabled:opacity-50 transition-colors"
+          className={s.accessRoleButton}
         >
           {rolePending ? (
-            <Loader2 size={12} className="animate-spin" />
+            <Loader2 size={12} className={s.spinner} />
           ) : (
             <RefreshCw size={12} />
           )}
@@ -148,17 +151,15 @@ function AccessTab({
       </div>
 
       {/* Регенерация Hysteria-пароля */}
-      <div className="flex flex-col gap-2.5 p-3.5 rounded-xl border border-border bg-muted/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-500/10 text-purple-500">
+      <div className={s.accessHyCard}>
+        <div className={s.accessHyTop}>
+          <div className={s.accessHyHead}>
+            <div className={s.accessHyIconWrap}>
               <KeyRound size={15} />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">
-                Hysteria-пароль
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className={s.accessHyTitle}>Hysteria-пароль</p>
+              <p className={s.accessHyHint}>
                 Инвалидирует текущую строку подключения
               </p>
             </div>
@@ -167,10 +168,10 @@ function AccessTab({
             type="button"
             onClick={() => setConfirmRegen(true)}
             disabled={regenPending}
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-500 border border-purple-500/20 hover:bg-purple-500/15 disabled:opacity-50 transition-colors"
+            className={s.accessHyButton}
           >
             {regenPending ? (
-              <Loader2 size={12} className="animate-spin" />
+              <Loader2 size={12} className={s.spinner} />
             ) : (
               <RefreshCw size={12} />
             )}
@@ -180,23 +181,21 @@ function AccessTab({
 
         {newHyPass && (
           <>
-            <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-              <code className="flex-1 text-xs font-mono text-foreground break-all leading-relaxed">
-                {newHyPass}
-              </code>
+            <div className={s.accessNewPassWrap}>
+              <code className={s.accessNewPassCode}>{newHyPass}</code>
               <button
                 type="button"
                 onClick={copyHyPass}
-                className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className={s.accessCopyButton}
               >
                 {copied ? (
-                  <Check size={13} className="text-emerald-500" />
+                  <Check size={13} className={s.accessCopyDoneIcon} />
                 ) : (
                   <Copy size={13} />
                 )}
               </button>
             </div>
-            <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <p className={s.accessNewPassHint}>
               <AlertTriangle size={11} />
               Сохраните пароль — он больше не будет показан
             </p>
@@ -204,7 +203,7 @@ function AccessTab({
         )}
       </div>
 
-      <div className="h-px bg-border" />
+      <div className={s.divider} />
 
       {/* Новый пароль */}
       <FormInput
@@ -253,9 +252,6 @@ function TrafficTab({ user }: { user: UserResponse }) {
 
   const [confirmReset, setConfirmReset] = useState(false);
 
-  const usedGb = toGB(user.usedTraffic);
-  const trafficPct = Math.min(100, (usedGb / DEFAULT_TRAFFIC_LIMIT_GB) * 100);
-
   function handleReset() {
     resetTraffic(user.username, {
       onSuccess: () => {
@@ -270,18 +266,16 @@ function TrafficTab({ user }: { user: UserResponse }) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={s.trafficRoot}>
       {/* Кнопка сброса */}
-      <div className="flex items-center justify-between p-3.5 rounded-xl border border-destructive/20 bg-destructive/5">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-destructive/10 text-destructive">
+      <div className={s.trafficResetCard}>
+        <div className={s.trafficResetHead}>
+          <div className={s.trafficResetIconWrap}>
             <RotateCcw size={15} />
           </div>
           <div>
-            <p className="text-sm font-medium text-foreground">
-              Сбросить счётчик
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className={s.trafficResetTitle}>Сбросить счётчик</p>
+            <p className={s.trafficResetHint}>
               Обнулить траффик пользователя. Исторические данные графика
               сохранятся.
             </p>
@@ -291,10 +285,10 @@ function TrafficTab({ user }: { user: UserResponse }) {
           type="button"
           onClick={() => setConfirmReset(true)}
           disabled={isPending}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 disabled:opacity-50 transition-colors"
+          className={s.trafficResetButton}
         >
           {isPending ? (
-            <Loader2 size={12} className="animate-spin" />
+            <Loader2 size={12} className={s.spinner} />
           ) : (
             <RotateCcw size={12} />
           )}
@@ -394,40 +388,32 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
             loading={isPending}
           />
         ) : (
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-9 px-4 rounded-lg text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-          >
+          <button type="button" onClick={onClose} className={s.closeButton}>
             Закрыть
           </button>
         )
       }
     >
-      <div className="flex flex-col gap-4">
+      <div className={s.root}>
         {/* Карточка пользователя с мини-баром трафика */}
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">
-              {user.username}
-            </p>
-            <p className="text-xs text-muted-foreground capitalize">
-              {user.role}
-            </p>
+        <div className={s.summary}>
+          <div className={s.summaryInfo}>
+            <p className={s.summaryName}>{user.username}</p>
+            <p className={s.summaryRole}>{user.role}</p>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs font-mono text-muted-foreground tabular-nums">
+          <div className={s.summaryTraffic}>
+            <span className={s.summaryTrafficText}>
               {usedGb.toFixed(2)} / {DEFAULT_TRAFFIC_LIMIT_GB} GB
             </span>
-            <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
+            <div className={s.summaryTrafficTrack}>
               <div
                 className={cn(
-                  "h-full rounded-full transition-all",
+                  s.summaryTrafficFill,
                   trafficPct > 90
-                    ? "bg-rose-500"
+                    ? s.summaryTrafficFillDanger
                     : trafficPct > 70
-                      ? "bg-amber-500"
-                      : "bg-primary/60",
+                      ? s.summaryTrafficFillWarning
+                      : s.summaryTrafficFillPrimary,
                 )}
                 style={{ width: `${trafficPct}%` }}
               />
@@ -436,17 +422,15 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
         </div>
 
         {/* Вкладки */}
-        <div className="flex gap-1 p-0.5 bg-muted rounded-lg">
+        <div className={s.tabs}>
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
-                tab === t.id
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                s.tabButton,
+                tab === t.id ? s.tabButtonActive : s.tabButtonDefault,
               )}
             >
               {t.icon}
@@ -461,9 +445,9 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
             id="user-edit-form"
             onSubmit={handleSubmit(onSubmit)}
             noValidate
-            className="flex flex-col gap-4"
+            className={s.mainForm}
           >
-            <div className="flex flex-col gap-2">
+            <div className={s.mainToggles}>
               <ToggleCard
                 label="Доступ к сервису"
                 description={allowed ? "Не забанен" : "Будет забанен"}
@@ -478,7 +462,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
               />
             </div>
 
-            <div className="h-px bg-border" />
+            <div className={s.divider} />
 
             {/* Дата истечения — нативный datetime-local */}
             <FormInput

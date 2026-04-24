@@ -25,6 +25,7 @@ import {
   typography,
 } from "@/styles/tokens";
 import { loading, transition, enter, hover } from "@/styles/animations";
+import { colorScheme } from "@/styles/variants";
 
 // -------------------------------------------------------------
 // Spinner — анимированный индикатор загрузки
@@ -322,4 +323,25 @@ export const toggleCard = {
 
   // Индикатор: не выбрано
   indicatorUnchecked: "border-border bg-transparent",
+} as const;
+
+// -------------------------------------------------------------
+// ActiveToggle — переключатель активности сервера
+// -------------------------------------------------------------
+
+export const activeToggle = {
+  root: [
+    "relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent",
+    "transition-colors duration-200 ease-in-out",
+    "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:ring-offset-background",
+    "disabled:opacity-50 disabled:cursor-not-allowed",
+  ].join(" "),
+  on: colorScheme.success.solid,
+  off: "bg-secondary",
+  thumb: [
+    "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow",
+    "transition-transform duration-200 ease-in-out",
+  ].join(" "),
+  thumbOn: "translate-x-4",
+  thumbOff: "translate-x-0",
 } as const;

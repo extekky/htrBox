@@ -371,6 +371,103 @@ export const manualPage = {
 } as const;
 
 // -------------------------------------------------------------
+// AdminBoard — дашборд администратора
+// -------------------------------------------------------------
+
+export const adminBoardPage = {
+  loadingWrap: "flex items-center justify-center flex-1 py-32",
+
+  errorWrap: "flex items-center justify-center flex-1 py-32 px-6",
+  errorInner: "flex flex-col items-center gap-3 text-center",
+  errorIconWrap: `flex items-center justify-center w-11 h-11 ${radius.lg} ${colorScheme.danger.bg} border ${colorScheme.danger.border}`,
+  errorIcon: colorScheme.danger.text,
+  errorTitle: "text-sm font-medium text-foreground",
+  errorHint: "text-xs text-muted-foreground",
+
+  root: "p-6 lg:p-8 flex flex-col gap-6 max-w-7xl mx-auto animate-fade-in",
+  header: "flex items-center justify-between",
+  title: "text-2xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  expiringAlert: [
+    `flex items-center gap-3 px-5 py-3.5 ${radius.lg}`,
+    `${colorScheme.warning.bg} border ${colorScheme.warning.border} cursor-pointer ${colorScheme.warning.hover}`,
+    transition.colors,
+  ].join(" "),
+  expiringAlertIconWrap:
+    `flex items-center justify-center w-8 h-8 rounded-xl ${colorScheme.warning.bg} ${colorScheme.warning.text} shrink-0`,
+  expiringAlertText: `text-sm ${colorScheme.warning.text} flex-1`,
+  expiringAlertCount: "font-semibold",
+  expiringAlertChevron: `${colorScheme.warning.textMuted} shrink-0`,
+
+  kpiSectionTitle:
+    "text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3",
+  kpiGrid: "grid grid-cols-4 gap-3",
+  detailGrid: "grid grid-cols-2 gap-4",
+
+  onlineBadge:
+    "inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-lg font-semibold border",
+  onlineBadgeOn: `${colorScheme.success.bg} ${colorScheme.success.text} ${colorScheme.success.border}`,
+  onlineBadgeOff: "bg-muted text-muted-foreground border-border",
+  onlineBadgeDot: `w-1.5 h-1.5 rounded-full ${colorScheme.success.solid} animate-pulse`,
+
+  sectionAction:
+    "flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer",
+
+  sectionRowMain: "flex items-center gap-2.5",
+  sectionRowName: "text-sm font-medium text-foreground",
+  sectionRowMeta: "text-xs text-muted-foreground tabular-nums",
+
+  expiringBadge:
+    `inline-flex items-center text-[11px] px-2 py-0.5 rounded-lg font-semibold ${colorScheme.warning.bg} ${colorScheme.warning.text} border ${colorScheme.warning.border}`,
+  expiringStatus:
+    "text-xs px-2 py-0.5 rounded-lg border font-semibold",
+  expiringStatusUrgent: `${colorScheme.danger.bg} ${colorScheme.danger.border} ${colorScheme.danger.text}`,
+  expiringStatusWarning:
+    `${colorScheme.warning.bg} ${colorScheme.warning.border} ${colorScheme.warning.text}`,
+} as const;
+
+// -------------------------------------------------------------
+// UserManage — страница управления пользователями
+// -------------------------------------------------------------
+
+export const userManagePage = {
+  root: "p-6 lg:p-8 max-w-7xl mx-auto flex flex-col gap-6 animate-fade-in",
+  header: "flex items-center justify-between gap-4 flex-wrap",
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  createButton: [
+    "inline-flex items-center gap-2 px-4 h-9 rounded-xl",
+    "bg-primary/10 text-primary border border-primary/20",
+    "hover:bg-primary/15 text-sm font-medium",
+    transition.colors,
+  ].join(" "),
+
+  tableCard: "overflow-hidden",
+} as const;
+
+// -------------------------------------------------------------
+// ServersPage — страница управления серверами
+// -------------------------------------------------------------
+
+export const serversPage = {
+  root: "p-6 lg:p-8 max-w-7xl mx-auto flex flex-col gap-6 animate-fade-in",
+  header: "flex items-center justify-between gap-4 flex-wrap",
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  createButton: [
+    "inline-flex items-center gap-2 px-4 h-9 rounded-xl",
+    "bg-primary/10 text-primary border border-primary/20",
+    "hover:bg-primary/15 text-sm font-medium",
+    transition.colors,
+  ].join(" "),
+
+  tableCard: "overflow-hidden",
+} as const;
+
+// -------------------------------------------------------------
 // ChekavoPage — пошаговый гайд
 // -------------------------------------------------------------
 

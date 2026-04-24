@@ -1,3 +1,5 @@
+import { styles } from "@/styles";
+
 // -------------------------------------------------------------
 // Интерфейсы
 // -------------------------------------------------------------
@@ -8,6 +10,8 @@ interface SectionCardProps {
   action?: React.ReactNode;
   children: React.ReactNode;
 }
+
+const s = styles.sectionCard;
 
 // -------------------------------------------------------------
 // Компоненты секций
@@ -24,18 +28,18 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
+    <div className={s.root}>
       {/* Шапка секции */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/60">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">{title}</span>
+      <div className={s.header}>
+        <div className={s.headLeft}>
+          <span className={s.title}>{title}</span>
           {badge}
         </div>
         {action}
       </div>
 
       {/* Контент секции с разделителями между дочерними элементами */}
-      <div className="flex-1 divide-y divide-border/40">{children}</div>
+      <div className={s.body}>{children}</div>
     </div>
   );
 }
@@ -45,11 +49,7 @@ export function SectionCard({
  * Используется для отображения отдельных элементов списка с эффектом наведения.
  */
 export function SectionRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between px-5 py-2.5 hover:bg-muted/30 transition-colors">
-      {children}
-    </div>
-  );
+  return <div className={s.row}>{children}</div>;
 }
 
 /**
@@ -57,9 +57,5 @@ export function SectionRow({ children }: { children: React.ReactNode }) {
  * Отображает центрированный текст при отсутствии данных.
  */
 export function SectionEmpty({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center py-8 text-xs text-muted-foreground">
-      {label}
-    </div>
-  );
+  return <div className={s.empty}>{label}</div>;
 }

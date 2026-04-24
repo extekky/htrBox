@@ -6,8 +6,10 @@ import { UserTable } from "@/components/users/UserTable";
 import { UserCreateModal } from "@/components/users/UserCreateForm";
 import { UserEditModal } from "@/components/users/UserEditForm";
 import { Card } from "@/components/ui/Card";
-import { cn } from "@/lib/cn";
 import type { UserResponse } from "@/api/types";
+import { styles } from "@/styles";
+
+const s = styles.userManagePage;
 
 // -------------------------------------------------------------
 // Страница управления пользователями
@@ -26,33 +28,22 @@ export function UserManage() {
 
   return (
     <AppShell>
-      <div className="p-6 lg:p-8 max-w-7xl mx-auto flex flex-col gap-6 animate-fade-in">
+      <div className={s.root}>
         {/* Шапка страницы */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className={s.header}>
           <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              Пользователи
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Управление аккаунтами
-            </p>
+            <h1 className={s.title}>Пользователи</h1>
+            <p className={s.subtitle}>Управление аккаунтами</p>
           </div>
 
-          <button
-            onClick={() => setShowCreate(true)}
-            className={cn(
-              "inline-flex items-center gap-2 px-4 h-9 rounded-xl",
-              "bg-primary/10 text-primary border border-primary/20",
-              "hover:bg-primary/15 transition-colors text-sm font-medium",
-            )}
-          >
+          <button onClick={() => setShowCreate(true)} className={s.createButton}>
             <UserPlus size={15} />
             Добавить
           </button>
         </div>
 
         {/* Карточка с таблицей пользователей */}
-        <Card className="overflow-hidden">
+        <Card className={s.tableCard}>
           <UserTable onEdit={setEditingUser} />
         </Card>
       </div>

@@ -16,6 +16,9 @@ import { DEFAULT_TRAFFIC_LIMIT_GB } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 
 import type { UserResponse } from "@/api/types";
+import { styles } from "@/styles";
+
+const s = styles.userRow;
 
 // -------------------------------------------------------------
 // Интерфейсы
@@ -37,10 +40,7 @@ interface UserRowProps {
 function InitialsAvatar({ name }: { name: string }) {
   const initials = name.slice(0, 2).toUpperCase();
   return (
-    <div
-      aria-hidden
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-[11px] font-semibold select-none"
-    >
+    <div aria-hidden className={s.initialsAvatar}>
       {initials}
     </div>
   );
@@ -75,17 +75,11 @@ export function UserRow({
 
   return (
     <tr
-      className={cn(
-        "group transition-colors duration-100 cursor-pointer",
-        selected ? "bg-primary/5" : "hover:bg-muted/40",
-      )}
+      className={cn(s.root, selected ? s.rootSelected : s.rootDefault)}
       onClick={() => onView(user)}
     >
       {/* Колонка с чекбоксом выбора */}
-      <td
-        className="pl-4 pr-2 py-3.5 w-10"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <td className={s.tdCheck} onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={selected}
           onCheckedChange={() => onToggleSelect(user.username)}
@@ -94,29 +88,27 @@ export function UserRow({
       </td>
 
       {/* Имя пользователя и аватар */}
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-2.5">
+      <td className={s.tdCell}>
+        <div className={s.userWrap}>
           {/* <InitialsAvatar name={user.username} /> */}
           {(() => {
             const Avatar = pickAvatar(user.username);
             return (
-              <div className="w-7 h-7 shrink-0 overflow-hidden relative">
-                <div className="absolute scale-50 origin-top-left">
+              <div className={s.avatarWrap}>
+                <div className={s.avatarInner}>
                   <Avatar />
                 </div>
               </div>
             );
           })()}
-          <span className="text-sm font-medium text-foreground truncate max-w-45">
-            {user.username}
-          </span>
+          <span className={s.username}>{user.username}</span>
         </div>
       </td>
 
       {/* Использование трафика */}
-      <td className="px-4 py-3.5">
-        <div className="flex flex-col gap-1.5 min-w-30">
-          <span className="text-xs font-medium text-foreground tabular-nums">
+      <td className={s.tdCell}>
+        <div className={s.trafficWrap}>
+          <span className={s.trafficText}>
             {usedGb.toFixed(2)} / {DEFAULT_TRAFFIC_LIMIT_GB} GB
           </span>
           <ProgressBar value={trafficPercentage} variant="traffic" />
@@ -124,53 +116,43 @@ export function UserRow({
       </td>
 
       {/* Бейджи статуса */}
-      <td className="px-4 py-3.5">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <td className={s.tdCell}>
+        <div className={s.statusWrap}>
           <StatusBadge type="allowed" value={user.allowed} />
           <StatusBadge type="active" value={user.active} />
-          {user.role === "admin" && (
-            <CheckCircle2 size={20} className="text-amber-500/90" />
-          )}
+          {user.role === "admin" && <CheckCircle2 size={20} className={s.adminIcon} />}
         </div>
       </td>
 
       {/* Информация об истечении */}
-      <td className="px-4 py-3.5">
+      <td className={s.tdCell}>
         {user.expires_at ? (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-foreground tabular-nums">
-              {formatDate(user.expires_at)}
-            </span>
+          <div className={s.expiryWrap}>
+            <span className={s.expiryDate}>{formatDate(user.expires_at)}</span>
             <span
               className={cn(
-                "text-xs font-medium",
                 expiryTier === "expired" || expiryTier === "critical"
-                  ? "text-destructive"
+                  ? s.expiryToneDanger
                   : expiryTier === "warning"
-                    ? "text-amber-500"
-                    : "text-muted-foreground",
+                    ? s.expiryToneWarning
+                    : s.expiryToneDefault,
               )}
             >
               {formatDaysLeft(user.expires_at)}
             </span>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Нет даты</span>
+          <span className={s.expiryNoDate}>Нет даты</span>
         )}
       </td>
 
       {/* Кнопки действий */}
-      <td className="px-4 pr-5 py-3.5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-end gap-0.5">
+      <td className={s.tdActions} onClick={(e) => e.stopPropagation()}>
+        <div className={s.actionsWrap}>
           <button
             type="button"
             onClick={() => onEdit(user)}
-            className={cn(
-              "h-8 w-8 flex items-center justify-center rounded-md",
-              "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
-              "transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
-              // "opacity-0 group-hover:opacity-100",
-            )}
+            className={cn(s.actionBtn, s.actionEdit)}
             aria-label={`Редактировать пользователя ${user.username}`}
             title="Редактировать"
           >
@@ -180,12 +162,7 @@ export function UserRow({
           <button
             type="button"
             onClick={() => onDelete(user.username)}
-            className={cn(
-              "h-8 w-8 flex items-center justify-center rounded-md",
-              "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-              "transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
-              // "opacity-0 group-hover:opacity-100",
-            )}
+            className={cn(s.actionBtn, s.actionDelete)}
             aria-label={`Удалить пользователя ${user.username}`}
             title="Удалить"
           >

@@ -7,6 +7,9 @@ import { useServersAdmin, useDeleteServer } from "@/hooks/useServers";
 import { useToast } from "@/hooks/useToast";
 import { cn } from "@/lib/cn";
 import type { ServerAdminResponse } from "@/api/types";
+import { styles } from "@/styles";
+
+const s = styles.serverTable;
 
 // -------------------------------------------------------------
 // Вспомогательные компоненты
@@ -19,40 +22,31 @@ function Th({
   children?: React.ReactNode;
   className?: string;
 }) {
-  return (
-    <th
-      className={cn(
-        "px-4 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide",
-        className,
-      )}
-    >
-      {children}
-    </th>
-  );
+  return <th className={cn(s.th, className)}>{children}</th>;
 }
 
 function SkeletonRow() {
   return (
-    <tr className="animate-pulse">
-      <td className="px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-muted shrink-0" />
-          <div className="h-4 w-32 rounded bg-muted" />
+    <tr className={s.skeletonRow}>
+      <td className={s.skeletonTd}>
+        <div className={s.skeletonServerWrap}>
+          <div className={s.skeletonServerIcon} />
+          <div className={s.skeletonServerText} />
         </div>
       </td>
-      <td className="px-4 py-4">
-        <div className="h-4 w-28 rounded bg-muted" />
+      <td className={s.skeletonTd}>
+        <div className={s.skeletonAddr} />
       </td>
-      <td className="px-4 py-4">
-        <div className="h-5 w-20 rounded-full bg-muted" />
+      <td className={s.skeletonTd}>
+        <div className={s.skeletonProtocol} />
       </td>
-      <td className="px-4 py-4">
-        <div className="h-4 w-24 rounded bg-muted" />
+      <td className={s.skeletonTd}>
+        <div className={s.skeletonUpdated} />
       </td>
-      <td className="px-4 py-4">
-        <div className="h-5 w-16 rounded-full bg-muted" />
+      <td className={s.skeletonTd}>
+        <div className={s.skeletonActive} />
       </td>
-      <td className="px-4 py-4" />
+      <td className={s.skeletonTd} />
     </tr>
   );
 }
@@ -61,15 +55,15 @@ function EmptyState({ filtered }: { filtered: boolean }) {
   return (
     <tr>
       <td colSpan={6}>
-        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-muted/50">
-            <Server size={28} className="text-muted-foreground/60" />
+        <div className={s.emptyWrap}>
+          <div className={s.emptyIconWrap}>
+            <Server size={28} className={s.emptyIcon} />
           </div>
           <div>
-            <p className="text-base font-medium text-foreground">
+            <p className={s.emptyTitle}>
               {filtered ? "Нет совпадений" : "Нет серверов"}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className={s.emptyHint}>
               {filtered
                 ? "Измените поисковый запрос"
                 : "Добавьте первый VPN-сервер"}
@@ -162,33 +156,29 @@ export function ServerTable({ onEdit }: ServerTableProps) {
   }
 
   return (
-    <div className="flex flex-col animate-fade-in">
+    <div className={s.root}>
       {/* Шапка с заголовком и счётчиком */}
-      <CardContent className="p-4 border-b border-border/60">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-medium text-foreground">
-            VPN-серверы
-          </span>
-          <span className="text-sm text-muted-foreground">
-            {renderCounter()}
-          </span>
+      <CardContent className={s.headCard}>
+        <div className={s.headInner}>
+          <span className={s.title}>VPN-серверы</span>
+          <span className={s.counter}>{renderCounter()}</span>
         </div>
       </CardContent>
 
       {/* Таблица — всегда рендерится, включая заголовки */}
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-225">
-          <thead className="border-b border-border/60 bg-muted/30 sticky top-0 z-10">
+      <div className={s.tableWrap}>
+        <table className={s.table}>
+          <thead className={s.thead}>
             <tr>
               <Th>Сервер</Th>
               <Th>Адрес</Th>
               <Th>Протокол</Th>
               <Th>Обновлён</Th>
               <Th>Активен</Th>
-              <Th className="text-right pr-5">Действия</Th>
+              <Th className={s.thActions}>Действия</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/40">{renderBody()}</tbody>
+          <tbody className={s.tbody}>{renderBody()}</tbody>
         </table>
       </div>
 

@@ -14,6 +14,10 @@ import {
   type UpdateServerFormValues,
 } from "@/lib/validators";
 import type { ServerAdminResponse } from "@/api/types";
+import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
+
+const s = styles.serverForm;
 
 // -------------------------------------------------------------
 // Форма редактирования сервера
@@ -119,10 +123,10 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
         id="server-edit-form"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        className="flex flex-col gap-4"
+        className={s.form}
       >
         {/* Страна / Город */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className={s.gridTwo}>
           <FormInput
             label="Страна"
             placeholder="Россия"
@@ -146,7 +150,7 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
         />
 
         {/* Домен / Порт */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className={s.gridTwo}>
           <FormInput
             label="Домен (необязательно)"
             placeholder="vpn.example.com"
@@ -163,7 +167,7 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
         </div>
 
         {/* Название / Протокол */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className={s.gridTwo}>
           <FormInput
             label="Название"
             placeholder="VPN"
@@ -179,20 +183,13 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
         </div>
 
         {/* Hysteria URL — формируется автоматически */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">
-              Hysteria URL (внутренний)
-            </span>
+        <div className={s.hyWrap}>
+          <div className={s.hyTop}>
+            <span className={s.hyLabel}>Hysteria URL (внутренний)</span>
             <button
               type="button"
               onClick={toggleTls}
-              className={[
-                "text-[11px] font-semibold px-2.5 py-0.5 rounded-lg border transition-colors",
-                useTls
-                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/20"
-                  : "bg-muted text-muted-foreground border-border hover:bg-muted/80",
-              ].join(" ")}
+              className={cn(s.tlsButton, useTls ? s.tlsButtonOn : s.tlsButtonOff)}
             >
               {useTls ? "TLS ✓" : "Использовать TLS"}
             </button>
@@ -200,7 +197,7 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
           <FormInput
             placeholder="формируется автоматически"
             error={errors.hysteria_url?.message}
-            className="font-mono bg-muted/50 text-muted-foreground cursor-default"
+            className={s.hyInput}
             readOnly
             {...register("hysteria_url")}
           />

@@ -9,10 +9,13 @@ import {
   CartesianGrid,
 } from "recharts";
 import { cn } from "@/lib/cn";
+import { styles } from "@/styles";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { useTraffic } from "@/hooks/useTraffic";
 import type { TrafficPoint } from "@/hooks/useTraffic";
+
+const s = styles.trafficChart;
 
 // -------------------------------------------------------------
 // Форматирование
@@ -121,11 +124,9 @@ function ChartTooltip({ active, payload, label, days }: TooltipProps) {
   if (!active || !payload?.length || label === undefined) return null;
   const val = payload[0].value;
   return (
-    <div className="rounded-xl border border-border bg-popover px-3 py-2 shadow-lg text-xs">
-      <p className="text-muted-foreground mb-1">
-        {fmtTooltipLabel(label, days)}
-      </p>
-      <p className="font-semibold text-foreground tabular-nums">{fmtGb(val)}</p>
+    <div className={s.tooltipRoot}>
+      <p className={s.tooltipLabel}>{fmtTooltipLabel(label, days)}</p>
+      <p className={s.tooltipValue}>{fmtGb(val)}</p>
     </div>
   );
 }
@@ -183,16 +184,14 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
   }, [yMax]);
 
   return (
-    <Card className="p-5 flex flex-col gap-4">
+    <Card className={s.root}>
       {/* Шапка */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            График
-          </p>
-          <p className="text-2xl font-bold text-foreground tabular-nums mt-1">
+      <div className={s.header}>
+        <div className={s.headerBody}>
+          <p className={s.title}>График</p>
+          <p className={s.total}>
             {isLoading ? (
-              <span className="text-muted-foreground">—</span>
+              <span className={s.totalPlaceholder}>—</span>
             ) : (
               fmtGb(totalGb)
             )}
@@ -200,16 +199,17 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
         </div>
 
         {/* Табы */}
-        <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
+        <div className={s.tabs}>
           {DAY_OPTIONS.map((opt) => (
             <button
+              type="button"
               key={opt.value}
               onClick={() => setDays(opt.value)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                s.tabButton,
                 days === opt.value
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? s.tabButtonActive
+                  : s.tabButtonDefault,
               )}
             >
               {opt.label}
@@ -219,16 +219,14 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
       </div>
 
       {/* График */}
-      <div className="h-44 w-full">
+      <div className={s.chartWrap}>
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <Spinner className="size-5" />
+          <div className={s.chartState}>
+            <Spinner className={s.spinner} />
           </div>
         ) : isError ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-xs text-muted-foreground">
-              Не удалось загрузить данные
-            </p>
+          <div className={s.chartState}>
+            <p className={s.errorText}>Не удалось загрузить данные</p>
           </div>
         ) : (
           // Добавлены minHeight и initialDimension в ResponsiveContainer.

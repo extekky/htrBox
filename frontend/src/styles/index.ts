@@ -35,6 +35,7 @@ import {
   checkbox,
   copyButton,
   toggleCard,
+  activeToggle,
   modalActions,
   card,
   modal,
@@ -52,6 +53,7 @@ import {
   serverSelector,
   connectionCard,
   guide,
+  trafficChart,
   confirmDialog,
   notifyBanner,
 } from "./cStyles/commonStls";
@@ -72,9 +74,37 @@ import {
   profilePage,
   settingsPage,
   manualPage,
+  adminBoardPage,
+  userManagePage,
+  serversPage,
   chekavoPage,
   notFoundPage,
 } from "./cStyles/pagesStls";
+
+// -------------------------------------------------------------
+// dashboardStls.ts
+// -------------------------------------------------------------
+
+import { kpiCard, sectionCard } from "./cStyles/dashboardStls";
+
+// -------------------------------------------------------------
+// usersStls.ts
+// -------------------------------------------------------------
+
+import {
+  userRow,
+  userTableToolbar,
+  userTable,
+  userCreateModal,
+  userEditModal,
+  userViewModal,
+} from "./cStyles/usersStls";
+
+// -------------------------------------------------------------
+// serversStls.ts
+// -------------------------------------------------------------
+
+import { serverRow, serverTable, serverForm } from "./cStyles/serversStls";
 
 export const styles = {
   formLabel,
@@ -84,6 +114,7 @@ export const styles = {
   checkbox,
   copyButton,
   toggleCard,
+  activeToggle,
   modalActions,
   card,
   modal,
@@ -94,6 +125,7 @@ export const styles = {
   serverSelector,
   connectionCard,
   guide,
+  trafficChart,
   confirmDialog,
   bottomBar,
   appShell,
@@ -102,6 +134,20 @@ export const styles = {
   profilePage,
   settingsPage,
   manualPage,
+  adminBoardPage,
+  userManagePage,
+  serversPage,
   chekavoPage,
   notFoundPage,
+  kpiCard,
+  sectionCard,
+  userRow,
+  userTableToolbar,
+  userTable,
+  userCreateModal,
+  userEditModal,
+  userViewModal,
+  serverRow,
+  serverTable,
+  serverForm,
 } as const;

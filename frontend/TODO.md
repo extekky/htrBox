@@ -45,13 +45,13 @@
 
 # pages — последними, зависят от всего остального
 
-32. pages/LoginPage.tsx
-33. pages/RegisterPage.tsx
+32. [x] pages/LoginPage.tsx
+33. [x] pages/RegisterPage.tsx
 34. [x] pages/ProfilePage.tsx
-35. pages/SettingsPage.tsx
+35. [x] pages/SettingsPage.tsx
 36. pages/AdminBoard.tsx
 37. pages/UsersPage.tsx
 38. pages/ServersPage.tsx
-39. pages/ManualPage.tsx
-40. pages/ChekavoPage.tsx
-41. pages/NotFoundPage.tsx
+39. [x] pages/ManualPage.tsx
+40. [x] pages/ChekavoPage.tsx
+41. [x] pages/NotFoundPage.tsx

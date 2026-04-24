@@ -13,8 +13,11 @@ import { ToggleCard } from "@/components/ui/ToggleCard";
 import { useCreateUser } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/useToast";
 import { createUserSchema, type CreateUserFormValues } from "@/lib/validators";
-import { fromInputDatetimeLocal, nowMoscowInput } from "@/lib/formatters";
+import { fromInputDatetimeLocal } from "@/lib/formatters";
 import type { CreateUserResponse } from "@/api/types";
+import { styles } from "@/styles";
+
+const s = styles.userCreateModal;
 
 // -------------------------------------------------------------
 // Экран успеха — показывает сгенерированный Hysteria-пароль
@@ -28,42 +31,35 @@ function SuccessScreen({
   onClose: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <CheckCircle2 size={18} className="text-primary" />
+    <div className={s.successRoot}>
+      <div className={s.successHeader}>
+        <div className={s.successIconWrap}>
+          <CheckCircle2 size={18} className={s.successIcon} />
         </div>
         <div>
-          <p className="text-sm font-semibold text-foreground">
-            Пользователь создан
-          </p>
-          <p className="text-xs text-muted-foreground">{data.username}</p>
+          <p className={s.successTitle}>Пользователь создан</p>
+          <p className={s.successSubtitle}>{data.username}</p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <KeyRound size={13} className="text-muted-foreground" />
+      <div className={s.successBlock}>
+        <div className={s.successLabelRow}>
+          <KeyRound size={13} className={s.successLabelIcon} />
           <FormLabel>Hysteria-пароль</FormLabel>
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-input px-3 py-2.5">
-          <code className="flex-1 text-xs font-mono text-foreground break-all leading-relaxed">
-            {data.hyPassword}
-          </code>
+        <div className={s.successCodeWrap}>
+          <code className={s.successCode}>{data.hyPassword}</code>
           <CopyButton text={data.hyPassword} />
         </div>
 
-        <p className="flex items-center gap-1.5 text-xs text-amber-500 leading-relaxed">
-          <AlertTriangle size={11} className="shrink-0" />
+        <p className={s.successHint}>
+          <AlertTriangle size={11} className={s.successHintIcon} />
           Сохраните пароль — он больше не будет показан.
         </p>
       </div>
 
-      <button
-        onClick={onClose}
-        className="h-9 w-full rounded-lg bg-primary/10 text-primary border border-primary/20 text-sm font-medium hover:bg-primary/15 transition-colors"
-      >
+      <button onClick={onClose} className={s.successClose}>
         Готово
       </button>
     </div>
@@ -145,7 +141,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
         id="user-create-form"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
-        className="flex flex-col gap-4"
+        className={s.form}
       >
         {/* Имя пользователя */}
         <FormInput
@@ -168,7 +164,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
         />
 
         {/* Тоглы доступа */}
-        <div className="flex flex-col gap-2">
+        <div className={s.toggles}>
           <ToggleCard
             label="Доступ к сервису"
             description={allowed ? "Не забанен" : "Будет забанен"}
@@ -183,7 +179,7 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
           />
         </div>
 
-        <div className="h-px bg-border" />
+        <div className={s.divider} />
 
         {/* Дата истечения — нативный datetime-local */}
         <FormInput

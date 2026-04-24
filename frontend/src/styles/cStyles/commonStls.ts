@@ -350,6 +350,39 @@ export const guide = {
 } as const;
 
 // -------------------------------------------------------------
+// TrafficChart — график трафика c фильтром периода
+// -------------------------------------------------------------
+
+export const trafficChart = {
+  root: "p-5 flex flex-col gap-4",
+
+  header: "flex items-start justify-between gap-2",
+  headerBody: "flex flex-col",
+  title: "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+  total: "text-2xl font-bold text-foreground tabular-nums mt-1",
+  totalPlaceholder: "text-muted-foreground",
+
+  tabs: "flex items-center gap-1",
+  tabButton: [
+    "inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg",
+    "text-xs font-medium border",
+    transition.colors,
+  ].join(" "),
+  tabButtonActive: "bg-primary/12 text-primary border-primary/24 hover:bg-primary/18",
+  tabButtonDefault:
+    "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80",
+
+  chartWrap: "h-44 w-full",
+  chartState: "flex items-center justify-center h-full",
+  spinner: "size-5",
+  errorText: "text-xs text-muted-foreground",
+
+  tooltipRoot: "rounded-xl border border-border bg-popover px-3 py-2 shadow-lg text-xs",
+  tooltipLabel: "text-muted-foreground mb-1",
+  tooltipValue: "font-semibold text-foreground tabular-nums",
+} as const;
+
+// -------------------------------------------------------------
 // ConfirmDialog — модальное окно подтверждения действий
 // -------------------------------------------------------------
 
