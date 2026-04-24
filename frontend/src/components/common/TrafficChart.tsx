@@ -24,7 +24,7 @@ import {
   smoothTraffic,
   toChartPoints,
   type ChartFrame,
-} from "@/components/common/trafficChartModel";
+} from "@/lib/trafficModel";
 
 const s = styles.trafficChart;
 
