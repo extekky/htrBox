@@ -153,8 +153,7 @@ export const profilePage = {
   // Карточка-плитка статистики
   statCard: `px-4 py-4 flex flex-col ${spacing.formGapSm}`,
 
-  // Тело статистической плитки — растягивается, чтобы прогрессбары
-  // в соседних карточках всегда стояли на одной вертикали
+  // Тело статистической плитки — единая структура без искусственного роста по высоте
   statBody: "flex-1",
 
   // Метка плитки — caps-стиль
@@ -163,13 +162,19 @@ export const profilePage = {
     "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
 
   // Основное значение плитки
-  statValue: "text-2xl font-bold text-foreground tabular-nums",
+  statValue: "text-2xl font-bold text-foreground tabular-nums leading-none",
+
+  // Первая строка контента плитки (главное значение)
+  statPrimaryRow: "flex items-baseline",
 
   // Единица измерения основного значения
   statUnit: "text-sm font-normal text-muted-foreground ml-1",
 
   // Подпись под основным значением (из ... GB)
-  statSub: `${typography.mutedXs} mt-0.5`,
+  statSub: typography.mutedXs,
+
+  // Вторая строка контента плитки (подпись / статус)
+  statSecondaryRow: "mt-1",
 
   // Строка значения подписки (иконка + число + единица)
   subValueWrap: "flex items-baseline gap-1.5",
@@ -181,7 +186,7 @@ export const profilePage = {
   subUnit: "text-sm font-normal text-muted-foreground",
 
   // Подпись под значением подписки
-  subValueSub: `${typography.mutedXs} mt-1`,
+  subValueSub: typography.mutedXs,
 
   // Цветовые тона значения подписки
   subValueToneDefault: colorScheme.neutral.text,

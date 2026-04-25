@@ -194,11 +194,15 @@ export function ProfilePage() {
             <Card className={s.statCard}>
               <p className={s.statLabel}>Трафик</p>
               <div className={s.statBody}>
-                <p className={s.statValue}>
-                  {usedGb.toFixed(2)}
-                  <span className={s.statUnit}>Гб</span>
-                </p>
-                <p className={s.statSub}>из {DEFAULT_TRAFFIC_LIMIT_GB} Гб</p>
+                <div className={s.statPrimaryRow}>
+                  <p className={s.statValue}>
+                    {usedGb.toFixed(2)}
+                    <span className={s.statUnit}>Гб</span>
+                  </p>
+                </div>
+                <div className={s.statSecondaryRow}>
+                  <p className={s.statSub}>из {DEFAULT_TRAFFIC_LIMIT_GB} Гб</p>
+                </div>
               </div>
               <ProgressBar value={trafficPct} variant="traffic" />
             </Card>
@@ -207,20 +211,24 @@ export function ProfilePage() {
             <Card className={s.statCard}>
               <p className={s.statLabel}>Подписка</p>
               <div className={s.statBody}>
-                <div className={s.subValueWrap}>
-                  {/* Иконка часов — только когда меньше суток */}
-                  {"icon" in subscriptionValue && (
-                    <Clock size={14} className={subscriptionColor} />
-                  )}
-                  <p className={cn(s.subValue, subscriptionColor)}>
-                    {subscriptionValue.text}
-                  </p>
-                  {/* Единица измерения «дн.» — только для дней */}
-                  {"unit" in subscriptionValue && (
-                    <span className={s.subUnit}>{subscriptionValue.unit}</span>
-                  )}
+                <div className={s.statPrimaryRow}>
+                  <div className={s.subValueWrap}>
+                    {/* Иконка часов — только когда меньше суток */}
+                    {"icon" in subscriptionValue && (
+                      <Clock size={14} className={subscriptionColor} />
+                    )}
+                    <p className={cn(s.subValue, subscriptionColor)}>
+                      {subscriptionValue.text}
+                    </p>
+                    {/* Единица измерения «дн.» — только для дней */}
+                    {"unit" in subscriptionValue && (
+                      <span className={s.subUnit}>{subscriptionValue.unit}</span>
+                    )}
+                  </div>
                 </div>
-                <p className={s.subValueSub}>{subscriptionValue.sub}</p>
+                <div className={s.statSecondaryRow}>
+                  <p className={s.subValueSub}>{subscriptionValue.sub}</p>
+                </div>
               </div>
               <ProgressBar value={expiryPct} variant="expiry" />
             </Card>
