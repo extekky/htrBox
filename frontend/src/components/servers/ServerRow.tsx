@@ -69,8 +69,10 @@ export function ServerRow({ server, onEdit, onDelete }: ServerRowProps) {
       </td>
 
       {/* Переключатель активности */}
-      <td className={s.tdCell}>
-        <ActiveToggle server={server} />
+      <td className={s.tdCenter}>
+        <div className={s.cellInlineCenter}>
+          <ActiveToggle server={server} />
+        </div>
       </td>
 
       {/* Кнопки действий */}

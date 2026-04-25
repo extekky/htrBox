@@ -120,7 +120,7 @@ export function LoginPage() {
                 label="Пароль"
                 type="password"
                 autoComplete="current-password"
-                placeholder="O_o"
+                placeholder="••••••••"
                 error={errors.password?.message}
                 {...register("password")}
               />

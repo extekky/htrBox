@@ -16,6 +16,8 @@ export const serverRow = {
 
   tdCell: "px-4 py-3.5",
   tdActions: "px-4 pr-5 py-3.5",
+  tdCenter: "px-4 py-3.5 text-center align-middle",
+  cellInlineCenter: "flex justify-center",
 
   locationWrap: "flex items-start gap-2.5",
   locationIconWrap:
@@ -63,6 +65,8 @@ export const serverTable = {
   tbody: "divide-y divide-border/40",
 
   th: "px-4 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide",
+  thCenter:
+    "px-4 py-3.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide",
   thActions: "text-right pr-5",
 
   skeletonRow: "animate-pulse",

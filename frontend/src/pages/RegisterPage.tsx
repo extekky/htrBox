@@ -122,7 +122,7 @@ export function RegisterPage() {
                 label="Пароль"
                 type="password"
                 autoComplete="new-password"
-                placeholder="O_o"
+                placeholder="••••••••"
                 error={errors.password?.message}
                 {...register("password")}
               />
@@ -132,7 +132,7 @@ export function RegisterPage() {
                 label="Подтверждение"
                 type="password"
                 autoComplete="new-password"
-                placeholder="o_O"
+                placeholder="••••••••"
                 error={errors.confirm_password?.message}
                 {...register("confirm_password")}
               />

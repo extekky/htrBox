@@ -174,7 +174,7 @@ export function ServerTable({ onEdit }: ServerTableProps) {
               <Th>Адрес</Th>
               <Th>Протокол</Th>
               <Th>Обновлён</Th>
-              <Th>Активен</Th>
+              <Th className={s.thCenter}>Активен</Th>
               <Th className={s.thActions}>Действия</Th>
             </tr>
           </thead>

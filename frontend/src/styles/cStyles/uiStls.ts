@@ -51,7 +51,7 @@ export const checkbox = {
   root: [
     "peer size-4 shrink-0 rounded-lg border shadow-xs outline-none",
     // Нейтральный фон/бордер заметнее на светлых таблицах, но остаётся мягким.
-    "border-border/90 bg-muted/70 hover:border-border",
+    "border-border bg-muted hover:border-foreground/20 hover:bg-muted/90",
     transition.shadow,
   ].join(" "),
 
@@ -340,7 +340,7 @@ export const activeToggle = {
     "disabled:opacity-50 disabled:cursor-not-allowed",
   ].join(" "),
   on: colorScheme.success.solid,
-  off: "bg-secondary",
+  off: "border-border/80 bg-muted hover:bg-muted/90",
   thumb: [
     "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow",
     "transition-transform duration-200 ease-in-out",
