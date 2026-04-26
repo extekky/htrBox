@@ -8,7 +8,9 @@ import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "@/hooks/useToast";
 import { useRestore } from "@/hooks/useRestore";
 import { initServerData } from "@/hooks/useServers";
+import { USER_KEYS } from "@/hooks/useUsers";
 import { ApiRequestError } from "@/api/client";
+import { queryClient } from "@/queryClient";
 import { loginSchema, type LoginFormValues } from "@/lib/validators";
 import { Card, CardContent } from "@/components/ui/Card";
 import { FormInput } from "@/components/ui/FormInput";
@@ -40,6 +42,9 @@ export function LoginPage() {
     try {
       // Отправляем логин/пароль на сервер, получаем токен и данные юзера
       const result = await login(values);
+
+      // Прогреваем кэш профиля, чтобы первый экран не дёргал /users/me повторно
+      queryClient.setQueryData(USER_KEYS.me, result.user);
 
       // Сохраняем токен и пользователя в глобальном состоянии
       setAuth(result.access_token, result.user);

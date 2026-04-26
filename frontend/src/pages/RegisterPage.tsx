@@ -7,7 +7,9 @@ import { register as registerUser } from "@/api/users";
 import { login } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "@/hooks/useToast";
+import { USER_KEYS } from "@/hooks/useUsers";
 import { ApiRequestError } from "@/api/client";
+import { queryClient } from "@/queryClient";
 import { registerSchema, type RegisterFormValues } from "@/lib/validators";
 import { Card, CardContent } from "@/components/ui/Card";
 import { FormInput } from "@/components/ui/FormInput";
@@ -47,6 +49,9 @@ export function RegisterPage() {
         username: values.username,
         password: values.password,
       });
+
+      // Прогреваем кэш профиля, чтобы после авто-логина не было лишнего /users/me
+      queryClient.setQueryData(USER_KEYS.me, authResult.user);
 
       // 3. Сохраняем токен и пользователя в глобальном состоянии
       setAuth(authResult.access_token, authResult.user);
