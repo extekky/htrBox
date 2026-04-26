@@ -57,7 +57,7 @@ export const statusBadge = {
   ].join(" "),
 
   // Нейтральный вариант — неактивен, пользователь, нет/ок срока
-  neutral: "bg-muted text-muted-foreground border-muted",
+  neutral: "bg-muted text-muted-foreground border-border/80",
 
   // Разрешён — зелёный с повышенным контрастом текста (dark-aware)
   allowed: `${colorScheme.success.bg} ${colorScheme.success.border} ${colorScheme.success.text}`,

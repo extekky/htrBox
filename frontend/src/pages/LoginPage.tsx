@@ -1,7 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, UserPlus, HeartHandshake } from "lucide-react";
+import { Loader2, UserPlus, MessageCircleQuestionMark} from "lucide-react";
 
 import { login } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";
@@ -159,7 +159,7 @@ export function LoginPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <HeartHandshake size={14} />
+            <MessageCircleQuestionMark size={14} />
             Написать в поддержку
           </a>
         </div>

@@ -19,6 +19,7 @@ export const userRow = {
 
   tdCheck: "pl-4 pr-2 py-3.5 w-10",
   tdCell: "px-4 py-3.5",
+  tdStatus: "px-4 py-3.5 w-px whitespace-nowrap align-middle",
   tdActions: "px-4 pr-5 py-3.5",
 
   userWrap: "flex items-center gap-2.5",
@@ -31,7 +32,8 @@ export const userRow = {
   trafficWrap: "flex flex-col gap-1.5 min-w-30",
   trafficText: "text-xs font-medium text-foreground tabular-nums",
 
-  statusWrap: "flex flex-wrap items-center gap-1.5",
+  statusWrap: "flex flex-nowrap items-center gap-1.5",
+  statusListInline: "flex-nowrap",
   adminIcon: colorScheme.warning.text,
 
   expiryWrap: "flex flex-col gap-0.5",
@@ -111,6 +113,8 @@ export const userTable = {
 
   th: "px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground",
   thCheck: "pl-4 pr-2 py-3.5 w-10",
+  thStatus:
+    "px-4 py-3.5 w-px whitespace-nowrap text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground",
   thActions: "text-right pr-5",
 
   skeletonRow: loading.pulse,

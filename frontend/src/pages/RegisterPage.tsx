@@ -1,7 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ArrowLeft, HeartHandshake } from "lucide-react";
+import { Loader2, ArrowLeft, MessageCircleQuestionMark } from "lucide-react";
 
 import { register as registerUser } from "@/api/users";
 import { login } from "@/api/auth";
@@ -171,7 +171,7 @@ export function RegisterPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <HeartHandshake size={14} />
+            <MessageCircleQuestionMark size={14} />
             Написать в поддержку
           </a>
         </div>

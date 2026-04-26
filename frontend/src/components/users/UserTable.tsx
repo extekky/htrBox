@@ -280,7 +280,7 @@ export function UserTable({ onEdit }: UserTableProps) {
               </th>
               <Th>Пользователь</Th>
               <Th>Трафик</Th>
-              <Th>Статус</Th>
+              <Th className={s.thStatus}>Статус</Th>
               <Th>Истекает</Th>
               <Th className={s.thActions}>Действия</Th>
             </tr>

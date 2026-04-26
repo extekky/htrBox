@@ -117,11 +117,11 @@ export function UserRow({
       </td>
 
       {/* Бейджи статуса */}
-      <td className={s.tdCell}>
+      <td className={s.tdStatus}>
         <div className={s.statusWrap}>
           <StatusBadge type="allowed" value={user.allowed} />
           <StatusBadge type="active" value={user.active} />
-          <UserStatusList user={user} />
+          <UserStatusList user={user} className={s.statusListInline} />
         </div>
       </td>
 

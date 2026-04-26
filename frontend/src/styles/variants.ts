@@ -67,7 +67,7 @@ export const colorScheme = {
   purple: {
     bg: "bg-purple-500/12",
     border: "border-purple-500/24",
-    text: "text-purple-700",
+    text: "text-purple-700/70",
     textMuted: "text-purple-700/72",
     solid: "bg-purple-500",
     hover: "hover:bg-purple-500/18",
@@ -79,6 +79,14 @@ export const colorScheme = {
     textMuted: "text-cyan-700/72",
     solid: "bg-cyan-500",
     hover: "hover:bg-cyan-500/18",
+  },
+  rose: {
+    bg: "bg-rose-500/12",
+    border: "border-rose-500/24",
+    text: "text-rose-700",
+    textMuted: "text-rose-700/72",
+    solid: "bg-rose-500",
+    hover: "hover:bg-rose-500/18",
   },
 } as const;
 

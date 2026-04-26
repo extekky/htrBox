@@ -92,8 +92,8 @@ export function getUserStatusDefinition(
       return {
         key,
         label: "Друг",
-        description: "Неформальный статус для друзей проекта.",
-        tone: `${colorScheme.primary.bg} ${colorScheme.primary.border} ${colorScheme.primary.text}`,
+        description: "Неформальный статус для друзей проекта. Спасибо, что вы с нами!",
+        tone: `${colorScheme.rose.bg} ${colorScheme.rose.border} ${colorScheme.rose.text}`,
         Icon: HeartHandshake,
       };
   }
