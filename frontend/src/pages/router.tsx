@@ -10,6 +10,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ManualPage } from "@/pages/ManualPage";
 import { ChekavoPage } from "@/pages/ChekavoPage";
+import { AboutPage } from "@/pages/AboutPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 
 // -------------------------------------------------------------
@@ -116,6 +117,9 @@ export function AppRouter() {
       </Route>
       <Route path="/settings">
         <PrivateRoute component={SettingsPage} />
+      </Route>
+      <Route path="/about">
+        <PrivateRoute component={AboutPage} />
       </Route>
       <Route path="/manual">
         <UserOnlyRoute component={ManualPage} />

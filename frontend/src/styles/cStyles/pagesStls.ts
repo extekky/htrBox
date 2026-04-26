@@ -395,6 +395,61 @@ export const manualPage = {
 } as const;
 
 // -------------------------------------------------------------
+// AboutPage — информация о сервисе
+// -------------------------------------------------------------
+
+export const aboutPage = {
+  root: "flex justify-center py-8 px-4",
+  inner: "w-full max-w-150 flex flex-col gap-4 animate-fade-in",
+
+  title: "text-xl font-bold text-foreground tracking-tight",
+  subtitle: "text-sm text-muted-foreground mt-0.5",
+
+  heroCard: "p-5 sm:p-6 flex flex-col gap-4",
+  heroBadge: [
+    `self-start inline-flex items-center ${radius.full}`,
+    `border ${colorScheme.primary.border} ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+    "px-3 py-1 text-xs font-semibold",
+  ].join(" "),
+  heroText: typography.mutedMd,
+
+  grid: "grid grid-cols-1 gap-3 md:grid-cols-2",
+  sectionCard: "p-5 flex flex-col gap-3",
+  sectionHead: "flex items-center gap-3",
+  sectionIconWrap: [
+    `flex h-9 w-9 shrink-0 items-center justify-center ${radius.md}`,
+    `${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+  ].join(" "),
+  sectionTitle: "text-sm font-semibold text-foreground",
+  sectionText: typography.mutedMd,
+
+  bulletList: "flex flex-col gap-2",
+  bulletItem:
+    "flex items-center gap-2.5 rounded-xl border border-border/60 bg-muted/35 px-3 py-2.5 text-sm text-muted-foreground",
+  bulletIcon: `shrink-0 ${colorScheme.primary.text}`,
+
+  supportCard: [
+    "p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+    `border ${colorScheme.primary.border} ${colorScheme.primary.bg}`,
+  ].join(" "),
+  supportTextWrap: "flex flex-col gap-1",
+  supportTitle: "text-sm font-semibold text-foreground",
+  supportText: "text-sm text-muted-foreground",
+  supportLink: [
+    `inline-flex h-10 items-center justify-center px-4 text-sm font-medium ${radius.md} ${spacing.inlineGap}`,
+    `border ${colorScheme.primary.border} ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+    colorScheme.primary.hover,
+    transition.colors,
+  ].join(" "),
+
+  perkCard: `p-5 flex flex-col gap-3 border ${colorScheme.purple.border} ${colorScheme.purple.bg}`,
+  perkHead: "flex items-center gap-3",
+  perkIconWrap: `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${colorScheme.purple.bg} ${colorScheme.purple.text}`,
+  perkTitle: "text-sm font-semibold text-foreground",
+  perkText: `text-sm leading-relaxed ${colorScheme.neutral.textMuted}`,
+} as const;
+
+// -------------------------------------------------------------
 // AdminBoard — дашборд администратора
 // -------------------------------------------------------------
 

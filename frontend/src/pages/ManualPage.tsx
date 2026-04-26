@@ -1,14 +1,11 @@
 import { useState } from "react";
 import {
-  BookOpen,
   CreditCard,
   Shield,
   MessageCircle,
   ChevronDown,
   Info,
   KeyRound,
-  Clock,
-  Server,
   Activity,
   Lock,
   Download,
@@ -239,62 +236,12 @@ export function ManualPage() {
         <div className={s.inner}>
           {/* -- Заголовок страницы -- */}
           <div>
-            <h1 className={s.title}>Правила и справка</h1>
-            <p className={s.subtitle}>Всё о сервисе, тарифах и ограничениях</p>
+            <h1 className={s.title}>Правила</h1>
+            <p className={s.subtitle}>Всё о тарифах и ограничениях</p>
           </div>
 
           {/* -- Список секций -- */}
           <div className={s.sections}>
-            {/* -------------------------------------------------------------
-                            1. Как устроен сервис
-                        ------------------------------------------------------------- */}
-            <Section
-              id="about"
-              icon={<BookOpen size={15} />}
-              title="Как устроен сервис"
-              accent="primary"
-              defaultOpen
-            >
-              <div className={s.sectionInner}>
-                {/* Краткое описание */}
-                <p className={s.textMuted}>
-                  <strong className={s.textStrong}>HtrBox</strong> — личный
-                  кабинет для VPN на основе{" "}
-                  <strong className={s.textStrong}>Hysteria2</strong>. Трафик
-                  маскируется под HTTPS — соединение устойчиво к блокировкам.
-                </p>
-
-                {/* Плитка возможностей (2×2) */}
-                <div className={s.aboutTiles}>
-                  {[
-                    {
-                      icon: <KeyRound size={14} />,
-                      label: "Уникальная ссылка подключения",
-                    },
-                    {
-                      icon: <Activity size={14} />,
-                      label: "Статистика трафика",
-                    },
-                    {
-                      icon: <Clock size={14} />,
-                      label: "Дата истечения подписки",
-                    },
-                    { icon: <Server size={14} />, label: "Выбор сервера" },
-                  ].map((item) => (
-                    <div key={item.label} className={s.aboutTile}>
-                      <span className={s.aboutTileIcon}>{item.icon}</span>
-                      <span className={s.aboutTileText}>{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Note>
-                  Аккаунт создаётся при регистрации. Администратор активирует
-                  доступ после оплаты.
-                </Note>
-              </div>
-            </Section>
-
             {/* -------------------------------------------------------------
                             2. Статус аккаунта
                         ------------------------------------------------------------- */}
@@ -303,6 +250,7 @@ export function ManualPage() {
               icon={<Activity size={15} />}
               title="Статус аккаунта"
               accent="emerald"
+              defaultOpen={true}
             >
               <div className={s.sectionInner}>
                 <p className={s.textMuted}>

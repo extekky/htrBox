@@ -9,6 +9,7 @@ import {
   Settings,
   BookOpen,
   HelpCircle,
+  Info,
 } from "lucide-react";
 
 import { BottomBar } from "./BottomBar";
@@ -20,6 +21,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/DropDownMenu";
 import { cn } from "@/lib/cn";
 import { styles } from "@/styles";
@@ -135,6 +137,7 @@ function DesktopNav() {
 function TopHeader() {
   // Получаем мутацию выхода и флаг загрузки для блокировки кнопки
   const { mutate: doLogout, isPending } = useLogout();
+  const [, navigate] = useLocation();
 
   return (
     <header className={s.header}>
@@ -171,6 +174,11 @@ function TopHeader() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={s.dropdownWidth}>
+              <DropdownMenuItem onClick={() => navigate("/about")}>
+                <Info size={14} />
+                О сервисе
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               {/* Пункт выхода — красный, заблокирован во время запроса */}
               <DropdownMenuItem
                 onClick={() => doLogout()}
@@ -210,7 +218,7 @@ export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
 
   // Список всех известных путей (включая главную)
-  const KNOWN_PATHS = ["/", ...NAV_ITEMS.map((item) => item.href)];
+  const KNOWN_PATHS = ["/", "/about", ...NAV_ITEMS.map((item) => item.href)];
 
   // Проверяем, является ли текущий путь известным.
   // Если путь не найден в списке и не начинается с известных путей (для вложенных роутов),
