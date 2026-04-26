@@ -131,7 +131,8 @@ def init_db() -> None:
         _create_servers_table(conn)
         _create_traffic_tables(conn)
         _create_refresh_tokens_table(conn)
-        _migrate_column_types(conn)
+        # _migrate_column_types(conn)
+        _migrate_user_status_fields(conn)
         _seed_admin(conn)
         conn.commit()
 
@@ -294,6 +295,19 @@ def _migrate_column_types(conn: psycopg2.extensions.connection) -> None:
         except Exception as e:
             conn.rollback()
             logger.warning("Migration failed for %s.%s: %s", table, bare_column, e)
+
+
+def _migrate_user_status_fields(conn: psycopg2.extensions.connection) -> None:
+    """
+    Keep only status-related fields required by the current product model.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS statuses TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
+            """
+        )
 
 
 # ---------------------------------------------------------------------------

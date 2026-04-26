@@ -1,8 +1,9 @@
-import { useMemo } from "react";
-import { AlertTriangle, Clock, ServerOff } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AlertTriangle, Clock, GraduationCap, ServerOff } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
 import { Spinner } from "@/components/ui/Spinner";
 import { ConnectionCard } from "@/components/common/ConnectionCard";
 import { Guide } from "@/components/common/Guide";
@@ -10,6 +11,8 @@ import { TrafficChart } from "@/components/common/TrafficChart";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { ServerSelector } from "@/components/common/ServerSelector";
 import { NotifyBanner } from "@/components/common/NotifyBanner";
+import { StatusChip } from "@/components/common/StatusBadge";
+import { UserStatusList } from "@/components/common/UserStatusList";
 import { pickAvatar } from "@/lib/avatars";
 import { useMe } from "@/hooks/useUsers";
 import { useAuthStore } from "@/stores/authStore";
@@ -33,6 +36,11 @@ import {
   getSubscriptionValue,
   getExpiryPct,
 } from "@/lib/utils";
+import {
+  getResolvedUserStatuses,
+  getSchoolPrivilegeNote,
+  getStatusPayload,
+} from "@/lib/userStatuses";
 import { styles, colorScheme } from "@/styles";
 
 const s = styles.profilePage;
@@ -84,6 +92,9 @@ export function ProfilePage() {
   const selectedServer = useServerStore(selectSelectedServer);
   const setSelectedServer = useServerStore(selectSetSelectedServer);
   const servers = useServerStore((s) => s.servers);
+  const [selectedStatusKey, setSelectedStatusKey] = useState<string | null>(
+    null,
+  );
 
   // Фильтруем только активные серверы
   const activeServers = useMemo(
@@ -125,11 +136,15 @@ export function ProfilePage() {
       : colorScheme.success;
 
   const accountStatusClass = cn(
-    s.statusBadge,
     accountStatusTone.text,
     accountStatusTone.bg,
     accountStatusTone.border,
   );
+  const statusPayload = getStatusPayload(profile);
+  const userStatuses = getResolvedUserStatuses(statusPayload);
+  const selectedStatus =
+    userStatuses.find((status) => status.key === selectedStatusKey) ?? null;
+  const schoolPrivilegeNote = getSchoolPrivilegeNote(statusPayload);
 
   // Данные плитки «Подписка» (текст, юниты, цвет)
   const subscriptionValue = getSubscriptionValue(
@@ -151,10 +166,9 @@ export function ProfilePage() {
           ? s.subValueToneWarning
           : s.subValueToneDefault;
 
-  // Строка «дата, время» для блока «Подписка до»
-  const expiryDateLine = expiresAt
-    ? `${formatDate(expiresAt)}, ${formatTime(expiresAt)}`
-    : null;
+  // Дата / время для компактного блока подписки в hero-карточке
+  const expiryDateValue = expiresAt ? formatDate(expiresAt) : null;
+  const expiryTimeValue = expiresAt ? formatTime(expiresAt) : null;
 
   // -- Рендер ----------------------------------------------
   return (
@@ -163,31 +177,54 @@ export function ProfilePage() {
         <div className={s.inner}>
           {/* -- Герой: аватар + имя + статус + дата истечения -- */}
           <Card className={s.heroCard}>
-            <UserAvatar />
-
-            <div className={s.heroContent}>
-              <div className={s.heroTop}>
-                {/* Имя + бейдж статуса */}
-                <div className={s.heroNameWrap}>
-                  <h1 className={s.heroName}>{profile.username}</h1>
-                  <span className={accountStatusClass}>
-                    {accountStatus.label}
-                  </span>
-                </div>
-
-                {/* Дата окончания подписки */}
-                <div className={s.heroExpiry}>
-                  <p className={s.heroExpiryLabel}>Действует до</p>
-                  <p className={s.heroExpiryDate}>
-                    {expiryDateLine ?? "дата не установлена"}
-                  </p>
-                </div>
+            <div className={s.heroIdentity}>
+              <div className={s.heroAvatar}>
+                <UserAvatar />
               </div>
 
-              <p className={s.heroRole}>Участник</p>
+              <div className={s.heroContent}>
+                <div className={s.heroNameWrap}>
+                  <div className={s.heroNameRow}>
+                    <h1 className={s.heroName}>{profile.username}</h1>
+                  </div>
+
+                  <div className={s.heroMetaRow}>
+                    <StatusChip className={accountStatusClass}>
+                      {accountStatus.label}
+                    </StatusChip>
+
+                    <UserStatusList
+                      user={statusPayload}
+                      interactive
+                      onSelect={setSelectedStatusKey}
+                      className={s.heroStatuses}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={s.heroExpiry}>
+              <p className={s.heroExpiryLabel}>Подписка до</p>
+              {expiryDateValue ? (
+                <>
+                  <p className={s.heroExpiryDate}>{expiryDateValue}</p>
+                  <p className={s.heroExpiryTime}>{expiryTimeValue}</p>
+                </>
+              ) : (
+                <p className={s.heroExpiryDate}>дата не установлена</p>
+              )}
             </div>
           </Card>
 
+          <NotifyBanner
+            bannerId="school-user-free"
+            visible={!!schoolPrivilegeNote}
+            icon={GraduationCap}
+            title="Бесплатный доступ!"
+            description={schoolPrivilegeNote ?? undefined}
+            variant="purple"
+          />
           {/* -- Статистика: трафик + подписка ------------------- */}
           <div className={s.statsGrid}>
             {/* Плитка трафика */}
@@ -222,7 +259,9 @@ export function ProfilePage() {
                     </p>
                     {/* Единица измерения «дн.» — только для дней */}
                     {"unit" in subscriptionValue && (
-                      <span className={s.subUnit}>{subscriptionValue.unit}</span>
+                      <span className={s.subUnit}>
+                        {subscriptionValue.unit}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -295,6 +334,28 @@ export function ProfilePage() {
           {isActive && <TrafficChart />}
         </div>
       </div>
+
+      {selectedStatus && (
+        <Modal
+          open
+          onClose={() => setSelectedStatusKey(null)}
+          title={selectedStatus.label}
+          description="Что означает этот статус"
+          size="sm"
+        >
+          <div className={s.statusModalBody}>
+            <UserStatusList
+              user={{
+                role: selectedStatus.key === "admin" ? "admin" : "user",
+                statuses:
+                  selectedStatus.key === "admin" ? [] : [selectedStatus.key],
+              }}
+              className={s.statusModalStatus}
+            />
+            <p className={s.statusModalText}>{selectedStatus.description}</p>
+          </div>
+        </Modal>
+      )}
     </AppShell>
   );
 }

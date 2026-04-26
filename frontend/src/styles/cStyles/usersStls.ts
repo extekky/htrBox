@@ -177,6 +177,23 @@ export const userCreateModal = {
   divider: "h-px bg-border",
 } as const;
 
+export const userStatusPicker = {
+  root: "flex flex-col gap-3",
+  header: "flex flex-col gap-1",
+  title: "text-sm font-medium text-foreground",
+  hint: "text-xs text-muted-foreground leading-relaxed",
+  grid: "grid grid-cols-1 gap-2 sm:grid-cols-2",
+  optionBase: [
+    "flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left",
+    "transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50",
+  ].join(" "),
+  optionDefault: "border-border bg-card text-muted-foreground hover:bg-muted/45",
+  optionSelected: "shadow-sm ring-1 ring-current/12",
+  optionIcon: "size-4 shrink-0",
+  optionLabel: "text-sm font-medium",
+  optionMeta: "text-xs text-muted-foreground",
+} as const;
+
 // -------------------------------------------------------------
 // UserEditModal — редактирование пользователя
 // -------------------------------------------------------------

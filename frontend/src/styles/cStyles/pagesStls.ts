@@ -117,35 +117,49 @@ export const profilePage = {
   // Внутренняя колонка с контентом
   inner: "w-full max-w-150 flex flex-col gap-4 animate-fade-in",
 
-  // Hero-карточка — отступы + flex
-  heroCard: `${spacing.cardPaddingMd} flex items-center gap-4`,
+  // Hero-карточка — плотная, адаптивная шапка профиля
+  heroCard:
+    "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 p-4 sm:gap-x-4 sm:p-5",
 
-  // Hero — правая колонка
-  heroContent: "flex-1 min-w-0",
+  // Hero — левая часть: аватар + текст
+  heroIdentity: "flex min-w-0 items-start gap-3 sm:gap-4",
 
-  // Hero — верхняя строка (имя + дата)
-  heroTop: "flex items-start justify-between gap-2",
+  heroAvatar: "shrink-0 self-start",
 
-  // Hero — группа имя + бейдж
-  heroNameWrap: "flex items-center gap-2.5 flex-wrap min-w-0",
+  // Hero — текстовый блок рядом с аватаром
+  heroContent: "min-w-0 flex-1",
+
+  // Hero — группа имя + метаданные
+  heroNameWrap: "flex min-w-0 flex-col gap-1.5",
+
+  heroNameRow: "flex min-w-0 flex-wrap items-center gap-2",
 
   // Hero — имя пользователя
-  heroName: "text-xl font-bold text-foreground truncate",
+  heroName:
+    "min-w-0 truncate text-lg font-bold leading-tight text-foreground sm:text-xl",
 
-  // Hero — бейдж статуса (цвет приходит снаружи через accountStatus.color)
-  statusBadge: `text-[11px] font-semibold px-2 py-0.5 ${radius.full} border shrink-0`,
+  // Hero — строка роли и пользовательских статусов
+  heroMetaRow: "flex flex-wrap items-center gap-x-2.5 gap-y-1.5",
 
   // Hero — блок даты справа
-  heroExpiry: "text-right shrink-0",
+  heroExpiry:
+    "flex flex-col shrink-0 self-center items-end justify-center gap-0.5 text-right sm:min-w-48",
 
-  // Hero — метка «Действует до»
+  // Hero — метка «Подписка до»
   heroExpiryLabel: typography.mutedXs,
 
   // Hero — значение даты
-  heroExpiryDate: "text-xs text-foreground mt-0.5",
+  heroExpiryDate: "text-xs leading-tight text-foreground",
+
+  // Hero — значение времени
+  heroExpiryTime: "text-xs leading-tight text-foreground",
+
+  heroExpiryHint: "mt-1 text-[11px] text-muted-foreground",
 
   // Hero — роль пользователя
-  heroRole: "text-xs text-muted-foreground mt-0.5",
+  heroRole: "text-xs text-muted-foreground shrink-0",
+
+  heroStatuses: "min-w-0",
 
   // Сетка статистики (2 колонки)
   statsGrid: "grid grid-cols-2 gap-3",
@@ -226,6 +240,10 @@ export const profilePage = {
 
   // Подсказка заглушки
   emptyHint: "text-xs text-muted-foreground px-4",
+
+  statusModalBody: "flex flex-col gap-4",
+  statusModalStatus: "justify-center",
+  statusModalText: "text-sm leading-relaxed text-muted-foreground",
 } as const;
 
 // -------------------------------------------------------------
@@ -400,8 +418,7 @@ export const adminBoardPage = {
     `${colorScheme.warning.bg} border ${colorScheme.warning.border} cursor-pointer ${colorScheme.warning.hover}`,
     transition.colors,
   ].join(" "),
-  expiringAlertIconWrap:
-    `flex items-center justify-center w-8 h-8 rounded-xl ${colorScheme.warning.bg} ${colorScheme.warning.text} shrink-0`,
+  expiringAlertIconWrap: `flex items-center justify-center w-8 h-8 rounded-xl ${colorScheme.warning.bg} ${colorScheme.warning.text} shrink-0`,
   expiringAlertText: `text-sm ${colorScheme.warning.text} flex-1`,
   expiringAlertCount: "font-semibold",
   expiringAlertChevron: `${colorScheme.warning.textMuted} shrink-0`,
@@ -424,13 +441,10 @@ export const adminBoardPage = {
   sectionRowName: "text-sm font-medium text-foreground",
   sectionRowMeta: "text-xs text-muted-foreground tabular-nums",
 
-  expiringBadge:
-    `inline-flex items-center text-[11px] px-2 py-0.5 rounded-lg font-semibold ${colorScheme.warning.bg} ${colorScheme.warning.text} border ${colorScheme.warning.border}`,
-  expiringStatus:
-    "text-xs px-2 py-0.5 rounded-lg border font-semibold",
+  expiringBadge: `inline-flex items-center text-[11px] px-2 py-0.5 rounded-lg font-semibold ${colorScheme.warning.bg} ${colorScheme.warning.text} border ${colorScheme.warning.border}`,
+  expiringStatus: "text-xs px-2 py-0.5 rounded-lg border font-semibold",
   expiringStatusUrgent: `${colorScheme.danger.bg} ${colorScheme.danger.border} ${colorScheme.danger.text}`,
-  expiringStatusWarning:
-    `${colorScheme.warning.bg} ${colorScheme.warning.border} ${colorScheme.warning.text}`,
+  expiringStatusWarning: `${colorScheme.warning.bg} ${colorScheme.warning.border} ${colorScheme.warning.text}`,
 } as const;
 
 // -------------------------------------------------------------

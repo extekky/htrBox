@@ -3,6 +3,7 @@
 // -------------------------------------------------------------
 
 export type Role = "admin" | "user";
+export type UserStatusKey = "friend" | "paid" | "school" | "trial";
 
 // -------------------------------------------------------------
 // Аутентификация / Сессия
@@ -25,6 +26,7 @@ export interface UserSessionInfo {
   active: boolean;
   usedTraffic: number;
   expires_at: string | null;
+  statuses: UserStatusKey[];
 }
 
 /** Ответ на успешный вход — токен + данные текущего пользователя */
@@ -43,6 +45,7 @@ export interface UserResponse {
   active: boolean;
   usedTraffic: number;
   expires_at: string | null;
+  statuses: UserStatusKey[];
 }
 
 export interface CreateUserRequest {
@@ -51,6 +54,7 @@ export interface CreateUserRequest {
   allowed?: boolean;
   active?: boolean;
   expires_at?: string | null;
+  statuses?: UserStatusKey[];
 }
 
 export interface CreateUserResponse {
@@ -63,6 +67,7 @@ export interface UpdateUserRequest {
   password?: string;
   active?: boolean;
   expires_at?: string | null;
+  statuses?: UserStatusKey[];
 }
 
 export interface SetRoleRequest {

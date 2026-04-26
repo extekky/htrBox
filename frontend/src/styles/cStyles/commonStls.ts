@@ -42,7 +42,19 @@ export const progressBar = {
 
 export const statusBadge = {
   // Базовая геометрия pill — общая для всех вариантов
-  pill: `inline-flex items-center ${radius.full} px-2.5 py-0.5 text-xs font-medium whitespace-nowrap border`,
+  pill: `inline-flex h-6 items-center justify-center ${radius.full} px-2.5 text-xs font-medium whitespace-nowrap leading-none border`,
+
+  // Иконка-статус без текста — чуть выше и плотнее обычного pill
+  iconOnly: "px-2.5 leading-none",
+
+  // Компактный режим для квадратных статус-иконок в плотных таблицах
+  compact: "h-8 w-8 px-0 py-0",
+
+  // Интерактивный чип
+  interactive: [
+    "cursor-pointer transition-colors",
+    "hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-1",
+  ].join(" "),
 
   // Нейтральный вариант — неактивен, пользователь, нет/ок срока
   neutral: "bg-muted text-muted-foreground border-muted",
@@ -61,6 +73,11 @@ export const statusBadge = {
 
   // Предупреждение (expiry warning) — amber с повышенным контрастом (dark-aware)
   warning: `${colorScheme.warning.bg} ${colorScheme.warning.border} text-amber-700`,
+} as const;
+
+export const userStatusList = {
+  root: "flex flex-wrap items-center gap-1.5",
+  icon: "size-3.5 shrink-0",
 } as const;
 
 // -------------------------------------------------------------

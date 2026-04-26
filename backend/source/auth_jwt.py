@@ -258,7 +258,7 @@ def require_user(
     with get_db() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
-                'SELECT username, allowed, active, role, "usedTraffic", expires_at '
+                'SELECT username, allowed, active, role, "usedTraffic", expires_at, statuses '
                 "FROM users WHERE username = %s",
                 (current_user.username,),
             )

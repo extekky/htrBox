@@ -6,6 +6,7 @@ import {
 } from "@/lib/formatters";
 import type { ExpiryTier } from "@/lib/formatters";
 import type { UserResponse } from "@/api/types";
+import { colorScheme } from "@/styles";
 
 // -------------------------------------------------------------
 // Типы
@@ -59,18 +60,18 @@ export function getAccountStatus(profile: UserResponse) {
   if (!profile.allowed) {
     return {
       label: "Заблокирован",
-      color: "text-red-500 bg-red-500/10 border-red-500/20",
+      color: `${colorScheme.danger.text} ${colorScheme.danger.bg} ${colorScheme.danger.border}`,
     };
   }
   if (!profile.active) {
     return {
       label: "Неактивен",
-      color: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+      color: `${colorScheme.warning.text} ${colorScheme.warning.bg} ${colorScheme.warning.border}`,
     };
   }
   return {
     label: "Активен",
-    color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+    color: `${colorScheme.success.text} ${colorScheme.success.bg} ${colorScheme.success.border}`,
   };
 }
 

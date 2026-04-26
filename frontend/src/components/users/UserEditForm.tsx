@@ -20,6 +20,7 @@ import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { ToggleCard } from "@/components/ui/ToggleCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { UserStatusPicker } from "@/components/users/UserStatusPicker";
 
 import {
   useUpdateUser,
@@ -36,7 +37,7 @@ import {
 } from "@/lib/formatters";
 import { DEFAULT_TRAFFIC_LIMIT_GB } from "@/lib/constants";
 import { cn } from "@/lib/cn";
-import type { UserResponse } from "@/api/types";
+import type { UserResponse, UserStatusKey } from "@/api/types";
 import { styles } from "@/styles";
 
 const s = styles.userEditModal;
@@ -337,11 +338,21 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
       active: user.active,
       password: "",
       expires_at: toInputDatetimeLocal(user.expires_at),
+      statuses: user.statuses,
     },
   });
 
   const allowed = watch("allowed");
   const active = watch("active");
+  const statuses = watch("statuses");
+
+  function toggleStatus(status: UserStatusKey) {
+    const next = statuses.includes(status)
+      ? statuses.filter((item) => item !== status)
+      : [...statuses, status];
+
+    setValue("statuses", next, { shouldValidate: true });
+  }
 
   function onSubmit(values: UpdateUserFormValues) {
     const data: UpdateUserFormValues = {
@@ -350,6 +361,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
       expires_at: values.expires_at
         ? fromInputDatetimeLocal(values.expires_at as string)
         : null,
+      statuses: values.statuses,
     };
     if (values.password) data.password = values.password;
 
@@ -463,6 +475,11 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
             </div>
 
             <div className={s.divider} />
+
+            <UserStatusPicker
+              statuses={statuses}
+              onToggle={toggleStatus}
+            />
 
             {/* Дата истечения — нативный datetime-local */}
             <FormInput

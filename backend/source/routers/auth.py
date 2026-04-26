@@ -335,7 +335,7 @@ async def login(body: LoginRequest, request: Request, response: Response):
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
             cur.execute(
-                'SELECT username, password, allowed, active, role, "usedTraffic", expires_at '
+                'SELECT username, password, allowed, active, role, "usedTraffic", expires_at, statuses '
                 "FROM users WHERE username = %s",
                 (body.username,),
             )
@@ -367,6 +367,7 @@ async def login(body: LoginRequest, request: Request, response: Response):
             active      = bool(row["active"]),
             usedTraffic = row["usedTraffic"],
             expires_at  = row["expires_at"],
+            statuses    = row["statuses"] or [],
         ),
     )
 

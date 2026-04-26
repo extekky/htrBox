@@ -74,7 +74,7 @@ def list_users(_: object = Depends(require_admin)):
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
             cur.execute(
-                'SELECT username, role, allowed, "usedTraffic", active, expires_at FROM users'
+                'SELECT username, role, allowed, "usedTraffic", active, expires_at, statuses FROM users'
             )
             rows = cur.fetchall()
 
@@ -86,6 +86,7 @@ def list_users(_: object = Depends(require_admin)):
             usedTraffic = r["usedTraffic"],
             active      = bool(r["active"]),
             expires_at  = r["expires_at"],
+            statuses    = r["statuses"] or [],
         )
         for r in rows
     ]
@@ -111,9 +112,17 @@ def create_user(
         with get_db() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    'INSERT INTO users (username, password, "hyPassword", allowed, "usedTraffic", active, expires_at, role) '
-                    "VALUES (%s, %s, %s, %s, 0, %s, %s, 'user')",
-                    (body.username, hash_password(body.password), hy_password, body.allowed, body.active, body.expires_at),
+                    'INSERT INTO users (username, password, "hyPassword", allowed, "usedTraffic", active, expires_at, role, statuses) '
+                    "VALUES (%s, %s, %s, %s, 0, %s, %s, 'user', %s)",
+                    (
+                        body.username,
+                        hash_password(body.password),
+                        hy_password,
+                        body.allowed,
+                        body.active,
+                        body.expires_at,
+                        body.statuses,
+                    ),
                 )
             conn.commit()
     except psycopg2.errors.UniqueViolation:
@@ -192,6 +201,7 @@ def get_me(user_row=Depends(require_user)):
         active      = bool(user_row["active"]),
         usedTraffic = user_row["usedTraffic"],
         expires_at  = user_row["expires_at"],
+        statuses    = user_row["statuses"] or [],
     )
 
 
@@ -213,28 +223,44 @@ def update_user(
     Use /set-role to change a user's role.
     Editing any field of an admin account is forbidden.
     """
+    sent = body.model_fields_set
     updates, params = [], []
-    if body.allowed    is not None: updates.append("allowed = %s");    params.append(bool(body.allowed))
-    if body.password   is not None: updates.append("password = %s");   params.append(hash_password(body.password))
-    if body.active     is not None: updates.append("active = %s");     params.append(bool(body.active))
-    if body.expires_at is not None: updates.append("expires_at = %s"); params.append(body.expires_at)
 
-    if not updates:
-        raise HTTPException(400, "Nothing to update")
+    if "allowed" in sent:
+        updates.append("allowed = %s")
+        params.append(bool(body.allowed))
+    if "password" in sent and body.password is not None:
+        updates.append("password = %s")
+        params.append(hash_password(body.password))
+    if "active" in sent:
+        updates.append("active = %s")
+        params.append(bool(body.active))
+    if "expires_at" in sent:
+        updates.append("expires_at = %s")
+        params.append(body.expires_at)
+    if "statuses" in sent:
+        updates.append("statuses = %s")
+        params.append(body.statuses or [])
 
     try:
         params.append(username)
         with get_db() as conn:
             with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
                 # Guard: forbid editing admin accounts.
-                cur.execute("SELECT role FROM users WHERE username = %s", (username,))
+                cur.execute(
+                    "SELECT role FROM users WHERE username = %s",
+                    (username,),
+                )
                 target = cur.fetchone()
                 if not target:
                     raise HTTPException(404, "User not found")
+
                 if target["role"] == "admin":
                     # Admins can only change their own password, nothing else.
                     non_password_updates = [
-                        f for f in ("allowed", "active", "expires_at") if getattr(body, f) is not None
+                        f
+                        for f in ("allowed", "active", "expires_at", "statuses")
+                        if f in sent
                     ]
                     if non_password_updates:
                         raise HTTPException(403, "Cannot edit an admin account")
@@ -243,7 +269,13 @@ def update_user(
                     if username != admin_row["username"]:
                         raise HTTPException(403, "Cannot change another admin's password")
 
-                cur.execute(f"UPDATE users SET {', '.join(updates)} WHERE username = %s", params)
+                if not updates:
+                    raise HTTPException(400, "Nothing to update")
+
+                cur.execute(
+                    f"UPDATE users SET {', '.join(updates)} WHERE username = %s",
+                    params,
+                )
             conn.commit()
     except HTTPException:
         raise
@@ -251,7 +283,11 @@ def update_user(
         logger.exception("Unexpected error updating user %r: %s", username, e)
         raise HTTPException(500, "Internal server error")
 
-    updated_fields = [f for f in ("allowed", "password", "active", "expires_at") if getattr(body, f) is not None]
+    updated_fields = [
+        f
+        for f in ("allowed", "password", "active", "expires_at", "statuses")
+        if f in sent
+    ]
     logger.info("User updated: %r (fields: %s) (by admin %r)", username, updated_fields, admin_row["username"])
 
     return UpdateUserResponse(

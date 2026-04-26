@@ -49,6 +49,7 @@ import {
 import {
   progressBar,
   statusBadge,
+  userStatusList,
   toaster,
   serverSelector,
   connectionCard,
@@ -96,6 +97,7 @@ import {
   userTableToolbar,
   userTable,
   userCreateModal,
+  userStatusPicker,
   userEditModal,
   userViewModal,
 } from "./cStyles/usersStls";
@@ -121,6 +123,7 @@ export const styles = {
   dropdownMenu,
   progressBar,
   statusBadge,
+  userStatusList,
   toaster,
   serverSelector,
   connectionCard,
@@ -145,6 +148,7 @@ export const styles = {
   userTableToolbar,
   userTable,
   userCreateModal,
+  userStatusPicker,
   userEditModal,
   userViewModal,
   serverRow,

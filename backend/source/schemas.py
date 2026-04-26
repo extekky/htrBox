@@ -31,6 +31,7 @@ class UserRow(TypedDict):
     role:     str
     allowed:  bool
     active:   bool
+    statuses: list[str]
 
 
 # ---------------------------------------------------------------------------
@@ -41,6 +42,7 @@ _USERNAME_PATTERN = r"^[a-zA-Z0-9_-]+$"
 
 # Valid role values
 RoleType = Literal["admin", "user"]
+UserStatusType = Literal["friend", "paid", "school", "trial"]
 
 
 def _parse_expires_at(value: str | datetime | None) -> datetime | None:
@@ -100,6 +102,7 @@ class UserSessionInfo(BaseModel):
     active: bool
     usedTraffic: float
     expires_at: datetime | None
+    statuses: list[UserStatusType]
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +115,7 @@ class CreateUserRequest(BaseModel):
     allowed: bool = False
     active: bool = False
     expires_at: datetime | None = None
+    statuses: list[UserStatusType] = Field(default_factory=list)
 
     @field_validator("expires_at", mode="before")
     @classmethod
@@ -129,6 +133,7 @@ class UpdateUserRequest(BaseModel):
     password: str | None = Field(default=None, min_length=8, max_length=128)
     active: bool | None = None
     expires_at: datetime | None = None
+    statuses: list[UserStatusType] | None = None
 
     @field_validator("expires_at", mode="before")
     @classmethod
@@ -155,6 +160,7 @@ class UserResponse(BaseModel):
     usedTraffic: float
     active: bool
     expires_at: datetime | None
+    statuses: list[UserStatusType]
 
 
 class CreateUserResponse(BaseModel):

@@ -1,8 +1,9 @@
-import { Pencil, Trash2, CheckCircle2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/CheckBox";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { UserStatusList } from "@/components/common/UserStatusList";
 import { pickAvatar } from "@/lib/avatars";
 
 import {
@@ -120,7 +121,7 @@ export function UserRow({
         <div className={s.statusWrap}>
           <StatusBadge type="allowed" value={user.allowed} />
           <StatusBadge type="active" value={user.active} />
-          {user.role === "admin" && <CheckCircle2 size={20} className={s.adminIcon} />}
+          <UserStatusList user={user} />
         </div>
       </td>
 

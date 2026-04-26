@@ -40,6 +40,8 @@ const expiresAtSchema = z
     { message: "Заполните дату полностью" },
   );
 
+const userStatusSchema = z.enum(["friend", "paid", "school", "trial"]);
+
 // -------------------------------------------------------------
 // Логин
 // -------------------------------------------------------------
@@ -80,6 +82,7 @@ export const createUserSchema = z.object({
   allowed: z.boolean(),
   active: z.boolean(),
   expires_at: expiresAtSchema,
+  statuses: z.array(userStatusSchema).default([]),
 });
 
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -95,6 +98,7 @@ export const updateUserSchema = z.object({
   allowed: z.boolean(),
   active: z.boolean(),
   expires_at: expiresAtSchema,
+  statuses: z.array(userStatusSchema).default([]),
 });
 
 export type UpdateUserFormValues = z.infer<typeof updateUserSchema>;

@@ -9,12 +9,13 @@ import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { ToggleCard } from "@/components/ui/ToggleCard";
+import { UserStatusPicker } from "@/components/users/UserStatusPicker";
 
 import { useCreateUser } from "@/hooks/useUsers";
 import { useToast } from "@/hooks/useToast";
 import { createUserSchema, type CreateUserFormValues } from "@/lib/validators";
 import { fromInputDatetimeLocal } from "@/lib/formatters";
-import type { CreateUserResponse } from "@/api/types";
+import type { CreateUserResponse, UserStatusKey } from "@/api/types";
 import { styles } from "@/styles";
 
 const s = styles.userCreateModal;
@@ -91,11 +92,21 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
       allowed: true,
       active: false,
       expires_at: null,
+      statuses: [],
     },
   });
 
   const allowed = watch("allowed");
   const active = watch("active");
+  const statuses = watch("statuses");
+
+  function toggleStatus(status: UserStatusKey) {
+    const next = statuses.includes(status)
+      ? statuses.filter((item) => item !== status)
+      : [...statuses, status];
+
+    setValue("statuses", next, { shouldValidate: true });
+  }
 
   function onSubmit(values: CreateUserFormValues) {
     const payload = {
@@ -180,6 +191,11 @@ export function UserCreateModal({ onClose }: UserCreateModalProps) {
         </div>
 
         <div className={s.divider} />
+
+        <UserStatusPicker
+          statuses={statuses}
+          onToggle={toggleStatus}
+        />
 
         {/* Дата истечения — нативный datetime-local */}
         <FormInput

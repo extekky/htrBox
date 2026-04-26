@@ -64,6 +64,22 @@ export const colorScheme = {
     solid: "bg-muted-foreground",
     hover: "hover:bg-muted",
   },
+  purple: {
+    bg: "bg-purple-500/12",
+    border: "border-purple-500/24",
+    text: "text-purple-700",
+    textMuted: "text-purple-700/72",
+    solid: "bg-purple-500",
+    hover: "hover:bg-purple-500/18",
+  },
+  cyan: {
+    bg: "bg-cyan-500/12",
+    border: "border-cyan-500/24",
+    text: "text-cyan-700",
+    textMuted: "text-cyan-700/72",
+    solid: "bg-cyan-500",
+    hover: "hover:bg-cyan-500/18",
+  },
 } as const;
 
 export type ColorScheme = keyof typeof colorScheme;

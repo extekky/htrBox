@@ -81,9 +81,6 @@ export function UserViewModal({ user, onClose }: UserViewModalProps) {
             <div className={s.userMeta}>
               <div className={s.userNameRow}>
                 <span className={s.userName}>{user.username}</span>
-                {user.role === "admin" && (
-                  <CheckCircle2 size={14} className={s.adminIcon} />
-                )}
               </div>
               <div className={s.badges}>
                 <StatusBadge type="allowed" value={user.allowed} />
@@ -104,7 +101,9 @@ export function UserViewModal({ user, onClose }: UserViewModalProps) {
                 {formatDaysLeft(user.expires_at)}
               </span>
             ) : (
-              <span className={cn(s.expiryText, s.expiryDefault)}>Нет даты</span>
+              <span className={cn(s.expiryText, s.expiryDefault)}>
+                Нет даты
+              </span>
             )}
           </div>
         </div>
@@ -136,24 +135,16 @@ export function UserViewModal({ user, onClose }: UserViewModalProps) {
           </InfoRow>
           <InfoRow label="Доступ">
             {user.allowed ? (
-              <span className={s.allowedTrue}>
-                <CircleCheck size={12} /> Ок
-              </span>
+              <span className={s.allowedTrue}>Ок</span>
             ) : (
-              <span className={s.allowedFalse}>
-                <CircleX size={12} /> Бан
-              </span>
+              <span className={s.allowedFalse}>Бан</span>
             )}
           </InfoRow>
           <InfoRow label="Подписка">
             {user.active ? (
-              <span className={s.activeTrue}>
-                <ShieldCheck size={12} /> Активна
-              </span>
+              <span className={s.activeTrue}>Активна</span>
             ) : (
-              <span className={s.activeFalse}>
-                <ShieldOff size={12} /> Неактивна
-              </span>
+              <span className={s.activeFalse}> Неактивна</span>
             )}
           </InfoRow>
         </div>

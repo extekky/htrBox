@@ -5,16 +5,57 @@ import { getExpiryTier, formatDaysLeft } from "@/lib/formatters";
 const s = styles.statusBadge;
 
 // -------------------------------------------------------------
-// Базовый компонент для "пилюль" (pill-shaped badge)
+// Базовый примитив для всех статусных чипов
 // -------------------------------------------------------------
 
-interface PillProps {
+interface StatusChipProps {
   children: React.ReactNode;
   className?: string;
+  title?: string;
+  ariaLabel?: string;
+  interactive?: boolean;
+  iconOnly?: boolean;
+  compact?: boolean;
+  onClick?: () => void;
 }
 
-function Pill({ children, className = "" }: PillProps) {
-  return <span className={cn(s.pill, className)}>{children}</span>;
+export function StatusChip({
+  children,
+  className = "",
+  title,
+  ariaLabel,
+  interactive = false,
+  iconOnly = false,
+  compact = false,
+  onClick,
+}: StatusChipProps) {
+  const chipClassName = cn(
+    s.pill,
+    iconOnly && s.iconOnly,
+    compact && s.compact,
+    interactive && s.interactive,
+    className,
+  );
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={chipClassName}
+        aria-label={ariaLabel}
+        title={title}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  return (
+    <span className={chipClassName} aria-label={ariaLabel} title={title}>
+      {children}
+    </span>
+  );
 }
 
 // -------------------------------------------------------------
@@ -27,9 +68,9 @@ interface AllowedBadgeProps {
 
 function AllowedBadge({ value }: AllowedBadgeProps) {
   return value ? (
-    <Pill className={s.allowed}>Ок</Pill>
+    <StatusChip className={s.allowed}>Ок</StatusChip>
   ) : (
-    <Pill className={s.danger}>Бан</Pill>
+    <StatusChip className={s.danger}>Бан</StatusChip>
   );
 }
 
@@ -43,9 +84,9 @@ interface ActiveBadgeProps {
 
 function ActiveBadge({ value }: ActiveBadgeProps) {
   return value ? (
-    <Pill className={s.primary}>Активен</Pill>
+    <StatusChip className={s.primary}>Активен</StatusChip>
   ) : (
-    <Pill className={s.neutral}>Неактивен</Pill>
+    <StatusChip className={s.neutral}>Неактивен</StatusChip>
   );
 }
 
@@ -59,9 +100,9 @@ interface RoleBadgeProps {
 
 function RoleBadge({ role }: RoleBadgeProps) {
   return role === "admin" ? (
-    <Pill className={s.admin}>Админ</Pill>
+    <StatusChip className={s.admin}>Админ</StatusChip>
   ) : (
-    <Pill className={s.neutral}>Пользователь</Pill>
+    <StatusChip className={s.neutral}>Пользователь</StatusChip>
   );
 }
 
@@ -85,7 +126,7 @@ function ExpiryBadge({ iso }: ExpiryBadgeProps) {
     expired: s.danger,
   };
 
-  return <Pill className={styleMap[tier]}>{label}</Pill>;
+  return <StatusChip className={styleMap[tier]}>{label}</StatusChip>;
 }
 
 // -------------------------------------------------------------
