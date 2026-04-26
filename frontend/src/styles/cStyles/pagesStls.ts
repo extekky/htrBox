@@ -185,10 +185,10 @@ export const profilePage = {
   statUnit: "text-sm font-normal text-muted-foreground ml-1",
 
   // Подпись под основным значением (из ... GB)
-  statSub: typography.mutedXs,
+  statSub: `${typography.mutedXs} block truncate`,
 
   // Вторая строка контента плитки (подпись / статус)
-  statSecondaryRow: "mt-1",
+  statSecondaryRow: "mt-1 flex h-[14px] items-start",
 
   // Строка значения подписки (иконка + число + единица)
   subValueWrap: "flex items-baseline gap-1.5",
@@ -200,7 +200,7 @@ export const profilePage = {
   subUnit: "text-sm font-normal text-muted-foreground",
 
   // Подпись под значением подписки
-  subValueSub: typography.mutedXs,
+  subValueSub: `${typography.mutedXs} block truncate`,
 
   // Цветовые тона значения подписки
   subValueToneDefault: colorScheme.neutral.text,
