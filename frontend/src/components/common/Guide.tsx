@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Copy,
   Download,
-  ExternalLink,
   MessageCircle,
   Plus,
 } from "lucide-react";
@@ -282,10 +281,9 @@ function ClientCard({ platform }: { platform: Platform }) {
           href={platform.downloadUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={s.clientDownloadButton}
+          className={s.primaryActionButton}
         >
           <span>Скачать из {platform.downloadLabel}</span>
-          <ExternalLink size={12} className={s.rowIcon} />
         </a>
       </div>
       <p className={s.clientDesc}>{platform.clientDescription}</p>
@@ -336,16 +334,9 @@ export function Guide() {
               href="https://t.me/stdoq"
               target="_blank"
               rel="noopener noreferrer"
-              className={s.telegramLink}
+              className={s.primaryActionButton}
             >
-              <div className={s.telegramAvatar}>
-                <MessageCircle size={15} />
-              </div>
-              <div className={s.telegramBody}>
-                <p className={s.telegramName}>@stdoq</p>
-                <p className={s.telegramPlatformLabel}>Telegram</p>
-              </div>
-              <ExternalLink size={13} className={s.telegramExternalIcon} />
+              <span>Написать в Telegram</span>
             </a>
           </InfoBlock>
         </Step>

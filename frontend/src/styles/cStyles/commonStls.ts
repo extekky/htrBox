@@ -320,8 +320,8 @@ export const guide = {
   // Описание клиента
   clientDesc: "text-sm leading-relaxed text-muted-foreground text-center",
 
-  // Кнопка скачать
-  clientDownloadButton: [
+  // Основная CTA-кнопка — скачать / написать
+  primaryActionButton: [
     "inline-flex w-full items-center justify-center gap-2 h-10 px-4 text-center",
     radius.sm,
     "text-sm font-medium",
@@ -355,14 +355,6 @@ export const guide = {
   platformGrid: "flex flex-col gap-2",
   platformRow3: "grid grid-cols-3 gap-2",
   platformRow2: "grid grid-cols-2 gap-2",
-
-  // ── Шаг 1 — ссылка на Telegram ───────────────────────────────
-  telegramLink: `flex items-center gap-3 ${radius.sm} border ${colorScheme.primary.border} ${colorScheme.primary.bg} px-3 py-2.5 ${colorScheme.primary.hover} ${transition.colors}`,
-  telegramAvatar: `flex size-8 shrink-0 items-center justify-center ${radius.full} ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
-  telegramBody: "min-w-0 flex-1",
-  telegramName: `text-sm font-semibold ${colorScheme.primary.text} leading-none mb-1`,
-  telegramPlatformLabel: "text-xs text-muted-foreground leading-none",
-  telegramExternalIcon: "shrink-0 text-primary/50",
 
   // ── Шаг 5/6 — финальные блоки ───────────────────────────────
   successRow: `${radius.sm} ${colorScheme.success.bg} border ${colorScheme.success.border} px-3 py-2 ${colorScheme.success.text} text-sm leading-relaxed`,

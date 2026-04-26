@@ -5,7 +5,6 @@ import {
   Shield,
   MessageCircle,
   ChevronDown,
-  Send,
   Info,
   KeyRound,
   Clock,
@@ -445,10 +444,9 @@ export function ManualPage() {
                   href="https://t.me/stdoq"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={s.supportLink}
+                  className={styles.guide.primaryActionButton}
                 >
-                  <Send size={14} />
-                  @stdoq
+                  <span>Написать в Telegram</span>
                 </a>
 
                 <Note variant="amber">

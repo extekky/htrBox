@@ -161,8 +161,6 @@ function TopHeader() {
             className={s.telegramLink}
           >
             <Send size={14} />
-            {/* Ник скрыт на маленьких экранах — остаётся только иконка */}
-            <span className={s.telegramNick}>@stdoq</span>
           </a>
 
           {/* Выпадающее меню пользователя — триггер это аватар */}
