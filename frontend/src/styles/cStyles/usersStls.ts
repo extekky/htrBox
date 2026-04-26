@@ -84,13 +84,14 @@ export const userTableToolbar = {
   right: "flex items-center gap-3 sm:ml-auto",
 
   kickButton: [
-    "inline-flex items-center gap-2 h-10 px-4 rounded-lg",
-    "text-sm font-medium bg-destructive text-destructive-foreground",
-    "hover:bg-destructive/90 focus:bg-destructive/90",
-    "disabled:opacity-60 disabled:cursor-not-allowed",
-    "transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+    "inline-flex items-center gap-2 px-4 h-9 rounded-xl border",
+    `text-sm font-medium ${colorScheme.danger.bg} ${colorScheme.danger.text} ${colorScheme.danger.border}`,
+    `${colorScheme.danger.hover} shadow-sm shadow-slate-900/5`,
+    "active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed",
+    "focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring",
+    transition.colors,
   ].join(" "),
-  kickSpinner: "text-destructive-foreground",
+  kickSpinner: colorScheme.danger.text,
 
   counter: "text-sm text-muted-foreground whitespace-nowrap",
 } as const;
