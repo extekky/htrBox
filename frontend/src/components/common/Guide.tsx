@@ -154,22 +154,6 @@ const PLATFORMS: Platform[] = [
   },
 ];
 
-function detectPlatform(): PlatformId | null {
-  if (typeof navigator === "undefined") return null;
-
-  const ua = navigator.userAgent.toLowerCase();
-
-  if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) {
-    return "ios";
-  }
-  if (ua.includes("android")) return "android";
-  if (ua.includes("mac os") || ua.includes("macintosh")) return "macos";
-  if (ua.includes("windows")) return "windows";
-  if (ua.includes("linux")) return "linux";
-
-  return null;
-}
-
 // -------------------------------------------------------------
 // Вспомогательные компоненты
 // -------------------------------------------------------------
@@ -292,19 +276,19 @@ function PlatformButton({
 function ClientCard({ platform }: { platform: Platform }) {
   return (
     <div className={s.clientCard}>
-      <div className={s.clientCardBody}>
+      <div className={s.clientCardPrimary}>
         <p className={s.clientName}>{platform.clientName}</p>
-        <p className={s.clientDesc}>{platform.clientDescription}</p>
+        <a
+          href={platform.downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={s.clientDownloadButton}
+        >
+          <span>Скачать из {platform.downloadLabel}</span>
+          <ExternalLink size={12} className={s.rowIcon} />
+        </a>
       </div>
-      <a
-        href={platform.downloadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={s.clientDownloadLink}
-      >
-        <ExternalLink size={11} className={s.rowIcon} />
-        <span>{platform.downloadLabel}</span>
-      </a>
+      <p className={s.clientDesc}>{platform.clientDescription}</p>
     </div>
   );
 }
@@ -328,10 +312,7 @@ function InfoBlock({
 // -------------------------------------------------------------
 
 export function Guide() {
-  const [selectedId, setSelectedId] = useState<PlatformId | null>(() =>
-    detectPlatform(),
-  );
-
+  const [selectedId, setSelectedId] = useState<PlatformId | null>(null);
   const platform = PLATFORMS.find((p) => p.id === selectedId) ?? null;
 
   return (
@@ -403,51 +384,44 @@ export function Guide() {
                 ))}
               </div>
             </div>
-            {platform ? (
-              <ClientCard platform={platform} />
-            ) : (
-              <div className={s.pendingNote}>
-                <p className={s.pendingTitle}>Платформа не выбрана</p>
-                <p className={s.pendingText}>
-                  Выберите устройство, чтобы получить точные подсказки.
-                </p>
-              </div>
-            )}
+            {platform ? <ClientCard platform={platform} /> : null}
           </div>
         </Step>
 
-        {/* Шаг 3 — получить ключ */}
-        <Step
-          number={3}
-          icon={<Copy size={15} />}
-          title="Скопировать ключ из профиля"
-          hint="Ключ содержит адрес сервера и ваши данные доступа."
-        >
-          <InfoBlock>
-            <p className={s.infoText}>
-              Bыберите сервер, нажмите кнопку{" "}
-              <Badge icon={<Copy size={11} />}>Скопировать ключ</Badge>
-            </p>
-            <div className={s.infoSeparator} />
-            <ul className={s.infoList}>
-              <li className={s.infoListItem}>Не редактируйте ключ вручную.</li>
-              <li className={s.infoListItem}>
-                Если сменили сервер, скопируйте ключ заново.
-              </li>
-            </ul>
-          </InfoBlock>
-        </Step>
+        {platform ? (
+          <>
+            {/* Шаг 3 — получить ключ */}
+            <Step
+              number={3}
+              icon={<Copy size={15} />}
+              title="Скопировать ключ из профиля"
+              hint="Ключ содержит адрес сервера и ваши данные доступа."
+            >
+              <InfoBlock>
+                <p className={s.infoText}>
+                  Bыберите сервер, нажмите кнопку{" "}
+                  <Badge icon={<Copy size={11} />}>Скопировать ключ</Badge>
+                </p>
+                <div className={s.infoSeparator} />
+                <ul className={s.infoList}>
+                  <li className={s.infoListItem}>
+                    Не редактируйте ключ вручную.
+                  </li>
+                  <li className={s.infoListItem}>
+                    Если сменили сервер, скопируйте ключ заново.
+                  </li>
+                </ul>
+              </InfoBlock>
+            </Step>
 
-        {/* Шаг 4 — импортировать конфигурацию */}
-        <Step
-          number={4}
-          icon={<Plus size={15} />}
-          title="Импортировать ключ в клиент"
-          hint="В большинстве приложений это делается через кнопку добавления профиля."
-        >
-          <InfoBlock>
-            {platform ? (
-              <>
+            {/* Шаг 4 — импортировать конфигурацию */}
+            <Step
+              number={4}
+              icon={<Plus size={15} />}
+              title="Импортировать ключ в клиент"
+              hint="В большинстве приложений это делается через кнопку добавления профиля."
+            >
+              <InfoBlock>
                 <p className={s.infoText}>
                   Откройте{" "}
                   <span className={s.stepKey}>{platform.clientName}</span> и
@@ -456,71 +430,60 @@ export function Guide() {
                 <div className={s.infoSeparator} />
                 <p className={s.infoText}>
                   Приложение автоматически создаст профиль из скопированного
-                  ключа. Разверните список, если профиль не видно (неочевидный UI клиента).
+                  ключа. Разверните список, если профиль не видно (неочевидный
+                  UI клиента).
                 </p>
-              </>
-            ) : (
-              <div className={s.pendingNote}>
-                <p className={s.pendingTitle}>Нужна выбранная платформа</p>
-                <p className={s.pendingText}>
-                  Вернитесь к шагу 2 и выберите устройство, чтобы увидеть точное
-                  название пункта импорта.
+              </InfoBlock>
+            </Step>
+
+            {/* Шаг 5 — подключиться */}
+            <Step
+              number={5}
+              icon={<CheckCircle2 size={15} />}
+              title="Включить VPN и проверить"
+              hint="После подключения интернет должен работать стабильно без ограничений."
+            >
+              <InfoBlock>
+                <p className={s.infoText}>{platform.connectAction}</p>
+                <div className={s.infoSeparator} />
+                <ul className={s.infoList}>
+                  <li className={s.infoListItem}>
+                    Проверьте, что статус соединения активен.
+                  </li>
+                  <li className={s.infoListItem}>
+                    Откройте сайт или видео для быстрой проверки.
+                  </li>
+                </ul>
+                <p className={s.successRow}>
+                  Если всё подключилось — настройка завершена.
                 </p>
-              </div>
-            )}
-          </InfoBlock>
-        </Step>
+              </InfoBlock>
+            </Step>
 
-        {/* Шаг 5 — подключиться */}
-        <Step
-          number={5}
-          icon={<CheckCircle2 size={15} />}
-          title="Включить VPN и проверить"
-          hint="После подключения интернет должен работать стабильно без ограничений."
-        >
-          <InfoBlock>
-            <p className={s.infoText}>
-              {platform
-                ? platform.connectAction
-                : "Откройте созданный профиль и включите соединение."}
-            </p>
-            <div className={s.infoSeparator} />
-            <ul className={s.infoList}>
-              <li className={s.infoListItem}>
-                Проверьте, что статус соединения активен.
-              </li>
-              <li className={s.infoListItem}>
-                Откройте сайт или видео для быстрой проверки.
-              </li>
-            </ul>
-            <p className={s.successRow}>
-              Если всё подключилось — настройка завершена.
-            </p>
-          </InfoBlock>
-        </Step>
-
-        {/* Шаг 6 — диагностика */}
-        <Step
-          number={6}
-          icon={<AlertTriangle size={15} />}
-          title="Если не подключается"
-          hint="Ниже самые частые причины и как их быстро проверить."
-          last
-        >
-          <InfoBlock>
-            <ul className={s.infoList}>
-              <li className={s.infoListItem}>
-                Перекопируйте ключ в профиле и импортируйте заново.
-              </li>
-              <li className={s.infoListItem}>
-                Проверьте, что аккаунт активен и выбран рабочий сервер.
-              </li>
-              <li className={s.infoListItem}>
-                Перезапустите клиент и попробуйте подключиться снова.
-              </li>
-            </ul>
-          </InfoBlock>
-        </Step>
+            {/* Шаг 6 — диагностика */}
+            <Step
+              number={6}
+              icon={<AlertTriangle size={15} />}
+              title="Если не подключается"
+              hint="Ниже самые частые причины и как их быстро проверить."
+              last
+            >
+              <InfoBlock>
+                <ul className={s.infoList}>
+                  <li className={s.infoListItem}>
+                    Перекопируйте ключ в профиле и импортируйте заново.
+                  </li>
+                  <li className={s.infoListItem}>
+                    Проверьте, что аккаунт активен и выбран рабочий сервер.
+                  </li>
+                  <li className={s.infoListItem}>
+                    Перезапустите клиент и попробуйте подключиться снова.
+                  </li>
+                </ul>
+              </InfoBlock>
+            </Step>
+          </>
+        ) : null}
       </div>
     </div>
   );

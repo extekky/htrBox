@@ -309,19 +309,31 @@ export const guide = {
 
   // ── ClientCard ───────────────────────────────────────────────
   // Карточка выбранного клиента
-  clientCard: `animate-fade-in flex items-center justify-between gap-3 ${radius.md} border border-border/55 bg-muted/35 px-4 py-3`,
+  clientCard: `animate-fade-in grid gap-4 ${radius.md} border border-border/55 bg-muted/35 px-4 py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:items-center`,
 
-  // Левый блок карточки
-  clientCardBody: "min-w-0",
+  // Левая зона: название + действие
+  clientCardPrimary: "flex w-full min-w-0 flex-col items-center gap-3 md:w-auto md:items-start",
 
   // Имя клиента
-  clientName: "text-sm font-semibold text-foreground leading-none mb-1",
+  clientName: "text-base font-semibold text-foreground leading-none text-center md:text-left",
 
   // Описание клиента
-  clientDesc: "text-xs text-muted-foreground leading-relaxed",
+  clientDesc: "text-sm leading-relaxed text-muted-foreground text-center",
 
-  // Ссылка скачать
-  clientDownloadLink: `inline-flex items-center gap-1 text-xs font-medium ${colorScheme.primary.text} hover:underline shrink-0`,
+  // Кнопка скачать
+  clientDownloadButton: [
+    "inline-flex w-full items-center justify-center gap-2 h-10 px-4 text-center",
+    radius.sm,
+    "text-sm font-medium",
+    colorScheme.primary.bg,
+    colorScheme.primary.text,
+    colorScheme.primary.hover,
+    colorScheme.primary.border,
+    "border shadow-sm shadow-slate-900/6",
+    transition.base,
+    "active:scale-[0.98]",
+    "md:w-auto",
+  ].join(" "),
 
   // ── InfoBlock ────────────────────────────────────────────────
   // Обёртка информационного блока
