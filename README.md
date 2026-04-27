@@ -1,6 +1,8 @@
 # htrBox
 
-Панель управления Hysteria 2 с разделением ролей, управлением пользователями и серверами, генерацией клиентских URL и сбором статистики трафика.
+VPN сервис на основе Hysteria 2 с разделением ролей, управлением пользователями и серверами, генерацией клиентских URL и сбором статистики трафика.
+
+![1](.github/images/image1.png)
 
 Проект состоит из:
 
@@ -8,6 +10,8 @@
 - `frontend` — React 19 + Vite + TypeScript интерфейс для администратора и пользователей
 - `hysteria` — локальная конфигурация Hysteria 2 для разработки
 - `prod` — production-compose конфиги для инфраструктуры и серверов
+
+![2](.github/images/image2.png)
 
 ## Возможности
 
@@ -21,6 +25,8 @@
 - сбор и агрегация трафика по 5-минутным бакетам
 - rate limiting для чувствительных endpoints
 - healthcheck и базовые security headers
+
+![3](.github/images/image3.png)
 
 ## Стек
 
@@ -46,6 +52,7 @@
 - Radix UI
 - Recharts
 
+![4](.github/images/image5.png)
 ## Архитектура
 
 ```text
@@ -61,6 +68,8 @@ Backend (FastAPI, :8000)
 ```
 
 В dev-режиме frontend проксирует `/api/*` в backend через `frontend/vite.config.ts`.
+
+![4](.github/images/image4.png)
 
 ## Структура репозитория
 
@@ -89,6 +98,8 @@ Backend (FastAPI, :8000)
 ├── docker-compose.yaml
 └── .env
 ```
+
+![6](.github/images/image6.png)
 
 ## Быстрый старт через Docker Compose
 
@@ -141,6 +152,8 @@ docker compose up --build
 - frontend: `http://localhost:5173`
 - backend healthcheck: `http://localhost:8000/health`
 - Swagger UI: `http://localhost:8000/docs` при `DOCS_ENABLED=true`
+
+![7](.github/images/image7.png)
 
 ## Ручной запуск без Docker
 
@@ -253,6 +266,7 @@ npm run build
 cd backend/source
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
+![8](.github/images/image8.png)
 
 ## Дальше
 
