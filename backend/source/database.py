@@ -131,8 +131,6 @@ def init_db() -> None:
         _create_servers_table(conn)
         _create_traffic_tables(conn)
         _create_refresh_tokens_table(conn)
-        # _migrate_column_types(conn)
-        _migrate_user_status_fields(conn)
         _seed_admin(conn)
         conn.commit()
 
@@ -154,8 +152,9 @@ def _create_users_table(conn: psycopg2.extensions.connection) -> None:
                 "usedTraffic" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
                 active        BOOLEAN NOT NULL DEFAULT FALSE,
                 expires_at    TIMESTAMPTZ DEFAULT NULL,
-                url_token     TEXT    DEFAULT NULL,
-                role          TEXT    NOT NULL DEFAULT 'user'
+                url_token     TEXT DEFAULT NULL,
+                role          TEXT NOT NULL DEFAULT 'user',
+                statuses      TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
             )
         """)
 
