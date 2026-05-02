@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # -- Yandex Cloud (frontend + backend + postgres) ------------------------------
-YC_HOST="93.77.187.20"
+YC_HOST="93.77.180.241"
 YC_USER="dolzhkevich"
 YC_KEY="$HOME/.ssh/ssh-key-yandex-cloud"
 YC_DIR="/home/dolzhkevich/htrBox"
