@@ -480,7 +480,8 @@ export const adminBoardPage = {
 
   kpiSectionTitle:
     "text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3",
-  kpiGrid: "grid grid-cols-4 gap-3",
+  kpiUsers: "grid grid-cols-4 gap-3",
+  kpiInfra: "grid grid-cols-3 gap-3",
   detailGrid: "grid grid-cols-2 gap-4",
 
   onlineBadge:

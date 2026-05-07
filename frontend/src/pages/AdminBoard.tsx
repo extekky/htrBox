@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   ShieldAlert,
   Activity,
-  Zap,
 } from "lucide-react";
 
 import { Link } from "wouter";
@@ -142,7 +141,7 @@ export function AdminBoard() {
         {/* Секция KPI: Пользователи */}
         <div>
           <p className={s.kpiSectionTitle}>Пользователи</p>
-          <div className={s.kpiGrid}>
+          <div className={s.kpiUsers}>
             <KpiCard
               label="Всего"
               value={totalUsers}
@@ -176,7 +175,7 @@ export function AdminBoard() {
         {/* Секция KPI: Инфраструктура */}
         <div>
           <p className={s.kpiSectionTitle}>Инфраструктура</p>
-          <div className={s.kpiGrid}>
+          <div className={s.kpiInfra}>
             <KpiCard
               label="Серверов"
               value={servers.length}
@@ -196,13 +195,6 @@ export function AdminBoard() {
               sub="сейчас"
               icon={Activity}
               accent={onlineCount > 0 ? "purple" : "default"}
-            />
-            <KpiCard
-              label="Активация"
-              value={`${activeUsers}/${totalUsers}`}
-              sub="активных"
-              icon={Zap}
-              accent="default"
             />
           </div>
         </div>
