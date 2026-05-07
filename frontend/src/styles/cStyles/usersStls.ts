@@ -177,7 +177,21 @@ export const userCreateModal = {
   ].join(" "),
 
   form: "flex flex-col gap-4",
+  tabs: "flex gap-1 p-0.5 bg-muted rounded-lg mb-4",
+  tabButton:
+    "flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+  tabButtonActive: "bg-card text-foreground shadow-sm",
+  tabButtonDefault: "text-muted-foreground hover:text-foreground",
   toggles: "flex flex-col gap-2",
+  subscriptionQuick: "flex flex-col gap-2",
+  subscriptionActions: "grid grid-cols-2 gap-2",
+  subscriptionButton: [
+    "inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg",
+    "text-xs font-medium bg-primary/10 text-primary border border-primary/20",
+    "hover:bg-primary/15 disabled:opacity-50",
+    transition.colors,
+  ].join(" "),
+  subscriptionHint: typography.hintText,
   divider: "h-px bg-border",
 } as const;
 
@@ -191,7 +205,8 @@ export const userStatusPicker = {
     "flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left",
     "transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50",
   ].join(" "),
-  optionDefault: "border-border bg-card text-muted-foreground hover:bg-muted/45",
+  optionDefault:
+    "border-border bg-card text-muted-foreground hover:bg-muted/45",
   optionSelected: "shadow-sm ring-1 ring-current/12",
   optionIcon: "size-4 shrink-0",
   optionLabel: "text-sm font-medium",
@@ -243,7 +258,7 @@ export const userEditModal = {
     transition.colors,
   ].join(" "),
   subscriptionHint: typography.hintText,
-  
+
   divider: "h-px bg-border",
 
   accessRoot: "flex flex-col gap-3",
@@ -271,8 +286,7 @@ export const userEditModal = {
     "flex flex-col gap-2.5 p-3.5 rounded-xl border border-border bg-muted/20",
   accessHyTop: "flex items-center justify-between",
   accessHyHead: "flex items-center gap-3",
-  accessHyIconWrap:
-    `w-9 h-9 rounded-full border flex items-center justify-center shrink-0 ${colorScheme.primary.bg} ${colorScheme.primary.text} ${colorScheme.primary.border}`,
+  accessHyIconWrap: `w-9 h-9 rounded-full border flex items-center justify-center shrink-0 ${colorScheme.primary.bg} ${colorScheme.primary.text} ${colorScheme.primary.border}`,
   accessHyTitle: "text-sm font-medium text-foreground",
   accessHyHint: "text-xs text-muted-foreground mt-0.5",
 
