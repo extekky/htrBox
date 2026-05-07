@@ -93,20 +93,25 @@ export const toaster = {
   ].join(" "),
 
   // Корень одного тоста — геометрия, тень
-  root: "group relative w-full overflow-hidden rounded-xl border border-border/70 p-4 shadow-lg shadow-slate-900/12",
+  root: [
+    "group relative w-full overflow-hidden rounded-xl border p-4",
+    "bg-card shadow-xl shadow-slate-900/14",
+  ].join(" "),
 
   // Анимации входа / выхода (Radix data-state)
   animate: [
-    "data-[state=open]:animate-in data-[state=open]:fade-in",
-    "data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full",
-    "data-[state=closed]:animate-out data-[state=closed]:fade-out-80",
-    "data-[state=closed]:slide-out-to-right-full",
+    "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-right-8",
+    "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-right-full",
+    "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)]",
+    "data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-transform",
+    "data-[swipe=end]:animate-out data-[swipe=end]:slide-out-to-right-full",
+    "duration-200 ease-[cubic-bezier(.2,.8,.2,1)]",
   ].join(" "),
 
   // Цветовые варианты корня — фон, рамка, текст
-  variantDefault: `${surface.card} text-foreground`,
-  variantDestructive: `${colorScheme.danger.bg} ${colorScheme.danger.border} ${colorScheme.danger.text}`,
-  variantSuccess: `${colorScheme.success.bg} ${colorScheme.success.border} ${colorScheme.success.text}`,
+  variantDefault: "border-border/80 text-foreground",
+  variantDestructive: `border-destructive/35 text-foreground`,
+  variantSuccess: `border-emerald-500/35 text-foreground`,
 
   // Прогресс-бар внизу тоста
   progress: "absolute bottom-0 left-0 h-1 w-full origin-left animate-shrink",
@@ -126,11 +131,11 @@ export const toaster = {
 
   // Кнопка закрытия
   closeBtn: [
-    "rounded-md p-1.5 text-muted-foreground opacity-70",
-    "transition-opacity hover:opacity-100 focus:opacity-100",
+    "inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground",
+    "transition-colors hover:bg-muted hover:text-foreground",
     "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   ].join(" "),
-  closeIcon: "h-4 w-4",
+  closeIcon: "size-4",
 } as const;
 
 // -------------------------------------------------------------
@@ -312,10 +317,12 @@ export const guide = {
   clientCard: `animate-fade-in grid gap-4 ${radius.md} border border-border/55 bg-muted/35 px-4 py-4 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:items-center`,
 
   // Левая зона: название + действие
-  clientCardPrimary: "flex w-full min-w-0 flex-col items-center gap-3 md:w-auto md:items-start",
+  clientCardPrimary:
+    "flex w-full min-w-0 flex-col items-center gap-3 md:w-auto md:items-start",
 
   // Имя клиента
-  clientName: "text-base font-semibold text-foreground leading-none text-center md:text-left",
+  clientName:
+    "text-base font-semibold text-foreground leading-none text-center md:text-left",
 
   // Описание клиента
   clientDesc: "text-sm leading-relaxed text-muted-foreground text-center",

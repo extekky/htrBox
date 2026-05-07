@@ -1,5 +1,6 @@
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { DEFAULT_TOAST_DURATION } from "@/lib/constants";
 import { useToastStore } from "@/stores/toastStore";
@@ -50,12 +51,31 @@ function ToastItem({
   duration = DEFAULT_TOAST_DURATION,
   onRemove,
 }: ToastItemProps) {
+  const [open, setOpen] = useState(true);
+  const removeTimerRef = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (removeTimerRef.current) {
+        window.clearTimeout(removeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+
+    if (!nextOpen) {
+      removeTimerRef.current = window.setTimeout(() => onRemove(id), 220);
+    }
+  };
+
   return (
     <ToastPrimitives.Root
+      open={open}
       duration={duration}
-      onOpenChange={(open) => {
-        if (!open) onRemove(id);
-      }}
+      onOpenChange={handleOpenChange}
       className={cn(s.root, s.animate, VARIANT_ROOT[variant])}
     >
       {/* Прогресс-бар (требует @keyframes shrink в глобальных стилях) */}

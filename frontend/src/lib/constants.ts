@@ -4,9 +4,9 @@
 export const DEFAULT_TRAFFIC_LIMIT_GB = 10;
 
 /**
- * Время показа тоста в мс (5 секунд)
+ * Время показа тоста в мс (3 секунды)
  */
-export const DEFAULT_TOAST_DURATION = 5000;
+export const DEFAULT_TOAST_DURATION = 3000;
 
 // -------------------------------------------------------------
 // Paths для иконок операционных систем
