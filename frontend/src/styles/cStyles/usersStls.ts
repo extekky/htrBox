@@ -233,6 +233,17 @@ export const userEditModal = {
 
   mainForm: "flex flex-col gap-4",
   mainToggles: "flex flex-col gap-2",
+
+  subscriptionQuick: "flex flex-col gap-2",
+  subscriptionActions: "grid grid-cols-2 gap-2",
+  subscriptionButton: [
+    "inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg",
+    "text-xs font-medium bg-primary/10 text-primary border border-primary/20",
+    "hover:bg-primary/15 disabled:opacity-50",
+    transition.colors,
+  ].join(" "),
+  subscriptionHint: typography.hintText,
+  
   divider: "h-px bg-border",
 
   accessRoot: "flex flex-col gap-3",

@@ -82,7 +82,7 @@ export const createUserSchema = z.object({
   allowed: z.boolean(),
   active: z.boolean(),
   expires_at: expiresAtSchema,
-  statuses: z.array(userStatusSchema).default([]),
+  statuses: z.array(userStatusSchema),
 });
 
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -98,7 +98,7 @@ export const updateUserSchema = z.object({
   allowed: z.boolean(),
   active: z.boolean(),
   expires_at: expiresAtSchema,
-  statuses: z.array(userStatusSchema).default([]),
+  statuses: z.array(userStatusSchema),
 });
 
 export type UpdateUserFormValues = z.infer<typeof updateUserSchema>;

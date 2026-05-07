@@ -13,9 +13,11 @@ import {
   AlertTriangle,
   Activity,
   RotateCcw,
+  BadgeCheck,
 } from "lucide-react";
 
 import { Modal } from "@/components/ui/Modal";
+import { FormLabel } from "@/components/ui/FormLabel";
 import { FormInput } from "@/components/ui/FormInput";
 import { ModalActions } from "@/components/ui/ModalActions";
 import { ToggleCard } from "@/components/ui/ToggleCard";
@@ -31,8 +33,8 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { updateUserSchema, type UpdateUserFormValues } from "@/lib/validators";
 import {
-  toInputDatetimeLocal,
   fromInputDatetimeLocal,
+  toInputDatetimeLocal,
   toGB,
 } from "@/lib/formatters";
 import { DEFAULT_TRAFFIC_LIMIT_GB } from "@/lib/constants";
@@ -42,7 +44,23 @@ import { styles } from "@/styles";
 
 const s = styles.userEditModal;
 
-type Tab = "main" | "access" | "traffic";
+type Tab = "main" | "statuses" | "access" | "traffic";
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function parseFormExpiry(value: string | null | undefined) {
+  if (!value) return null;
+
+  const iso = fromInputDatetimeLocal(value);
+  if (!iso) return null;
+
+  const date = new Date(iso);
+  return isNaN(date.getTime()) ? null : date;
+}
 
 // -------------------------------------------------------------
 // Вкладка «Доступ» — роль и Hysteria-пароль
@@ -344,7 +362,13 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
 
   const allowed = watch("allowed");
   const active = watch("active");
+  const expiresAt = watch("expires_at");
   const statuses = watch("statuses");
+
+  const now = new Date();
+  const expiryDate = parseFormExpiry(expiresAt);
+  const hasActiveSubscription = !!active && !!expiryDate && expiryDate > now;
+  const canStartSubscription = !expiryDate || expiryDate <= now;
 
   function toggleStatus(status: UserStatusKey) {
     const next = statuses.includes(status)
@@ -352,6 +376,33 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
       : [...statuses, status];
 
     setValue("statuses", next, { shouldValidate: true });
+  }
+
+  function extendActiveSubscription() {
+    if (!hasActiveSubscription || !expiryDate) return;
+
+    setValue(
+      "expires_at",
+      toInputDatetimeLocal(addDays(expiryDate, 29).toISOString()),
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
+  }
+
+  function startExpiredSubscription() {
+    if (!canStartSubscription) return;
+
+    setValue("active", true, { shouldDirty: true, shouldValidate: true });
+    setValue(
+      "expires_at",
+      toInputDatetimeLocal(addDays(now, 29).toISOString()),
+      {
+        shouldDirty: true,
+        shouldValidate: true,
+      },
+    );
   }
 
   function onSubmit(values: UpdateUserFormValues) {
@@ -382,6 +433,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "main", label: "Основное", icon: <Settings size={13} /> },
+    { id: "statuses", label: "Статусы", icon: <BadgeCheck size={13} /> },
     { id: "access", label: "Доступ", icon: <Shield size={13} /> },
     { id: "traffic", label: "Трафик", icon: <Activity size={13} /> },
   ];
@@ -392,7 +444,7 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
       onClose={onClose}
       title="Редактировать пользователя"
       footer={
-        tab === "main" ? (
+        tab !== "traffic" ? (
           <ModalActions
             formId="user-edit-form"
             label="Сохранить"
@@ -451,50 +503,81 @@ export function UserEditModal({ user, onClose }: UserEditModalProps) {
           ))}
         </div>
 
-        {/* Основная вкладка */}
-        {tab === "main" && (
-          <form
-            id="user-edit-form"
-            onSubmit={handleSubmit(onSubmit)}
-            noValidate
-            className={s.mainForm}
-          >
-            <div className={s.mainToggles}>
-              <ToggleCard
-                label="Доступ к сервису"
-                description={allowed ? "Не забанен" : "Будет забанен"}
-                checked={!!allowed}
-                onChange={(v) => setValue("allowed", v)}
+        <form
+          id="user-edit-form"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          className={s.mainForm}
+        >
+          {/* Основная вкладка */}
+          {tab === "main" && (
+            <>
+              <div className={s.mainToggles}>
+                <ToggleCard
+                  label="Доступ к сервису"
+                  description={allowed ? "Не забанен" : "Будет забанен"}
+                  checked={!!allowed}
+                  onChange={(v) => setValue("allowed", v)}
+                />
+                <ToggleCard
+                  label="Подписка"
+                  description={
+                    active ? "Будет активирована" : "Будет отключена"
+                  }
+                  checked={!!active}
+                  onChange={(v) => setValue("active", v)}
+                />
+              </div>
+
+              <div className={s.divider} />
+
+              {/* Дата истечения — нативный datetime-local */}
+              <FormInput
+                label="Истекает"
+                id="user-expires"
+                type="datetime-local"
+                error={errors.expires_at?.message}
+                {...register("expires_at")}
               />
-              <ToggleCard
-                label="Подписка"
-                description={active ? "Будет активирована" : "Будет отключена"}
-                checked={!!active}
-                onChange={(v) => setValue("active", v)}
-              />
-            </div>
 
-            <div className={s.divider} />
+              <div className={s.subscriptionQuick}>
+                <FormLabel>Быстрое продление</FormLabel>
+                <div className={s.subscriptionActions}>
+                  <button
+                    type="button"
+                    onClick={extendActiveSubscription}
+                    disabled={!hasActiveSubscription}
+                    className={s.subscriptionButton}
+                  >
+                    Продлить
+                  </button>
+                  <button
+                    type="button"
+                    onClick={startExpiredSubscription}
+                    disabled={!canStartSubscription}
+                    className={s.subscriptionButton}
+                  >
+                    Активировать
+                  </button>
+                </div>
+                <p className={s.subscriptionHint}>
+                  Продлить — для активных: +29 дней от конечной даты.
+                  <br />
+                  Активировать — для неактивных: +29 дней от текущей даты.
+                </p>
+              </div>
+            </>
+          )}
 
-            <UserStatusPicker
-              statuses={statuses}
-              onToggle={toggleStatus}
-            />
+          {tab === "statuses" && (
+            <UserStatusPicker statuses={statuses} onToggle={toggleStatus} />
+          )}
 
-            {/* Дата истечения — нативный datetime-local */}
-            <FormInput
-              label="Истекает (обязательно)"
-              id="user-expires"
-              type="datetime-local"
-              error={errors.expires_at?.message}
-              {...register("expires_at")}
-            />
-          </form>
-        )}
+          {tab === "access" && (
+            <AccessTab user={user} register={register} errors={errors} />
+          )}
+        </form>
 
-        {tab === "access" && (
-          <AccessTab user={user} register={register} errors={errors} />
-        )}
         {tab === "traffic" && <TrafficTab user={user} />}
       </div>
     </Modal>
