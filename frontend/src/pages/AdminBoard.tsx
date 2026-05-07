@@ -233,7 +233,9 @@ export function AdminBoard() {
                   <div className={s.sectionRowMain}>
                     <span className={s.sectionRowName}>{username}</span>
                   </div>
-                  <span className={s.sectionRowMeta}>{info.connections} соед.</span>
+                  <span className={s.sectionRowMeta}>
+                    {info.connections} соед.
+                  </span>
                 </SectionRow>
               ))
             )}
@@ -272,7 +274,9 @@ export function AdminBoard() {
                     <span
                       className={cn(
                         s.expiringStatus,
-                        urgent ? s.expiringStatusUrgent : s.expiringStatusWarning,
+                        urgent
+                          ? s.expiringStatusUrgent
+                          : s.expiringStatusWarning,
                       )}
                     >
                       {formatDaysLeft(u.expires_at)}

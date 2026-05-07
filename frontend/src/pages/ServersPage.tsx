@@ -34,7 +34,10 @@ export function ServersPage() {
             <p className={s.subtitle}>Управление серверами</p>
           </div>
 
-          <button onClick={() => setShowCreate(true)} className={s.createButton}>
+          <button
+            onClick={() => setShowCreate(true)}
+            className={s.createButton}
+          >
             <Plus size={15} />
             Добавить сервер
           </button>

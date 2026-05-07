@@ -96,15 +96,19 @@
   body {
     @apply text-foreground antialiased;
     background:
-      radial-gradient(1200px circle at 10% -10%, oklch(0.96 0.018 252) 0%, transparent 45%),
-      radial-gradient(1000px circle at 100% 0%, oklch(0.965 0.014 238) 0%, transparent 44%),
+      radial-gradient(
+        1200px circle at 10% -10%,
+        oklch(0.96 0.018 252) 0%,
+        transparent 45%
+      ),
+      radial-gradient(
+        1000px circle at 100% 0%,
+        oklch(0.965 0.014 238) 0%,
+        transparent 44%
+      ),
       var(--background);
     font-family:
-      "Manrope",
-      "Nunito Sans",
-      "Avenir Next",
-      "Segoe UI",
-      sans-serif;
+      "Manrope", "Nunito Sans", "Avenir Next", "Segoe UI", sans-serif;
     font-feature-settings:
       "rlig" 1,
       "calt" 1,
@@ -168,7 +172,11 @@
         oklch(0.82 0.032 246 / 0.28) 0%,
         transparent 78%
       ),
-      linear-gradient(180deg, oklch(0.962 0.006 252) 0%, oklch(0.952 0.006 252) 100%);
+      linear-gradient(
+        180deg,
+        oklch(0.962 0.006 252) 0%,
+        oklch(0.952 0.006 252) 100%
+      );
     background-repeat: no-repeat;
     /* background-attachment: fixed, fixed, fixed, fixed, fixed; */
   }

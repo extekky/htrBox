@@ -175,8 +175,7 @@ function TopHeader() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={s.dropdownWidth}>
               <DropdownMenuItem onClick={() => navigate("/about")}>
-                <Info size={14} />
-                О сервисе
+                <Info size={14} />О сервисе
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {/* Пункт выхода — красный, заблокирован во время запроса */}

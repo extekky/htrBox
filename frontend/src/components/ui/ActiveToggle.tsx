@@ -34,12 +34,7 @@ export function ActiveToggle({ server }: ActiveToggleProps) {
       aria-checked={server.active}
       className={cn(s.root, server.active ? s.on : s.off)}
     >
-      <span
-        className={cn(
-          s.thumb,
-          server.active ? s.thumbOn : s.thumbOff,
-        )}
-      />
+      <span className={cn(s.thumb, server.active ? s.thumbOn : s.thumbOff)} />
     </button>
   );
 }

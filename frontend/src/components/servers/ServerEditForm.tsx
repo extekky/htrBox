@@ -189,7 +189,10 @@ export function ServerEditModal({ server, onClose }: ServerEditModalProps) {
             <button
               type="button"
               onClick={toggleTls}
-              className={cn(s.tlsButton, useTls ? s.tlsButtonOn : s.tlsButtonOff)}
+              className={cn(
+                s.tlsButton,
+                useTls ? s.tlsButtonOn : s.tlsButtonOff,
+              )}
             >
               {useTls ? "TLS ✓" : "Использовать TLS"}
             </button>

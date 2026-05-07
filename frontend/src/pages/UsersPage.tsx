@@ -36,7 +36,10 @@ export function UserManage() {
             <p className={s.subtitle}>Управление аккаунтами</p>
           </div>
 
-          <button onClick={() => setShowCreate(true)} className={s.createButton}>
+          <button
+            onClick={() => setShowCreate(true)}
+            className={s.createButton}
+          >
             <UserPlus size={15} />
             Добавить
           </button>

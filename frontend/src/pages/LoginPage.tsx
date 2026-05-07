@@ -1,7 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, UserPlus, MessageCircleQuestionMark} from "lucide-react";
+import { Loader2, UserPlus, MessageCircleQuestionMark } from "lucide-react";
 
 import { login } from "@/api/auth";
 import { useAuthStore } from "@/stores/authStore";

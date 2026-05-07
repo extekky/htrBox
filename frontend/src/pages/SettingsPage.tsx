@@ -77,9 +77,7 @@ function HysteriaSection({ username }: { username: string }) {
             <Key size={18} />
           </div>
           <div className={s.sectionInfo}>
-            <CardTitle className={s.sectionTitle}>
-              Hysteria VPN ключ
-            </CardTitle>
+            <CardTitle className={s.sectionTitle}>Hysteria VPN ключ</CardTitle>
             <CardDescription className={s.sectionDescription}>
               Ключ используется в VPN-клиенте для подключения. После
               перегенерации текущие VPN ключи станут недействительными.
