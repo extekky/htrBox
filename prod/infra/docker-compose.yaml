@@ -4,6 +4,7 @@
 #  pgdata живёт в ~/htrBox-data/pgdata (вне проекта)
 #  Сертификаты: /etc/letsencrypt (управляются certbot на хосте)
 # -----------------------------------------------------
+
 services:
     postgres:
         image: postgres:17-alpine
@@ -12,7 +13,7 @@ services:
             - .env
         volumes:
             # хранится вне проекта, чтобы не потерять при удалении контейнера
-            - /home/dolzhkevich/htrBox-data/pgdata:/var/lib/postgresql/data
+            - /home/stas/htrBox-data/pgdata:/var/lib/postgresql/data
         networks:
             - vpn_net
         restart: unless-stopped

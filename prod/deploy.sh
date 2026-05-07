@@ -10,11 +10,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # -- Yandex Cloud (frontend + backend + postgres) ------------------------------
-YC_HOST="93.77.180.241"
-YC_USER="dolzhkevich"
-YC_KEY="$HOME/.ssh/ssh-key-yandex-cloud"
-YC_DIR="/home/dolzhkevich/htrBox"
-YC_DATA_DIR="/home/dolzhkevich/htrBox-data"
+YC_HOST="51.250.36.236"
+YC_USER="stas"
+YC_KEY="$HOME/.ssh/id_rsa"
+YC_DIR="/home/stas/htrBox"
+YC_DATA_DIR="/home/stas/htrBox-data"
 
 # -- VPS Sweden (hysteria) -----------------------------------------------------
 VPS_HOST_SE="193.25.216.190"

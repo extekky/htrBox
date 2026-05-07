@@ -9,10 +9,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-YC_HOST="93.77.180.241"
-YC_USER="dolzhkevich"
-YC_KEY="$HOME/.ssh/ssh-key-yandex-cloud"
-YC_DIR="/home/dolzhkevich/htrBox"
+YC_HOST="51.250.36.236"
+YC_USER="stas"
+YC_KEY="$HOME/.ssh/ip_rsa"
+YC_DIR="/home/stas/htrBox"
 
 VPS_HOST_SE="193.25.216.190"
 VPS_USER_SE="root"
