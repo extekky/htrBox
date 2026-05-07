@@ -2,6 +2,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { styles } from "@/styles";
+import { ModalStackProvider, useModalStackLayer } from "./ModalStack";
 
 // -------------------------------------------------------------
 // Карта размеров модального окна
@@ -72,38 +73,45 @@ export function Modal({
   className,
 }: ModalProps) {
   const s = styles.modal;
+  const { nextDepth, overlayStyle, contentStyle } = useModalStackLayer();
+
   return (
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
-      <Dialog.Portal>
-        {/* Фон */}
-        <Dialog.Overlay className={s.overlay} />
+      <ModalStackProvider depth={nextDepth}>
+        <Dialog.Portal>
+          {/* Фон */}
+          <Dialog.Overlay className={s.overlay} style={overlayStyle} />
 
-        {/* Панель содержимого */}
-        <Dialog.Content className={cn(s.content, SIZE_CLASS[size], className)}>
-          {/* Заголовок */}
-          <div className={s.header}>
-            <div>
-              <Dialog.Title className={s.title}>{title}</Dialog.Title>
-              {description && (
-                <Dialog.Description className={s.description}>
-                  {description}
-                </Dialog.Description>
-              )}
+          {/* Панель содержимого */}
+          <Dialog.Content
+            className={cn(s.content, SIZE_CLASS[size], className)}
+            style={contentStyle}
+          >
+            {/* Заголовок */}
+            <div className={s.header}>
+              <div>
+                <Dialog.Title className={s.title}>{title}</Dialog.Title>
+                {description && (
+                  <Dialog.Description className={s.description}>
+                    {description}
+                  </Dialog.Description>
+                )}
+              </div>
+
+              <Dialog.Close onClick={onClose} className={s.closeBtn}>
+                <X size={15} />
+                <span className="sr-only">Close</span>
+              </Dialog.Close>
             </div>
 
-            <Dialog.Close onClick={onClose} className={s.closeBtn}>
-              <X size={15} />
-              <span className="sr-only">Close</span>
-            </Dialog.Close>
-          </div>
+            {/* Тело */}
+            <div className={s.body}>{children}</div>
 
-          {/* Тело */}
-          <div className={s.body}>{children}</div>
-
-          {/* Нижний колонтитул (опционально) */}
-          {footer && <div className={s.footer}>{footer}</div>}
-        </Dialog.Content>
-      </Dialog.Portal>
+            {/* Нижний колонтитул (опционально) */}
+            {footer && <div className={s.footer}>{footer}</div>}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </ModalStackProvider>
     </Dialog.Root>
   );
 }
