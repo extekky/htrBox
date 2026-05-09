@@ -77,7 +77,26 @@ class _ColourFormatter(logging.Formatter):
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def setup_logging(log_level: str = "DEBUG") -> None:
+def _resolve_log_level(log_level: str) -> int:
+    """Convert a log-level name to the integer value used by logging."""
+    levels = {
+        "DEBUG":    logging.DEBUG,
+        "INFO":     logging.INFO,
+        "WARNING":  logging.WARNING,
+        "ERROR":    logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+    
+    try:
+        return levels[log_level.strip().upper()]
+    except KeyError:
+        raise ValueError(
+            f"Invalid LOG_LEVEL={log_level!r}. "
+            "Expected DEBUG, INFO, WARNING, ERROR, or CRITICAL."
+        ) from None
+
+
+def setup_logging(log_level: str = "INFO") -> None:
     """
     Configure the root logger and all handlers.
 
@@ -93,6 +112,12 @@ def setup_logging(log_level: str = "DEBUG") -> None:
     # Reading the env var directly keeps logging_config free of that dependency.
     in_docker = os.getenv("DOCKER_ENV", "").lower() in ("true", "1", "yes")
 
+    resolved_log_level = _resolve_log_level(log_level)
+
+    # Keep handlers open enough for uvicorn.access INFO records even when the
+    # application itself is configured for WARNING/ERROR.
+    handler_log_level = min(resolved_log_level, logging.INFO)
+
     # Colour is enabled when stderr is a real TTY, or when running inside
     # Docker (output goes to the Docker log driver which preserves ANSI).
     use_colour = in_docker or (hasattr(sys.stderr, "isatty") and sys.stderr.isatty())
@@ -104,7 +129,7 @@ def setup_logging(log_level: str = "DEBUG") -> None:
     # Build handlers programmatically so we can pass the formatter instance
     # directly (dictConfig only supports formatter *classes*, not instances).
     console_handler = logging.StreamHandler(sys.stderr)
-    console_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(handler_log_level)
     console_handler.setFormatter(_ColourFormatter(_FMT_CONSOLE, _DATEFMT, use_colour))
 
     handlers: list[logging.Handler] = [console_handler]
@@ -119,14 +144,14 @@ def setup_logging(log_level: str = "DEBUG") -> None:
             backupCount=7,
             encoding="utf-8",
         )
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(handler_log_level)
         # Plain formatter for files — no ANSI codes in log archives
         file_handler.setFormatter(logging.Formatter(_FMT_VERBOSE, datefmt=_DATEFMT))
         handlers.append(file_handler)
 
     # Apply to root logger
     root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
+    root.setLevel(resolved_log_level)
     root.handlers.clear()
     for h in handlers:
         root.addHandler(h)
@@ -141,7 +166,7 @@ def setup_logging(log_level: str = "DEBUG") -> None:
         "routers.hysteria", "routers.traffic", "routers.ws",
     ]
     for name in app_namespaces:
-        logging.getLogger(name).setLevel(log_level)
+        logging.getLogger(name).setLevel(resolved_log_level)
 
     # Suppress noisy third-party libraries
     for name in ("uvicorn", "uvicorn.error", "fastapi", "asyncio",
