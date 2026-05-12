@@ -9,7 +9,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-YC_HOST="51.250.36.236"
+YC_HOST="81.26.182.217"
 YC_USER="stas"
 YC_KEY="$HOME/.ssh/ip_rsa"
 YC_DIR="/home/stas/htrBox"
