@@ -12,6 +12,7 @@ Schema overview:
   traffic_last   - Last-seen cumulative byte counters per user per server
   traffic_5m     - 5-minute aggregated traffic buckets for Grafana / analytics
   refresh_tokens - Active JWT refresh tokens (enables server-side revocation)
+  maintenance_state - Small key/value state for recurring maintenance tasks
 
 --------------------------------------------------------------------
  Security note: hyPassword stored as plaintext — intentional design
@@ -131,6 +132,7 @@ def init_db() -> None:
         _create_servers_table(conn)
         _create_traffic_tables(conn)
         _create_refresh_tokens_table(conn)
+        _create_maintenance_state_table(conn)
         _seed_admin(conn)
         conn.commit()
 
@@ -225,6 +227,17 @@ def _create_refresh_tokens_table(conn: psycopg2.extensions.connection) -> None:
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires  ON refresh_tokens(expires_at)"
         )
+
+
+def _create_maintenance_state_table(conn: psycopg2.extensions.connection) -> None:
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS maintenance_state (
+                key        TEXT PRIMARY KEY,
+                value      TEXT NOT NULL,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
 
 
 # ---------------------------------------------------------------------------
