@@ -1,7 +1,7 @@
 /**
  * Стандартный лимит трафика в ГБ (по умолчанию).
  */
-export const DEFAULT_TRAFFIC_LIMIT_GB = 10;
+export const DEFAULT_TRAFFIC_LIMIT_GB = 100;
 
 /**
  * Время показа тоста в мс (3 секунды)

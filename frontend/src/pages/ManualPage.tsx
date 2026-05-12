@@ -295,7 +295,7 @@ export function ManualPage() {
                 {/* warning — ограничение трафика */}
                 <RuleCard
                   icon={<Download size={14} />}
-                  text="Лимит трафика — не ограничен, но цветовая индикация в профиле ориентирована на 10 Гб."
+                  text="Лимит трафика — не ограничен, но цветовая индикация в профиле ориентирована на 100 Гб."
                   variant="warning"
                 />
                 {/* danger — запрет */}
@@ -345,7 +345,7 @@ export function ManualPage() {
                     <div className={s.paymentFeatures}>
                       {[
                         "Hysteria2 протокол",
-                        "До 1 ТБ трафика",
+                        "Трафик не ограничен",
                         "1 устройство",
                       ].map((feature) => (
                         <div key={feature} className={s.paymentFeature}>
