@@ -45,8 +45,6 @@ export function useUsers() {
   return useQuery<UserResponse[]>({
     queryKey: USER_KEYS.list,
     queryFn: getUsers,
-    select: (data) =>
-      [...data].sort((a, b) => a.username.localeCompare(b.username)),
     // staleTime наследуется из глобального конфига (~30s)
   });
 }
