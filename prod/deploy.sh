@@ -34,6 +34,12 @@ VPS_USER_GE="root"
 VPS_KEY_GE="$HOME/.ssh/id_rsa"
 VPS_DIR_GE="/root/htrBox"
 
+# -- VPS Poland (hysteria) —----------------------------------------------------
+VPS_HOST_PL="2.26.5.104"
+VPS_USER_PL="root"
+VPS_KEY_PL="$HOME/.ssh/id_rsa"
+VPS_DIR_PL="/root/htrBox"
+
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
 log()  { echo -e "${GREEN}[✓]${NC} $1"; }
 warn() { echo -e "${YELLOW}[!]${NC} $1"; }
@@ -48,6 +54,7 @@ fail() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 # ----------------------------------------------------
 # ДЕПЛОЙ Yandex Cloud (frontend + backend + postgres)
 # ----------------------------------------------------
+
 deploy_yc() {
   echo ""
   echo "-------------------------------------------"
@@ -156,6 +163,7 @@ deploy_yc() {
 # ----------------------------------------------------
 # ДЕПЛОЙ VPS Sweden (hysteria)
 # ----------------------------------------------------
+
 deploy_vps_se() {
   echo ""
   echo "-------------------------------------------"
@@ -235,6 +243,7 @@ deploy_vps_se() {
 # ----------------------------------------------------
 # ДЕПЛОЙ VPS Nether (hysteria)
 # ----------------------------------------------------
+
 deploy_vps_nl() {
   echo ""
   echo "-------------------------------------------"
@@ -340,6 +349,7 @@ deploy_vps_nl() {
 # ----------------------------------------------------
 # ДЕПЛОЙ VPS Germany (hysteria)
 # ----------------------------------------------------
+
 deploy_vps_ge() {
   echo ""
   echo "-------------------------------------------"
@@ -443,15 +453,123 @@ deploy_vps_ge() {
 }
 
 # ----------------------------------------------------
+# ДЕПЛОЙ VPS Poland (hysteria)
+# ----------------------------------------------------
+
+deploy_vps_pl() {
+  echo ""
+  echo "-------------------------------------------"
+  echo "    Деплой -> Poland VPS ($VPS_HOST_PL)"
+  echo "-------------------------------------------"
+
+  [ ! -f "$SCRIPT_DIR/certificates/vps-poland.ini" ]              && fail "certificates/vps-poland.ini не найден"
+  [ ! -f "$SCRIPT_DIR/servers/docker-compose.pl.yaml" ]           && fail "servers/docker-compose.pl.yaml не найден"
+  [ ! -f "$SCRIPT_DIR/servers/.env" ]                             && fail "servers/.env не найден"
+
+  log "Создаём директорию $VPS_DIR_PL..."
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" "mkdir -p $VPS_DIR_PL/hysteria"
+
+  log "Копируем hysteria конфиг и docker-compose..."
+  scp -i "$VPS_KEY_PL" "$SCRIPT_DIR/servers/config.yaml"                    "$VPS_USER_PL@$VPS_HOST_PL:$VPS_DIR_PL/hysteria/config.yaml"
+  scp -i "$VPS_KEY_PL" "$SCRIPT_DIR/servers/docker-compose.pl.yaml"         "$VPS_USER_PL@$VPS_HOST_PL:$VPS_DIR_PL/docker-compose.yaml"
+  scp -i "$VPS_KEY_PL" "$SCRIPT_DIR/servers/.env"                           "$VPS_USER_PL@$VPS_HOST_PL:$VPS_DIR_PL/.env"
+
+  log "Копируем Cloudflare токен..."
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
+  scp -i "$VPS_KEY_PL" "$SCRIPT_DIR/certificates/vps-poland.ini" "$VPS_USER_PL@$VPS_HOST_PL:~/.secrets/cloudflare-vps.ini"
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" "chmod 600 ~/.secrets/cloudflare-vps.ini"
+
+  log "Проверяем Docker..."
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" '
+    if ! command -v docker &>/dev/null; then
+      echo "  -> Docker не найден, устанавливаем..."
+      apt-get update -qq
+      apt-get install -y -qq ca-certificates curl gnupg
+      install -m 0755 -d /etc/apt/keyrings
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      chmod a+r /etc/apt/keyrings/docker.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+        https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+        > /etc/apt/sources.list.d/docker.list
+      apt-get update -qq
+      apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      systemctl enable docker && systemctl start docker
+      echo "  -> Docker установлен ✓"
+    else
+      echo "  -> Docker уже установлен: $(docker --version)"
+    fi
+    if ! systemctl is-active --quiet docker; then
+      systemctl start docker && sleep 3
+    fi
+    echo "  -> Docker daemon активен ✓"
+  '
+
+  log "Проверяем сертификат для pl.stdoq.ru..."
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" '
+    CERT_PATH="/etc/letsencrypt/live/pl.stdoq.ru/fullchain.pem"
+    RENEW_NEEDED=false
+
+    if [ ! -f "$CERT_PATH" ]; then
+      echo "  -> Сертификат не найден, получаем новый..."
+      RENEW_NEEDED=true
+    else
+      EXPIRY=$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)
+      EXPIRY_TS=$(date -d "$EXPIRY" +%s 2>/dev/null || date -j -f "%b %d %T %Y %Z" "$EXPIRY" +%s 2>/dev/null)
+      NOW_TS=$(date +%s)
+      DAYS_LEFT=$(( (EXPIRY_TS - NOW_TS) / 86400 ))
+      echo "  -> Сертификат найден, осталось дней: $DAYS_LEFT"
+      [ "$DAYS_LEFT" -lt 30 ] && RENEW_NEEDED=true
+    fi
+
+    if [ "$RENEW_NEEDED" = true ]; then
+      if ! command -v certbot &>/dev/null; then
+        echo "  -> Устанавливаем certbot..."
+        apt-get update -qq && apt-get install -y -qq certbot python3-certbot-dns-cloudflare
+      fi
+      certbot certonly \
+        --dns-cloudflare \
+        --dns-cloudflare-credentials ~/.secrets/cloudflare-vps.ini \
+        -d pl.stdoq.ru \
+        --email st.stanislove@yandex.ru \
+        --agree-tos --no-eff-email \
+        --non-interactive
+      echo "  -> Сертификат получен ✓"
+    else
+      echo "  -> Сертификат актуален, пропускаем ✓"
+    fi
+  '
+
+  log "Запускаем hysteria..."
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" "
+    cd $VPS_DIR_PL
+    docker compose -f docker-compose.yaml pull
+    docker compose -f docker-compose.yaml up -d --force-recreate hysteria
+    docker image prune -f
+  "
+
+  echo ""
+  echo "---- Статус контейнеров ----"
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" "docker ps --filter name=hysteria --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+
+  echo ""
+  echo "---- Логи hysteria (последние 20 строк) ----"
+  ssh -i "$VPS_KEY_PL" "$VPS_USER_PL@$VPS_HOST_PL" "docker logs hysteria --tail=20"
+
+  log "Poland VPS задеплоен ✓"
+}
+
+# ----------------------------------------------------
 # ТОЧКА ВХОДА
 # ----------------------------------------------------
+
 case "${1}" in
   yc)      deploy_yc ;;
   vps-se)  deploy_vps_se ;;
   vps-nl)  deploy_vps_nl ;;
   vps-ge)  deploy_vps_ge ;;
+  vps-pl)  deploy_vps_pl ;;
   *)
-    echo "Использование: ./deploy.sh [yc|vps-se|vps-nl|vps-ge]"
+    echo "Использование: ./deploy.sh [yc|vps-se|vps-nl|vps-ge|vps-pl]"
     exit 1
     ;;
 esac

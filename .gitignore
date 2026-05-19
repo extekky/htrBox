@@ -22,6 +22,10 @@ build/
 # Storybook build output
 storybook-static/
 
+# Python bytecode and cache
+# -------------------------------------------------------------
+*__pycache__/
+
 # Environment variables
 # -------------------------------------------------------------
 

@@ -4,7 +4,7 @@ set -euo pipefail
 # # -----------------------------------------------------------------------------
 # cleanup.sh - очистка docker + проекта
 # pgdata НЕ удаляется - хранится в htrBox-data вне проекта
-# ./cleanup.sh [yc|vps-se|vps-nl|vps-all|all]
+# ./cleanup.sh [yc|vps-se|vps-nl|vps-pl|vps-all|all]
 # # -----------------------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,6 +28,11 @@ VPS_HOST_GE="2.26.99.243"
 VPS_USER_GE="root"
 VPS_KEY_GE="$HOME/.ssh/id_rsa"
 VPS_DIR_GE="/root/htrBox"
+
+VPS_HOST_PL="2.26.5.104"
+VPS_USER_PL="root"
+VPS_KEY_PL="$HOME/.ssh/id_rsa"
+VPS_DIR_PL="/root/htrBox"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 log()  { echo -e "${GREEN}[✓] $1${NC}"; }
@@ -87,8 +92,11 @@ case "${1-}" in
   vps-ge)
     cleanup_server "German VPS" "$VPS_HOST_GE" "$VPS_USER_GE" "$VPS_KEY_GE" "$VPS_DIR_GE"
     ;;
+  vps-pl)
+    cleanup_server "Poland VPS" "$VPS_HOST_PL" "$VPS_USER_PL" "$VPS_KEY_PL" "$VPS_DIR_PL"
+    ;;
   *)
-    echo "Использование: $0 [yc|vps-se|vps-nl|vps-ge]"
+    echo "Использование: $0 [yc|vps-se|vps-nl|vps-ge|vps-pl]"
     exit 1
     ;;
 esac

@@ -32,7 +32,7 @@ const expiresAtSchema = z
   .refine(
     (val) => {
       if (val == null || val === "") {
-        return false;
+        return true;
       }
       const date = new Date(val);
       return !isNaN(date.getTime());
