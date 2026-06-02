@@ -54,6 +54,10 @@ export const loginPage = {
   footer: "flex items-center justify-center mt-5",
   footerLink:
     "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors",
+  legalFooter:
+    "absolute inset-x-4 bottom-5 z-10 flex flex-wrap justify-center gap-x-3 gap-y-1 text-center sm:bottom-7",
+  legalLink:
+    "inline-flex items-center justify-center text-xs leading-snug text-muted-foreground/80 hover:text-foreground transition-colors",
 } as const;
 
 // -------------------------------------------------------------
@@ -86,6 +90,10 @@ export const registerPage = {
   footer: "flex items-center justify-center mt-5",
   footerLink:
     "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors",
+  legalFooter:
+    "absolute inset-x-4 bottom-5 z-10 flex flex-wrap justify-center gap-x-3 gap-y-1 text-center sm:bottom-7",
+  legalLink:
+    "inline-flex items-center justify-center text-xs leading-snug text-muted-foreground/80 hover:text-foreground transition-colors",
 } as const;
 
 // -------------------------------------------------------------
@@ -447,6 +455,48 @@ export const aboutPage = {
   perkIconWrap: `flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${colorScheme.purple.bg} ${colorScheme.purple.text}`,
   perkTitle: "text-sm font-semibold text-foreground",
   perkText: `text-sm leading-relaxed ${colorScheme.neutral.textMuted}`,
+} as const;
+
+// -------------------------------------------------------------
+// LegalPage — публичные документы для модерации оплаты
+// -------------------------------------------------------------
+
+export const legalPage = {
+  root: "min-h-screen bg-background gradient-page py-8 px-4",
+  inner: "mx-auto flex w-full max-w-4xl flex-col gap-4 animate-fade-in",
+
+  topNav: "flex flex-wrap items-center justify-between gap-3",
+  backLink:
+    "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors",
+  navLinks: "flex flex-wrap items-center gap-2",
+  navLink:
+    "inline-flex h-8 items-center rounded-lg border border-border/70 bg-card/70 px-3 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors",
+
+  header: "flex flex-col gap-3 py-4",
+  badge: [
+    `self-start inline-flex items-center ${radius.full}`,
+    `border ${colorScheme.primary.border} ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+    "px-3 py-1 text-xs font-semibold",
+  ].join(" "),
+  title: "max-w-3xl text-2xl font-bold leading-tight text-foreground tracking-tight sm:text-3xl",
+  subtitle: "max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base",
+  meta: "text-xs text-muted-foreground",
+
+  grid: "grid grid-cols-1 gap-4 md:grid-cols-2",
+  factCard: "flex gap-3 p-5",
+  factTextWrap: "min-w-0 flex flex-col gap-1.5",
+  sectionCard: "flex flex-col gap-3 p-5",
+  sectionHead: "flex items-center gap-3",
+  iconWrap: [
+    `flex h-9 w-9 shrink-0 items-center justify-center ${radius.md}`,
+    `${colorScheme.primary.bg} ${colorScheme.primary.text}`,
+  ].join(" "),
+  sectionTitle: "text-sm font-semibold text-foreground",
+  text: "text-sm leading-relaxed text-muted-foreground",
+  bulletList: "flex flex-col gap-2",
+  bulletItem:
+    "rounded-xl border border-border/60 bg-muted/35 px-3 py-2.5 text-sm leading-relaxed text-muted-foreground",
+  inlineLink: "font-medium text-primary hover:text-primary/80 transition-colors",
 } as const;
 
 // -------------------------------------------------------------

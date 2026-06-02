@@ -181,6 +181,24 @@ export function RegisterPage() {
           </a>
         </div>
       </div>
+
+      <div className={s.legalFooter}>
+        <Link href="/service" className={s.legalLink}>
+          Услуга
+        </Link>
+        <Link href="/refund" className={s.legalLink}>
+          Возврат
+        </Link>
+        <Link href="/offer" className={s.legalLink}>
+          Оферта
+        </Link>
+        <Link href="/privacy" className={s.legalLink}>
+          Данные
+        </Link>
+        <Link href="/contacts" className={s.legalLink}>
+          Контакты
+        </Link>
+      </div>
     </div>
   );
 }

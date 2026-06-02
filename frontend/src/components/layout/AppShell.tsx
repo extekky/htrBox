@@ -10,6 +10,9 @@ import {
   BookOpen,
   HelpCircle,
   Info,
+  FileText,
+  Headphones,
+  ShieldCheck,
 } from "lucide-react";
 
 import { BottomBar } from "./BottomBar";
@@ -177,6 +180,18 @@ function TopHeader() {
               <DropdownMenuItem onClick={() => navigate("/about")}>
                 <Info size={14} />О сервисе
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/privacy")}>
+                <ShieldCheck size={14} />
+                Политика данных
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/offer")}>
+                <FileText size={14} />
+                Оферта
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/contacts")}>
+                <Headphones size={14} />
+                Контакты
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               {/* Пункт выхода — красный, заблокирован во время запроса */}
               <DropdownMenuItem
@@ -217,7 +232,16 @@ export function AppShell({ children }: AppShellProps) {
   const [location] = useLocation();
 
   // Список всех известных путей (включая главную)
-  const KNOWN_PATHS = ["/", "/about", ...NAV_ITEMS.map((item) => item.href)];
+  const KNOWN_PATHS = [
+    "/",
+    "/about",
+    "/privacy",
+    "/contacts",
+    "/service",
+    "/refund",
+    "/offer",
+    ...NAV_ITEMS.map((item) => item.href),
+  ];
 
   // Проверяем, является ли текущий путь известным.
   // Если путь не найден в списке и не начинается с известных путей (для вложенных роутов),

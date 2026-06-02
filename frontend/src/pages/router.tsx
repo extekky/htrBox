@@ -11,6 +11,13 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { ManualPage } from "@/pages/ManualPage";
 import { ChekavoPage } from "@/pages/ChekavoPage";
 import { AboutPage } from "@/pages/AboutPage";
+import {
+  ContactsPage,
+  OfferPage,
+  PrivacyPage,
+  RefundPage,
+  ServicePage,
+} from "@/pages/LegalPages";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 
 // -------------------------------------------------------------
@@ -99,6 +106,12 @@ export function AppRouter() {
       <Route path="/register">
         <PublicOnlyRoute component={RegisterPage} />
       </Route>
+    
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/contacts" component={ContactsPage} />
+      <Route path="/service" component={ServicePage} />
+      <Route path="/refund" component={RefundPage} />
+      <Route path="/offer" component={OfferPage} />
 
       {/* -- Только для администраторов ----------------------- */}
       <Route path="/admin">
