@@ -1,0 +1,26 @@
+# -----------------------------------------------------
+#  VPN server: {{ vps_domain }}
+# -----------------------------------------------------
+
+services:
+    hysteria:
+        image: tobyxdd/hysteria:v2.7.0
+        container_name: hysteria
+        env_file:
+            - .env
+        volumes:
+            - ./hysteria/config.yaml:/etc/hysteria/config.yaml:ro
+            - /etc/letsencrypt/live/{{ vps_domain }}/fullchain.pem:/etc/hysteria/certs/server.crt:ro
+            - /etc/letsencrypt/live/{{ vps_domain }}/privkey.pem:/etc/hysteria/certs/server.key:ro
+        command: server -c /etc/hysteria/config.yaml --disable-update-check
+        ports:
+            - "443:443/udp"
+            - "443:443/tcp"
+            - "8080:8080"
+        restart: unless-stopped
+
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"

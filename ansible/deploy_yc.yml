@@ -1,6 +1,6 @@
 ---
 - name: Deploy YC (frontend + backend + postgres)
-  hosts: Yandex Cloud
+  hosts: yc
   vars:
     app_dir:  /home/stas/htrBox
     data_dir: /home/stas/htrBox-data
@@ -11,18 +11,24 @@
     admin_username:    "{{ lookup('env', 'ADMIN_USERNAME')    }}"
     admin_password:    "{{ lookup('env', 'ADMIN_PASSWORD')    }}"
     cf_api_token:      "{{ lookup('env', 'CF_API_TOKEN')      }}"
-    cf_email:          "{{ lookup('env', 'CF_EMAIL')          }}"
+    email:             "{{ lookup('env', 'EMAIL')             }}"
 
   tasks:
-    - name: Создать директории
+    - name: Создать директории приложения
       file:
         path: "{{ item }}"
         state: directory
         mode: '0755'
       loop:
         - "{{ app_dir }}"
-        - "{{ data_dir }}/pgdata"
         - "/home/stas/.secrets"
+
+    - name: Создать директорию данных Postgres
+      become: true
+      file:
+        path: "{{ data_dir }}/pgdata"
+        state: directory
+        mode: '0755'
 
     - name: Положить .env
       template:
@@ -34,11 +40,6 @@
       copy:
         src: ../prod/infra/docker-compose.yaml
         dest: "{{ app_dir }}/docker-compose.yaml"
-
-    - name: Положить nginx.conf
-      copy:
-        src: ../prod/infra/nginx.conf
-        dest: "{{ app_dir }}/frontend/nginx.conf"
 
     - name: Положить Cloudflare credentials
       template:
@@ -61,7 +62,7 @@
             --dns-cloudflare \
             --dns-cloudflare-credentials /home/stas/.secrets/cloudflare-yc.ini \
             -d stdoq.ru -d www.stdoq.ru \
-            --email {{ cf_email }} \
+            --email {{ email }} \
             --agree-tos --no-eff-email --non-interactive
         fi
       become: true

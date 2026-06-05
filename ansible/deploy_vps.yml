@@ -5,7 +5,7 @@
     app_dir: /root/htrBox
     hysteria_auth: "{{ lookup('env', 'HYSTERIA_AUTH') }}"
     cf_api_token:  "{{ lookup('env', 'CF_API_TOKEN')  }}"
-    cf_email:      "{{ lookup('env', 'CF_EMAIL')      }}"
+    email:         "{{ lookup('env', 'EMAIL')      }}"
 
   tasks:
     - name: Создать директории
@@ -16,9 +16,9 @@
         - "{{ app_dir }}/hysteria"
         - "/root/.secrets"
 
-    - name: Положить .env (HYSTERIA_LOG_LEVEL)
-      copy:
-        content: "HYSTERIA_LOG_LEVEL=ERROR\n"
+    - name: Положить .env
+      template:
+        src: templates/servers.env.j2
         dest: "{{ app_dir }}/.env"
         mode: '0600'
 
@@ -29,9 +29,8 @@
         mode: '0644'
 
     - name: Положить docker-compose.yaml
-      # Каждый VPS имеет свой compose файл с нужным доменом
-      copy:
-        src: "../prod/servers/docker-compose.{{ inventory_hostname | replace('vps_','') }}.yaml"
+      template:
+        src: templates/docker-compose.vps.yaml.j2
         dest: "{{ app_dir }}/docker-compose.yaml"
 
     - name: Положить Cloudflare credentials
@@ -55,7 +54,7 @@
             --dns-cloudflare \
             --dns-cloudflare-credentials /root/.secrets/cloudflare-vps.ini \
             -d {{ vps_domain }} \
-            --email {{ cf_email }} \
+            --email {{ email }} \
             --agree-tos --no-eff-email --non-interactive
         fi
 

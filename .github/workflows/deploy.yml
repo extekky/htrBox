@@ -5,34 +5,51 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
 
   build:
     name: Build & Push Docker images
     runs-on: ubuntu-latest
+
+    # outputs джоба экспортирует переменную image_tag наружу, чтобы следующие 
+    # джобы (например, deploy) могли знать, какой тег образа был собран. 
+    # Значение берётся из шага tag.
     outputs:
       image_tag: ${{ steps.tag.outputs.sha }}
 
     steps:
+
+      # Клонирует репозиторий на раннер. Без этого Git-история и файлы недоступны.
       - uses: actions/checkout@v4
 
       - name: Установить тег образа (короткий SHA)
         id: tag
+        # `git rev-parse` --short HEAD -> возвращает первые 7 символов текущего коммита.
+        # Запись в $GITHUB_OUTPUT — стандартный способ передать значение из шага в другие
+        # шаги и в outputs джобы.
         run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      # GitHub Container Registry
       - name: Login ghcr.io
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.actor }} # логин того, кто запустил workflow
+
+          # автоматически создаётся GitHub для каждого запуска, не нужно хранить вручную. 
+          # Права на push в GHCR включены по умолчанию.
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & push backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          dockerfile: ./backend/Dockerfile
-          push: true
+          context: ./backend # Директория, которую Docker видит как build context
+          file: ./backend/Dockerfile # Путь к Dockerfile относительно корня репозитория
+          push: true # После сборки сразу пушит в registry
           tags: |
             ghcr.io/${{ github.repository_owner }}/htrbox-backend:${{ steps.tag.outputs.sha }}
             ghcr.io/${{ github.repository_owner }}/htrbox-backend:latest
@@ -41,7 +58,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          dockerfile: ./frontend/Dockerfile
+          file: ./frontend/Dockerfile
           target: prod
           push: true
           tags: |
@@ -67,18 +84,18 @@ jobs:
 
       - name: Deploy YC
         env:
-          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
-          YC_HOST: ${{ secrets.YC_HOST }}
-          YC_USER: ${{ secrets.YC_USER }}
+          IMAGE_TAG:         ${{ needs.build.outputs.image_tag }}
+          YC_HOST:           ${{ vars.YC_HOST }}
+          YC_USER:           ${{ secrets.YC_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          HYSTERIA_AUTH: ${{ secrets.HYSTERIA_AUTH }}
-          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_EMAIL: ${{ secrets.CF_EMAIL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+          JWT_SECRET:        ${{ secrets.JWT_SECRET }}
+          HYSTERIA_AUTH:     ${{ secrets.HYSTERIA_AUTH }}
+          ADMIN_USERNAME:    ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD:    ${{ secrets.ADMIN_PASSWORD }}
+          CF_API_TOKEN:      ${{ secrets.CF_API_TOKEN }}
+          EMAIL:             ${{ secrets.EMAIL }}
+          GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR:      ${{ github.actor }}
         run: |
           ansible-playbook ansible/deploy_yc.yml \
             -i ansible/inventory.ini \
@@ -86,13 +103,13 @@ jobs:
 
       - name: Deploy VPS nodes
         env:
-          VPS_HOST_SE: ${{ secrets.VPS_HOST_SE }}
-          VPS_HOST_NL: ${{ secrets.VPS_HOST_NL }}
-          VPS_HOST_GE: ${{ secrets.VPS_HOST_GE }}
-          VPS_HOST_PL: ${{ secrets.VPS_HOST_PL }}
+          VPS_HOST_SE:   ${{ vars.VPS_HOST_SE }}
+          VPS_HOST_NL:   ${{ vars.VPS_HOST_NL }}
+          VPS_HOST_GE:   ${{ vars.VPS_HOST_GE }}
+          VPS_HOST_PL:   ${{ vars.VPS_HOST_PL }}
           HYSTERIA_AUTH: ${{ secrets.HYSTERIA_AUTH }}
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CF_EMAIL: ${{ secrets.CF_EMAIL }}
+          CF_API_TOKEN:  ${{ secrets.CF_API_TOKEN }}
+          EMAIL:         ${{ secrets.EMAIL }}
         run: |
           ansible-playbook ansible/deploy_vps.yml \
             -i ansible/inventory.ini \
