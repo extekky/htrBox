@@ -31,4 +31,4 @@ quic:
 # передача через переменную окружения
 trafficStats:
     listen: :8080 # Внешний порт для API
-    secret: a27f0dd505a8bd94558d29c829a13fd82a45c399b4ea4fa84f5571d6df6eac15
+    secret: c9d9c452d7c34065b7f4493b5d602535c575d13205b7a14c19ba0d540bc3b324

@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # -- Yandex Cloud (frontend + backend + postgres) ------------------------------
-YC_HOST="81.26.182.217"
+YC_HOST="81.26.178.181"
 YC_USER="stas"
 YC_KEY="$HOME/.ssh/id_rsa"
 YC_DIR="/home/stas/htrBox"
@@ -50,6 +50,7 @@ fail() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 [ ! -f "$SCRIPT_DIR/servers/docker-compose.se.yaml" ]  && fail "servers/docker-compose.se.yaml не найден"
 [ ! -f "$SCRIPT_DIR/servers/docker-compose.nl.yaml" ]  && fail "servers/docker-compose.nl.yaml не найден"
 [ ! -f "$SCRIPT_DIR/servers/docker-compose.ge.yaml" ]  && fail "servers/docker-compose.ge.yaml не найден"
+[ ! -f "$SCRIPT_DIR/servers/docker-compose.pl.yaml" ]  && fail "servers/docker-compose.pl.yaml не найден"
 
 # ----------------------------------------------------
 # ДЕПЛОЙ Yandex Cloud (frontend + backend + postgres)
