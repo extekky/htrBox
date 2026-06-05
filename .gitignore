@@ -1,102 +1,33 @@
 # Node.js dependencies
 # -------------------------------------------------------------
-
-# Node.js modules
 node_modules/
-# Yarn lock file (if using Yarn)
-yarn-error.log
-.pnp/
-.pnp.js
 
 # Build artifacts
 # -------------------------------------------------------------
-
-# Production build output
 dist/
-build/
-# Webpack build output
-.next/
-.nuxt/
-# Vite build output
 .vite/
-# Storybook build output
-storybook-static/
 
 # Python bytecode and cache
 # -------------------------------------------------------------
 *__pycache__/
-
-# Environment variables
-# -------------------------------------------------------------
-
-# Local environment variables (should not be committed)
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.staging.local
-# Environment variables for specific environments (e.g., production, staging)
-.env.production
-.env.staging
+*venv
 
 # Editor and IDE specific files
 # -------------------------------------------------------------
-
-# Visual Studio Code
 .vscode/
-# IntelliJ IDEA / WebStorm
 .idea/
-# Vim swap files
-*.swp
-*.swo
-# Emacs backup files
-*~
-# Sublime Text project files
-*.sublime-project
-*.sublime-workspace
-# Atom editor files
-.atom/
 
 # Operating System files
 # -------------------------------------------------------------
-
 # macOS system files
 .DS_Store
-# Windows thumbnail cache
-Thumbs.db
-# Linux temporary files
-*.bak
-*.tmp
 
-# Logs and temporary files
+# Secrets and sensitive files
 # -------------------------------------------------------------
+prod/infra/.env
+prod/servers/.env
+prod/certificates/
 
-# Generic log files
-*.log
-# npm debug logs
-npm-debug.log*
-# Test coverage reports
-coverage/
-# Temporary files
-*.tmp
-
-# Miscellaneous
+# Other files and directories to ignore
 # -------------------------------------------------------------
-
-# Editor config files (if not shared)
-.editorconfig
-# ESLint cache
-.eslintcache
-# Prettier cache
-.prettiercache
-# Jest cache
-.jest/
-# TypeScript build cache
-.tsbuildinfo
-# Dependency caches
-.cache/
-
-# Ignore any other files or directories
-other
-*venv
 backups

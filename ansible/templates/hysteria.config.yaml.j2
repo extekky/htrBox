@@ -1,0 +1,28 @@
+listen: :443
+
+tls:
+    cert: /etc/hysteria/certs/server.crt
+    key: /etc/hysteria/certs/server.key
+
+auth:
+    type: http
+    http:
+        url: http://stdoq.ru:8000/auth
+
+masquerade:
+    type: proxy
+    proxy:
+        url: https://bing.com
+        rewriteHost: true
+    listenHTTPS: :443
+    forceHTTPS: true
+
+quic:
+    initStreamReceiveWindow: 8388608
+    maxStreamReceiveWindow: 8388608
+    initConnReceiveWindow: 20971520
+    maxConnReceiveWindow: 20971520
+
+trafficStats:
+    listen: :8080
+    secret: {{ hysteria_auth }}

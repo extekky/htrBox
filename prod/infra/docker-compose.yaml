@@ -25,9 +25,10 @@ services:
 
     backend:
         container_name: backend
-        build:
-            context: ./backend
-            dockerfile: Dockerfile
+        image: ghcr.io/extekky/htrbox-backend:${IMAGE_TAG:-latest}
+        # build:
+        #     context: ./backend
+        #     dockerfile: Dockerfile
         env_file:
             - .env
         environment:
@@ -47,10 +48,11 @@ services:
 
     frontend:
         container_name: frontend
-        build:
-            context: .
-            dockerfile: frontend/Dockerfile
-            target: prod
+        image: ghcr.io/extekky/htrbox-frontend:${IMAGE_TAG:-latest}
+        # build:
+        #     context: .
+        #     dockerfile: frontend/Dockerfile
+        #     target: prod
         ports:
             - "80:80"
             - "443:443"

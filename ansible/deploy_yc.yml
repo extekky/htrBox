@@ -1,0 +1,77 @@
+---
+- name: Deploy YC (frontend + backend + postgres)
+  hosts: Yandex Cloud
+  vars:
+    app_dir:  /home/stas/htrBox
+    data_dir: /home/stas/htrBox-data
+    image_tag:         "{{ lookup('env', 'IMAGE_TAG')         }}"
+    postgres_password: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
+    jwt_secret:        "{{ lookup('env', 'JWT_SECRET')        }}"
+    hysteria_auth:     "{{ lookup('env', 'HYSTERIA_AUTH')     }}"
+    admin_username:    "{{ lookup('env', 'ADMIN_USERNAME')    }}"
+    admin_password:    "{{ lookup('env', 'ADMIN_PASSWORD')    }}"
+    cf_api_token:      "{{ lookup('env', 'CF_API_TOKEN')      }}"
+    cf_email:          "{{ lookup('env', 'CF_EMAIL')          }}"
+
+  tasks:
+    - name: Создать директории
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ app_dir }}"
+        - "{{ data_dir }}/pgdata"
+        - "/home/stas/.secrets"
+
+    - name: Положить .env
+      template:
+        src: templates/infra.env.j2
+        dest: "{{ app_dir }}/.env"
+        mode: '0600'
+
+    - name: Положить docker-compose.yaml
+      copy:
+        src: ../prod/infra/docker-compose.yaml
+        dest: "{{ app_dir }}/docker-compose.yaml"
+
+    - name: Положить nginx.conf
+      copy:
+        src: ../prod/infra/nginx.conf
+        dest: "{{ app_dir }}/frontend/nginx.conf"
+
+    - name: Положить Cloudflare credentials
+      template:
+        src: templates/cloudflare.ini.j2
+        dest: "/home/stas/.secrets/cloudflare-yc.ini"
+        mode: '0600'
+
+    - name: Проверить/выпустить сертификат stdoq.ru
+      shell: |
+        CERT_PATH="/etc/letsencrypt/live/stdoq.ru/fullchain.pem"
+        if [ ! -f "$CERT_PATH" ]; then
+          RENEW=true
+        else
+          DAYS=$(( ($(date -d "$(openssl x509 -enddate -noout -in $CERT_PATH | cut -d= -f2)" +%s) - $(date +%s)) / 86400 ))
+          [ "$DAYS" -lt 30 ] && RENEW=true || RENEW=false
+        fi
+        if [ "$RENEW" = true ]; then
+          apt-get install -y -qq certbot python3-certbot-dns-cloudflare
+          sudo certbot certonly \
+            --dns-cloudflare \
+            --dns-cloudflare-credentials /home/stas/.secrets/cloudflare-yc.ini \
+            -d stdoq.ru -d www.stdoq.ru \
+            --email {{ cf_email }} \
+            --agree-tos --no-eff-email --non-interactive
+        fi
+      become: true
+
+    - name: Docker login в ghcr.io
+      shell: echo "{{ lookup('env', 'GITHUB_TOKEN') }}" | docker login ghcr.io -u "{{ lookup('env', 'GITHUB_ACTOR') }}" --password-stdin
+
+    - name: Docker compose up
+      shell: |
+        cd {{ app_dir }}
+        docker compose pull
+        docker compose up -d --force-recreate
+        docker image prune -f

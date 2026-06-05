@@ -1,0 +1,67 @@
+---
+- name: Deploy VPS nodes (Hysteria)
+  hosts: vps
+  vars:
+    app_dir: /root/htrBox
+    hysteria_auth: "{{ lookup('env', 'HYSTERIA_AUTH') }}"
+    cf_api_token:  "{{ lookup('env', 'CF_API_TOKEN')  }}"
+    cf_email:      "{{ lookup('env', 'CF_EMAIL')      }}"
+
+  tasks:
+    - name: Создать директории
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ app_dir }}/hysteria"
+        - "/root/.secrets"
+
+    - name: Положить .env (HYSTERIA_LOG_LEVEL)
+      copy:
+        content: "HYSTERIA_LOG_LEVEL=ERROR\n"
+        dest: "{{ app_dir }}/.env"
+        mode: '0600'
+
+    - name: Положить hysteria config.yaml (с секретом)
+      template:
+        src: templates/hysteria.config.yaml.j2
+        dest: "{{ app_dir }}/hysteria/config.yaml"
+        mode: '0644'
+
+    - name: Положить docker-compose.yaml
+      # Каждый VPS имеет свой compose файл с нужным доменом
+      copy:
+        src: "../prod/servers/docker-compose.{{ inventory_hostname | replace('vps_','') }}.yaml"
+        dest: "{{ app_dir }}/docker-compose.yaml"
+
+    - name: Положить Cloudflare credentials
+      template:
+        src: templates/cloudflare.ini.j2
+        dest: "/root/.secrets/cloudflare-vps.ini"
+        mode: '0600'
+
+    - name: Проверить/выпустить сертификат {{ vps_domain }}
+      shell: |
+        CERT_PATH="/etc/letsencrypt/live/{{ vps_domain }}/fullchain.pem"
+        if [ ! -f "$CERT_PATH" ]; then
+          RENEW=true
+        else
+          DAYS=$(( ($(date -d "$(openssl x509 -enddate -noout -in $CERT_PATH | cut -d= -f2)" +%s) - $(date +%s)) / 86400 ))
+          [ "$DAYS" -lt 30 ] && RENEW=true || RENEW=false
+        fi
+        if [ "$RENEW" = true ]; then
+          apt-get install -y -qq certbot python3-certbot-dns-cloudflare
+          certbot certonly \
+            --dns-cloudflare \
+            --dns-cloudflare-credentials /root/.secrets/cloudflare-vps.ini \
+            -d {{ vps_domain }} \
+            --email {{ cf_email }} \
+            --agree-tos --no-eff-email --non-interactive
+        fi
+
+    - name: Docker pull и запуск hysteria
+      shell: |
+        cd {{ app_dir }}
+        docker compose pull
+        docker compose up -d --force-recreate hysteria
+        docker image prune -f
