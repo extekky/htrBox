@@ -278,7 +278,7 @@ export const settingsPage = {
 
   actionButton: [
     "inline-flex items-center gap-2",
-    "h-10 px-5 rounded-xl text-sm font-medium",
+    "h-10 px-5 rounded-lg text-sm font-medium",
     `${colorScheme.primary.bg} ${colorScheme.primary.text} border ${colorScheme.primary.border}`,
     colorScheme.primary.hover,
     transition.colors,
@@ -286,7 +286,7 @@ export const settingsPage = {
   ].join(" "),
   saveButton: [
     "inline-flex items-center gap-2",
-    "h-10 px-6 rounded-xl text-sm font-medium",
+    "h-10 px-6 rounded-lg text-sm font-medium",
     `${colorScheme.primary.bg} ${colorScheme.primary.text} border ${colorScheme.primary.border}`,
     colorScheme.primary.hover,
     transition.colors,
