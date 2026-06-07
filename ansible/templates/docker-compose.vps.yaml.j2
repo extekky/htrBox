@@ -1,5 +1,5 @@
 # -----------------------------------------------------
-#  VPN server: {{ vps_domain }}
+#  VPS server: {{ vps_domain }}
 # -----------------------------------------------------
 
 services:
@@ -10,8 +10,8 @@ services:
             - .env
         volumes:
             - ./hysteria/config.yaml:/etc/hysteria/config.yaml:ro
-            - /etc/letsencrypt/live/{{ vps_domain }}/fullchain.pem:/etc/hysteria/certs/server.crt:ro
-            - /etc/letsencrypt/live/{{ vps_domain }}/privkey.pem:/etc/hysteria/certs/server.key:ro
+            - "/etc/letsencrypt/live/{{ vps_domain }}/fullchain.pem:/etc/hysteria/certs/server.crt:ro"
+            - "/etc/letsencrypt/live/{{ vps_domain }}/privkey.pem:/etc/hysteria/certs/server.key:ro"
         command: server -c /etc/hysteria/config.yaml --disable-update-check
         ports:
             - "443:443/udp"

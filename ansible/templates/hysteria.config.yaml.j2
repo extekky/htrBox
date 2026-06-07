@@ -7,7 +7,7 @@ tls:
 auth:
     type: http
     http:
-        url: http://stdoq.ru:8000/auth
+        url: "http://{{ service_domain }}:8000/auth"
 
 masquerade:
     type: proxy
@@ -25,4 +25,4 @@ quic:
 
 trafficStats:
     listen: :8080
-    secret: {{ hysteria_auth }}
+    secret: "{{ hysteria_auth }}"

@@ -24,9 +24,7 @@ dist/
 
 # Secrets and sensitive files
 # -------------------------------------------------------------
-prod/infra/.env
-prod/servers/.env
-prod/certificates/
+prod
 
 # Other files and directories to ignore
 # -------------------------------------------------------------

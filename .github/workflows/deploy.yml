@@ -4,6 +4,31 @@ name: Build & Deploy
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Куда деплоить'
+        type: choice
+        options: [all, yc, vps, vps-se, vps-nl, vps-ge, vps-pl]
+        default: all
+      tags:
+        description: 'Что делать на серверах'
+        type: choice
+        options: [all, prepare, certbot, deploy, status, logs, healthcheck]
+        default: deploy
+      verbosity:
+        description: 'Уровень логов'
+        type: choice
+        options: [normal, verbose]
+        default: normal
+      skip_build:
+        description: 'Пропустить сборку образов'
+        type: boolean
+        default: false
+      image_tag:
+        description: 'Тег образа при skip_build=true'
+        required: false
+        default: latest
 
 permissions:
   contents: read
@@ -14,6 +39,9 @@ jobs:
   build:
     name: Build & Push Docker images
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event.inputs.skip_build == 'false'
 
     # outputs джоба экспортирует переменную image_tag наружу, чтобы следующие 
     # джобы (например, deploy) могли знать, какой тег образа был собран. 
@@ -69,6 +97,9 @@ jobs:
     name: Deploy via Ansible
     runs-on: ubuntu-latest
     needs: build
+    if: |
+      always() &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
 
     steps:
       - uses: actions/checkout@v4
@@ -82,11 +113,14 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy YC
+      - name: Deploy
         env:
-          IMAGE_TAG:         ${{ needs.build.outputs.image_tag }}
-          YC_HOST:           ${{ vars.YC_HOST }}
-          YC_USER:           ${{ secrets.YC_USER }}
+          BUILD_RESULT:      ${{ needs.build.result }}
+          BUILT_IMAGE_TAG:   ${{ needs.build.outputs.image_tag }}
+          INPUT_IMAGE_TAG:   ${{ github.event.inputs.image_tag || 'latest' }}
+          INPUT_TARGET:      ${{ github.event.inputs.target || 'all' }}
+          INPUT_TAGS:        ${{ github.event.inputs.tags || 'deploy' }}
+          INPUT_VERBOSITY:   ${{ github.event.inputs.verbosity || 'normal' }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_SECRET:        ${{ secrets.JWT_SECRET }}
           HYSTERIA_AUTH:     ${{ secrets.HYSTERIA_AUTH }}
@@ -96,21 +130,45 @@ jobs:
           EMAIL:             ${{ secrets.EMAIL }}
           GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR:      ${{ github.actor }}
+          GHCR_OWNER:        ${{ github.repository_owner }}
         run: |
-          ansible-playbook ansible/deploy_yc.yml \
-            -i ansible/inventory.ini \
-            --private-key ~/.ssh/deploy_key
+          set -euo pipefail
 
-      - name: Deploy VPS nodes
-        env:
-          VPS_HOST_SE:   ${{ vars.VPS_HOST_SE }}
-          VPS_HOST_NL:   ${{ vars.VPS_HOST_NL }}
-          VPS_HOST_GE:   ${{ vars.VPS_HOST_GE }}
-          VPS_HOST_PL:   ${{ vars.VPS_HOST_PL }}
-          HYSTERIA_AUTH: ${{ secrets.HYSTERIA_AUTH }}
-          CF_API_TOKEN:  ${{ secrets.CF_API_TOKEN }}
-          EMAIL:         ${{ secrets.EMAIL }}
-        run: |
-          ansible-playbook ansible/deploy_vps.yml \
-            -i ansible/inventory.ini \
-            --private-key ~/.ssh/deploy_key
+          if [ "$BUILD_RESULT" = "success" ]; then
+            IMAGE_TAG="$BUILT_IMAGE_TAG"
+          else
+            IMAGE_TAG="${INPUT_IMAGE_TAG:-latest}"
+          fi
+          export IMAGE_TAG
+
+          VERBOSITY=""
+          if [ "$INPUT_VERBOSITY" = "verbose" ]; then
+            VERBOSITY="-vvv"
+          fi
+
+          TAGS=""
+          if [ "$INPUT_TAGS" != "all" ]; then
+            TAGS="--tags $INPUT_TAGS"
+          fi
+
+          LIMIT=""
+          case "$INPUT_TARGET" in
+            all) LIMIT="" ;;
+            yc) LIMIT="--limit yc" ;;
+            vps) LIMIT="--limit vps" ;;
+            vps-se) LIMIT="--limit vps_se" ;;
+            vps-nl) LIMIT="--limit vps_nl" ;;
+            vps-ge) LIMIT="--limit vps_ge" ;;
+            vps-pl) LIMIT="--limit vps_pl" ;;
+            *) echo "Unknown target: $INPUT_TARGET"; exit 1 ;;
+          esac
+
+          echo "Deploy target: $INPUT_TARGET"
+          echo "Deploy tags: $INPUT_TAGS"
+          echo "Deploy image tag: $IMAGE_TAG"
+          echo "Deploy verbosity: $INPUT_VERBOSITY"
+
+          ansible-playbook ansible/deploy.yml \
+            -i ansible/inventory.yml \
+            --private-key ~/.ssh/deploy_key \
+            $VERBOSITY $TAGS $LIMIT
