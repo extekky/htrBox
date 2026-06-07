@@ -2,8 +2,6 @@
 name: Build & Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       target:
@@ -130,6 +128,8 @@ jobs:
           EMAIL:             ${{ secrets.EMAIL }}
           GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR:      ${{ github.actor }}
+          GHCR_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USERNAME:     ${{ github.actor }}
           GHCR_OWNER:        ${{ github.repository_owner }}
         run: |
           set -euo pipefail

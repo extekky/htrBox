@@ -12,6 +12,8 @@
     admin_password: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
     cf_api_token: "{{ lookup('env', 'CF_API_TOKEN') }}"
     email: "{{ lookup('env', 'EMAIL') }}"
+    ghcr_username: "{{ lookup('env', 'GHCR_USERNAME') | default(lookup('env', 'GITHUB_ACTOR'), true) }}"
+    ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') | default(lookup('env', 'GITHUB_TOKEN'), true) }}"
     certificate_domains:
       - "{{ service_domain }}"
       - "www.{{ service_domain }}"
@@ -21,6 +23,22 @@
       debug:
         msg: "YC target={{ inventory_hostname }} host={{ ansible_host }} image_tag={{ image_tag }}"
       tags: [always]
+
+    - name: Check YC required environment
+      assert:
+        that:
+          - postgres_password | length > 0
+          - jwt_secret | length >= 32
+          - hysteria_auth | length > 0
+          - admin_username | length > 0
+          - admin_password | length > 0
+          - cf_api_token | length > 0
+          - email | length > 0
+        fail_msg: >-
+          YC deploy environment is incomplete. Export POSTGRES_PASSWORD,
+          JWT_SECRET (at least 32 chars), HYSTERIA_AUTH, ADMIN_USERNAME,
+          ADMIN_PASSWORD, CF_API_TOKEN, and EMAIL before running ansible-playbook.
+      tags: [prepare, certbot, deploy]
 
     - name: Create YC application directories
       file:
@@ -124,9 +142,22 @@
       when: yc_certbot is defined
       tags: [certbot, deploy]
 
+    - name: Check GHCR credentials
+      assert:
+        that:
+          - ghcr_username | length > 0
+          - ghcr_token | length > 0
+        fail_msg: >-
+          GHCR credentials are missing. For local deploy export GHCR_USERNAME and
+          GHCR_TOKEN, or GITHUB_ACTOR and GITHUB_TOKEN. GHCR_TOKEN must be a
+          GitHub token with permission to read packages.
+      tags: [deploy]
+
     - name: Login YC host to GHCR
       shell: |
-        echo "{{ lookup('env', 'GITHUB_TOKEN') }}" | docker login ghcr.io -u "{{ lookup('env', 'GITHUB_ACTOR') }}" --password-stdin
+        printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u {{ ghcr_username | quote }} --password-stdin
+      environment:
+        GHCR_TOKEN: "{{ ghcr_token }}"
       no_log: true
       tags: [deploy]
 
