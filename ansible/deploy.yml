@@ -190,44 +190,39 @@
       tags: [deploy]
 
     - name: Login CORE host to GHCR
-      shell: |
-        printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u {{ ghcr_username | quote }} --password-stdin
-      environment:
-        GHCR_TOKEN: "{{ ghcr_token }}"
+      community.docker.docker_login:
+        registry_url: ghcr.io
+        username: "{{ ghcr_username }}"
+        password: "{{ ghcr_token }}"
       no_log: true
       tags: [deploy]
 
     - name: Pull and start CORE containers
-      shell: |
-        set -e
-        cd {{ app_dir }}
-        docker compose pull
-        docker compose up -d --force-recreate
-        docker image prune -f
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: present
+        pull: always
+        recreate: always
       register: core_compose
       tags: [deploy]
 
     - name: Show CORE compose output
       debug:
-        var: core_compose.stdout_lines
+        var: core_compose.actions
       when: core_compose is defined
       tags: [deploy]
 
-    - name: Show CORE container status
-      shell: |
-        docker ps \
-          --filter name=frontend \
-          --filter name=backend \
-          --filter name=postgres \
-          --format 'table {{ "{{" }}.Names{{ "}}" }}\t{{ "{{" }}.Status{{ "}}" }}\t{{ "{{" }}.Ports{{ "}}" }}'
-      register: core_status
-      changed_when: false
-      tags: [status, deploy]
+    - name: Remove unused CORE docker images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: "true"
+      tags: [deploy]
 
-    - name: Print CORE container status
+    - name: Show CORE container status
       debug:
-        var: core_status.stdout_lines
-      when: core_status is defined
+        var: core_compose.containers
+      when: core_compose is defined
       tags: [status, deploy]
 
     - name: Show CORE recent logs
@@ -420,35 +415,33 @@
       tags: [certbot, deploy]
 
     - name: Pull and start Hysteria
-      shell: |
-        set -e
-        cd {{ app_dir }}
-        docker compose pull hysteria
-        docker compose rm -sf hysteria
-        docker compose up -d hysteria
-        docker image prune -f
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        services:
+          - hysteria
+        state: present
+        pull: always
+        recreate: always
       register: node_compose
       tags: [deploy]
 
     - name: Show NODE compose output
       debug:
-        var: node_compose.stdout_lines
+        var: node_compose.actions
       when: node_compose is defined
       tags: [deploy]
 
-    - name: Show NODE container status
-      shell: |
-        docker ps \
-          --filter name=hysteria \
-          --format 'table {{ "{{" }}.Names{{ "}}" }}\t{{ "{{" }}.Status{{ "}}" }}\t{{ "{{" }}.Ports{{ "}}" }}'
-      register: node_status
-      changed_when: false
-      tags: [status, deploy]
+    - name: Remove unused NODE docker images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: "true"
+      tags: [deploy]
 
-    - name: Print NODE container status
+    - name: Show NODE container status
       debug:
-        var: node_status.stdout_lines
-      when: node_status is defined
+        var: node_compose.containers
+      when: node_compose is defined
       tags: [status, deploy]
 
     - name: Show NODE recent logs

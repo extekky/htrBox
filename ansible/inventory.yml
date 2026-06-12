@@ -59,13 +59,21 @@ all:
 
         # Имя-псевдоним сервера (придумываем сами, любое слово).
         master:
-
           # КЛЮЧЕВОЕ СЛОВО: ansible_host
-          ansible_host: 158.160.133.77
+          ansible_host: 2.27.120.122
+          # КЛЮЧЕВОЕ СЛОВО: ansible_user
+          ansible_user: root
+          # Пользовательские переменные.
+          app_dir: /home/root/htrBox
+          data_dir: /home/root/htrBox-data
+          secrets_dir: /home/root/.secrets
 
+        # Имя-псевдоним сервера (придумываем сами, любое слово).
+        slave:
+          # КЛЮЧЕВОЕ СЛОВО: ansible_host
+          ansible_host: 81.26.184.82
           # КЛЮЧЕВОЕ СЛОВО: ansible_user
           ansible_user: stas
-
           # Пользовательские переменные.
           app_dir: /home/stas/htrBox
           data_dir: /home/stas/htrBox-data
