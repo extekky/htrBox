@@ -1,4 +1,4 @@
-listen: :443
+listen: ":{{ vpn_port }}"
 
 tls:
     cert: /etc/hysteria/certs/server.crt
@@ -14,7 +14,7 @@ masquerade:
     proxy:
         url: https://bing.com
         rewriteHost: true
-    listenHTTPS: :443
+    listenHTTPS: ":{{ vpn_port }}"
     forceHTTPS: true
 
 quic:

@@ -1,30 +1,60 @@
 ---
-- name: Deploy YC (frontend + backend + postgres)
-  hosts: yc
+- name: Deploy CORE (frontend + backend + postgres)
+  hosts: core
   gather_facts: false
   vars:
-    image_tag: "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
-    ghcr_owner: "{{ lookup('env', 'GHCR_OWNER') | default('extekky', true) | lower }}"
+    # -------------------------------------------------------
+    #  lookup('env', 'VAR_NAME') — читает переменную окружения
+    #  с машины, ОТКУДА запускается Ansible (не с сервера!).
+    #
+    #  Зачем это нужно:
+    #  Секреты (пароли, токены) нельзя хранить прямо в коде.
+    #  Вместо этого они передаются через переменные окружения —
+    #  либо вручную в терминале (export POSTGRES_PASSWORD=...),
+    #  либо автоматически из GitHub Actions secrets.
+    #
+    #  Синтаксис:
+    #    lookup('env', 'ИМЯ_ПЕРЕМЕННОЙ')
+    #
+    #  | default('значение', true) — если переменная окружения
+    #  не задана или пустая, подставить значение по умолчанию.
+    #  Второй аргумент "true" означает: считать пустую строку
+    #  тоже "незаданной" (без него "" не заменяется дефолтом).
+    #
+    #  | lower — фильтр Jinja2, переводит строку в нижний регистр.
+    #  Нужно для имён Docker-образов: GHCR требует lowercase.
+    #
+    #  Если default() не указан и переменная не задана —
+    #  Ansible подставит пустую строку "". Для секретов это
+    #  опасно, поэтому default() здесь намеренно не ставится:
+    #  лучше упасть с ошибкой, чем задеплоить без пароля.
+    # -------------------------------------------------------
+    image_tag:         "{{ lookup('env', 'IMAGE_TAG') | default('latest', true) }}"
+    ghcr_owner:        "{{ lookup('env', 'GHCR_OWNER') | default('extekky', true) | lower }}"
     postgres_password: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
-    jwt_secret: "{{ lookup('env', 'JWT_SECRET') }}"
-    hysteria_auth: "{{ lookup('env', 'HYSTERIA_AUTH') }}"
-    admin_username: "{{ lookup('env', 'ADMIN_USERNAME') }}"
-    admin_password: "{{ lookup('env', 'ADMIN_PASSWORD') }}"
-    cf_api_token: "{{ lookup('env', 'CF_API_TOKEN') }}"
-    email: "{{ lookup('env', 'EMAIL') }}"
-    ghcr_username: "{{ lookup('env', 'GHCR_USERNAME') | default(lookup('env', 'GITHUB_ACTOR'), true) }}"
-    ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') | default(lookup('env', 'GITHUB_TOKEN'), true) }}"
+    jwt_secret:        "{{ lookup('env', 'JWT_SECRET') }}"
+    hysteria_auth:     "{{ lookup('env', 'HYSTERIA_AUTH') }}"
+    admin_username:    "{{ lookup('env', 'ADMIN_USERNAME') }}"
+    admin_password:    "{{ lookup('env', 'ADMIN_PASSWORD') }}"
+    cf_api_token:      "{{ lookup('env', 'CF_API_TOKEN') }}"
+    email:             "{{ lookup('env', 'EMAIL') }}"
+    # Для ghcr_username и ghcr_token — два уровня fallback:
+    # сначала смотрим на кастомную переменную (GHCR_USERNAME / GHCR_TOKEN),
+    # если не задана — берём стандартную переменную GitHub Actions
+    # (GITHUB_ACTOR / GITHUB_TOKEN), которая проставляется автоматически
+    ghcr_username:     "{{ lookup('env', 'GHCR_USERNAME') | default(lookup('env', 'GITHUB_ACTOR'), true) }}"
+    ghcr_token:        "{{ lookup('env', 'GHCR_TOKEN') | default(lookup('env', 'GITHUB_TOKEN'), true) }}"
     certificate_domains:
       - "{{ service_domain }}"
       - "www.{{ service_domain }}"
 
   tasks:
-    - name: Show YC deployment target
+    - name: Show CORE deployment target
       debug:
-        msg: "YC target={{ inventory_hostname }} host={{ ansible_host }} image_tag={{ image_tag }}"
+        msg: "Core target={{ inventory_hostname }} host={{ ansible_host }} image_tag={{ image_tag }}"
       tags: [always]
 
-    - name: Check YC required environment
+    - name: Check CORE required environment
       assert:
         that:
           - postgres_password | length > 0
@@ -34,13 +64,19 @@
           - admin_password | length > 0
           - cf_api_token | length > 0
           - email | length > 0
+        # ">-" это YAML-синтаксис для записи длинных строк.
+        # Расшифровка по символам:
+        #   > сверни переносы строк в пробелы. То есть если ты пишешь текст на
+        #     нескольких строках для читаемости, в итоге это будет одна строка
+        #     с пробелами вместо переносов.
+        #   - "убери финальный перенос строки \n в конце".
         fail_msg: >-
-          YC deploy environment is incomplete. Export POSTGRES_PASSWORD,
+          Core deploy environment is incomplete. Export POSTGRES_PASSWORD,
           JWT_SECRET (at least 32 chars), HYSTERIA_AUTH, ADMIN_USERNAME,
-          ADMIN_PASSWORD, CF_API_TOKEN, and EMAIL before running ansible-playbook.
+          ADMIN_PASSWORD, CF_API_TOKEN, and EMAIL before running playbook.
       tags: [prepare, certbot, deploy]
 
-    - name: Create YC application directories
+    - name: Create CORE application directories
       file:
         path: "{{ item }}"
         state: directory
@@ -50,7 +86,7 @@
         - "{{ secrets_dir }}"
       tags: [prepare, certbot, deploy]
 
-    - name: Create YC Postgres data directory
+    - name: Create CORE Postgres data directory
       become: true
       file:
         path: "{{ data_dir }}/pgdata"
@@ -58,28 +94,28 @@
         mode: "0755"
       tags: [prepare, deploy]
 
-    - name: Render YC environment file
+    - name: Render CORE environment file
       template:
         src: templates/infra.env.j2
         dest: "{{ app_dir }}/.env"
         mode: "0600"
       tags: [env, deploy]
 
-    - name: Render YC docker-compose.yaml
+    - name: Render CORE docker-compose.yaml
       template:
-        src: templates/docker-compose.yc.yaml.j2
+        src: templates/docker-compose.core.yaml.j2
         dest: "{{ app_dir }}/docker-compose.yaml"
         mode: "0644"
       tags: [deploy]
 
-    - name: Render YC Cloudflare credentials
+    - name: Render CORE Cloudflare credentials
       template:
         src: templates/cloudflare.ini.j2
-        dest: "{{ secrets_dir }}/cloudflare-yc.ini"
+        dest: "{{ secrets_dir }}/cloudflare-core.ini"
         mode: "0600"
       tags: [certbot, deploy]
 
-    - name: Check Docker on YC
+    - name: Check Docker on CORE
       shell: |
         set -e
         if command -v docker >/dev/null 2>&1; then
@@ -89,17 +125,17 @@
           exit 1
         fi
         systemctl is-active docker
-      register: yc_docker
+      register: core_docker
       changed_when: false
       tags: [prepare, status, deploy]
 
-    - name: Print YC Docker status
+    - name: Print CORE Docker status
       debug:
-        var: yc_docker.stdout_lines
-      when: yc_docker is defined
+        var: core_docker.stdout_lines
+      when: core_docker is defined
       tags: [prepare, status, deploy]
 
-    - name: Check or issue YC certificate
+    - name: Check or issue CORE certificate
       become: true
       shell: |
         set -e
@@ -123,7 +159,7 @@
           apt-get install -y -qq certbot python3-certbot-dns-cloudflare
           certbot certonly \
             --dns-cloudflare \
-            --dns-cloudflare-credentials {{ secrets_dir }}/cloudflare-yc.ini \
+            --dns-cloudflare-credentials {{ secrets_dir }}/cloudflare-core.ini \
             {% for cert_domain in certificate_domains %}
             -d {{ cert_domain }} \
             {% endfor %}
@@ -132,14 +168,14 @@
         else
           echo "certificate_action=skip"
         fi
-      register: yc_certbot
-      changed_when: "'certificate_action=issue' in yc_certbot.stdout"
+      register: core_certbot
+      changed_when: "'certificate_action=issue' in core_certbot.stdout"
       tags: [certbot, deploy]
 
-    - name: Show YC certificate result
+    - name: Show CORE certificate result
       debug:
-        var: yc_certbot.stdout_lines
-      when: yc_certbot is defined
+        var: core_certbot.stdout_lines
+      when: core_certbot is defined
       tags: [certbot, deploy]
 
     - name: Check GHCR credentials
@@ -153,7 +189,7 @@
           GitHub token with permission to read packages.
       tags: [deploy]
 
-    - name: Login YC host to GHCR
+    - name: Login CORE host to GHCR
       shell: |
         printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u {{ ghcr_username | quote }} --password-stdin
       environment:
@@ -161,86 +197,90 @@
       no_log: true
       tags: [deploy]
 
-    - name: Pull and start YC containers
+    - name: Pull and start CORE containers
       shell: |
         set -e
         cd {{ app_dir }}
         docker compose pull
         docker compose up -d --force-recreate
         docker image prune -f
-      register: yc_compose
+      register: core_compose
       tags: [deploy]
 
-    - name: Show YC compose output
+    - name: Show CORE compose output
       debug:
-        var: yc_compose.stdout_lines
-      when: yc_compose is defined
+        var: core_compose.stdout_lines
+      when: core_compose is defined
       tags: [deploy]
 
-    - name: Show YC container status
+    - name: Show CORE container status
       shell: |
         docker ps \
           --filter name=frontend \
           --filter name=backend \
           --filter name=postgres \
           --format 'table {{ "{{" }}.Names{{ "}}" }}\t{{ "{{" }}.Status{{ "}}" }}\t{{ "{{" }}.Ports{{ "}}" }}'
-      register: yc_status
+      register: core_status
       changed_when: false
       tags: [status, deploy]
 
-    - name: Print YC container status
+    - name: Print CORE container status
       debug:
-        var: yc_status.stdout_lines
-      when: yc_status is defined
+        var: core_status.stdout_lines
+      when: core_status is defined
       tags: [status, deploy]
 
-    - name: Show YC recent logs
+    - name: Show CORE recent logs
       shell: |
         for service in backend frontend postgres; do
           echo "---- $service logs ----"
           docker logs "$service" --tail=30 2>&1 || true
         done
-      register: yc_logs
+      register: core_logs
       changed_when: false
       tags: [logs]
 
-    - name: Print YC recent logs
+    - name: Print CORE recent logs
       debug:
-        var: yc_logs.stdout_lines
-      when: yc_logs is defined
+        var: core_logs.stdout_lines
+      when: core_logs is defined
       tags: [logs]
 
-    - name: Check YC backend health
+    - name: Check CORE backend health
       shell: |
         curl -fsS http://127.0.0.1:8000/health
-      register: yc_health
+      register: core_health
       changed_when: false
       retries: 10
       delay: 3
-      until: yc_health.rc == 0
+      until: core_health.rc == 0
       tags: [healthcheck, deploy]
 
-    - name: Print YC backend health
+    - name: Print CORE backend health
       debug:
-        var: yc_health.stdout_lines
-      when: yc_health is defined
+        var: core_health.stdout_lines
+      when: core_health is defined
       tags: [healthcheck, deploy]
 
-- name: Deploy VPS nodes (Hysteria)
-  hosts: vps
+- name: Deploy NODES (Hysteria)
+  hosts: nodes
   gather_facts: false
   vars:
     hysteria_auth: "{{ lookup('env', 'HYSTERIA_AUTH') }}"
-    cf_api_token: "{{ lookup('env', 'CF_API_TOKEN') }}"
-    email: "{{ lookup('env', 'EMAIL') }}"
+    cf_api_token:  "{{ lookup('env', 'CF_API_TOKEN') }}"
+    email:         "{{ lookup('env', 'EMAIL') }}"
 
   tasks:
-    - name: Show VPS deployment target
+    - name: Show NODE deployment target
       debug:
-        msg: "VPS target={{ inventory_hostname }} host={{ ansible_host }} domain={{ vps_domain }}"
+        msg: >-
+          Node target={{ inventory_hostname }}
+          host={{ ansible_host }}
+          domain={{ vps_domain }}
+          vpn_port={{ vpn_port }}
       tags: [always]
 
-    - name: Create VPS directories
+    - name: Create NODE directories
       file:
         path: "{{ item }}"
         state: directory
@@ -250,35 +290,35 @@
         - "{{ secrets_dir }}"
       tags: [prepare, certbot, deploy]
 
-    - name: Render VPS environment file
+    - name: Render NODE environment file
       template:
         src: templates/servers.env.j2
         dest: "{{ app_dir }}/.env"
         mode: "0600"
       tags: [env, deploy]
 
-    - name: Render VPS Hysteria config
+    - name: Render NODE Hysteria config
       template:
         src: templates/hysteria.config.yaml.j2
         dest: "{{ app_dir }}/hysteria/config.yaml"
         mode: "0644"
       tags: [deploy]
 
-    - name: Render VPS docker-compose.yaml
+    - name: Render NODE docker-compose.yaml
       template:
-        src: templates/docker-compose.vps.yaml.j2
+        src: templates/docker-compose.node.yaml.j2
         dest: "{{ app_dir }}/docker-compose.yaml"
         mode: "0644"
       tags: [deploy]
 
-    - name: Render VPS Cloudflare credentials
+    - name: Render NODE Cloudflare credentials
       template:
         src: templates/cloudflare.ini.j2
-        dest: "{{ secrets_dir }}/cloudflare-vps.ini"
+        dest: "{{ secrets_dir }}/cloudflare-node.ini"
         mode: "0600"
       tags: [certbot, deploy]
 
-    - name: Check Docker on VPS
+    - name: Check Docker on NODE
       shell: |
         set -e
         if command -v docker >/dev/null 2>&1; then
@@ -288,17 +328,58 @@
           exit 1
         fi
         systemctl is-active docker
-      register: vps_docker
+      register: node_docker
       changed_when: false
       tags: [prepare, status, deploy]
 
-    - name: Print VPS Docker status
+    - name: Print NODE Docker status
       debug:
-        var: vps_docker.stdout_lines
-      when: vps_docker is defined
+        var: node_docker.stdout_lines
+      when: node_docker is defined
       tags: [prepare, status, deploy]
 
-    - name: Check or issue VPS certificate
+    - name: Check NODE VPN port availability
+      shell: |
+        set -e
+        VPN_PORT="{{ vpn_port }}"
+        echo "vpn_port=$VPN_PORT"
+
+        if ! command -v ss >/dev/null 2>&1; then
+          echo "vpn_port_check_status=missing_ss"
+          exit 1
+        fi
+
+        if docker ps \
+          --filter name='^/hysteria$' \
+          --format '{{ "{{" }}.Ports{{ "}}" }}' \
+          | grep -Eq "(0\.0\.0\.0|::):${VPN_PORT}->|:${VPN_PORT}->"; then
+          echo "vpn_port_status=used_by_existing_hysteria"
+          exit 0
+        fi
+
+        TCP_LISTENERS="$(ss -H -ltnp "sport = :${VPN_PORT}" 2>/dev/null || true)"
+        UDP_LISTENERS="$(ss -H -lunp "sport = :${VPN_PORT}" 2>/dev/null || true)"
+
+        if [ -z "$TCP_LISTENERS" ] && [ -z "$UDP_LISTENERS" ]; then
+          echo "vpn_port_status=free"
+          exit 0
+        fi
+
+        echo "vpn_port_status=busy"
+        [ -n "$TCP_LISTENERS" ] && printf 'tcp_listeners:\n%s\n' "$TCP_LISTENERS"
+        [ -n "$UDP_LISTENERS" ] && printf 'udp_listeners:\n%s\n' "$UDP_LISTENERS"
+        exit 1
+      register: node_vpn_port_check
+      changed_when: false
+      tags: [prepare, deploy]
+
+    - name: Print NODE VPN port availability
+      debug:
+        var: node_vpn_port_check.stdout_lines
+      when: node_vpn_port_check is defined
+      tags: [prepare, deploy]
+
+    - name: Check or issue NODE certificate
       shell: |
         set -e
         CERT_PATH="/etc/letsencrypt/live/{{ vps_domain }}/fullchain.pem"
@@ -321,21 +402,21 @@
           apt-get install -y -qq certbot python3-certbot-dns-cloudflare
           certbot certonly \
             --dns-cloudflare \
-            --dns-cloudflare-credentials {{ secrets_dir }}/cloudflare-vps.ini \
+            --dns-cloudflare-credentials {{ secrets_dir }}/cloudflare-node.ini \
             -d {{ vps_domain }} \
             --email {{ email }} \
             --agree-tos --no-eff-email --non-interactive
         else
           echo "certificate_action=skip"
         fi
-      register: vps_certbot
-      changed_when: "'certificate_action=issue' in vps_certbot.stdout"
+      register: node_certbot
+      changed_when: "'certificate_action=issue' in node_certbot.stdout"
       tags: [certbot, deploy]
 
-    - name: Show VPS certificate result
+    - name: Show NODE certificate result
       debug:
-        var: vps_certbot.stdout_lines
-      when: vps_certbot is defined
+        var: node_certbot.stdout_lines
+      when: node_certbot is defined
       tags: [certbot, deploy]
 
     - name: Pull and start Hysteria
@@ -346,39 +427,39 @@
         docker compose rm -sf hysteria
         docker compose up -d hysteria
         docker image prune -f
-      register: vps_compose
+      register: node_compose
       tags: [deploy]
 
-    - name: Show VPS compose output
+    - name: Show NODE compose output
       debug:
-        var: vps_compose.stdout_lines
-      when: vps_compose is defined
+        var: node_compose.stdout_lines
+      when: node_compose is defined
       tags: [deploy]
 
-    - name: Show VPS container status
+    - name: Show NODE container status
       shell: |
         docker ps \
           --filter name=hysteria \
           --format 'table {{ "{{" }}.Names{{ "}}" }}\t{{ "{{" }}.Status{{ "}}" }}\t{{ "{{" }}.Ports{{ "}}" }}'
-      register: vps_status
+      register: node_status
       changed_when: false
       tags: [status, deploy]
 
-    - name: Print VPS container status
+    - name: Print NODE container status
       debug:
-        var: vps_status.stdout_lines
-      when: vps_status is defined
+        var: node_status.stdout_lines
+      when: node_status is defined
       tags: [status, deploy]
 
-    - name: Show VPS recent logs
+    - name: Show NODE recent logs
       shell: |
         docker logs hysteria --tail=30 2>&1 || true
-      register: vps_logs
+      register: node_logs
       changed_when: false
       tags: [logs]
 
-    - name: Print VPS recent logs
+    - name: Print NODE recent logs
       debug:
-        var: vps_logs.stdout_lines
-      when: vps_logs is defined
+        var: node_logs.stdout_lines
+      when: node_logs is defined
       tags: [logs]

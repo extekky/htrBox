@@ -14,8 +14,8 @@ services:
             - "/etc/letsencrypt/live/{{ vps_domain }}/privkey.pem:/etc/hysteria/certs/server.key:ro"
         command: server -c /etc/hysteria/config.yaml --disable-update-check
         ports:
-            - "443:443/udp"
-            - "443:443/tcp"
+            - "{{ vpn_port }}:{{ vpn_port }}/udp"
+            - "{{ vpn_port }}:{{ vpn_port }}/tcp"
             - "8080:8080"
         restart: unless-stopped
 
