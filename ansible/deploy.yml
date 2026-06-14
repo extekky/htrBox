@@ -38,6 +38,11 @@
     admin_password:    "{{ lookup('env', 'ADMIN_PASSWORD') }}"
     cf_api_token:      "{{ lookup('env', 'CF_API_TOKEN') }}"
     email:             "{{ lookup('env', 'EMAIL') }}"
+    grafana_admin_user: "{{ lookup('env', 'GRAFANA_ADMIN_USER') | default('admin', true) }}"
+    grafana_admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') }}"
+    telegram_bot_token: "{{ lookup('env', 'TELEGRAM_BOT_TOKEN') }}"
+    telegram_chat_id: "{{ lookup('env', 'TELEGRAM_CHAT_ID') }}"
+    monitoring_host: "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
     # Для ghcr_username и ghcr_token — два уровня fallback:
     # сначала смотрим на кастомную переменную (GHCR_USERNAME / GHCR_TOKEN),
     # если не задана — берём стандартную переменную GitHub Actions
@@ -47,6 +52,7 @@
     certificate_domains:
       - "{{ service_domain }}"
       - "www.{{ service_domain }}"
+      - "grafana.{{ service_domain }}"
 
   tasks:
     - name: Show CORE deployment target
@@ -64,6 +70,7 @@
           - admin_password | length > 0
           - cf_api_token | length > 0
           - email | length > 0
+          - grafana_admin_password | length >= 16
         # ">-" это YAML-синтаксис для записи длинных строк.
         # Расшифровка по символам:
         #   > сверни переносы строк в пробелы. То есть если ты пишешь текст на
@@ -73,7 +80,8 @@
         fail_msg: >-
           Core deploy environment is incomplete. Export POSTGRES_PASSWORD,
           JWT_SECRET (at least 32 chars), HYSTERIA_AUTH, ADMIN_USERNAME,
-          ADMIN_PASSWORD, CF_API_TOKEN, and EMAIL before running playbook.
+          ADMIN_PASSWORD, CF_API_TOKEN, EMAIL, and GRAFANA_ADMIN_PASSWORD
+          (at least 16 chars) before running playbook.
       tags: [prepare, certbot, deploy]
 
     - name: Create CORE application directories
@@ -84,7 +92,10 @@
       loop:
         - "{{ app_dir }}"
         - "{{ secrets_dir }}"
-      tags: [prepare, certbot, deploy]
+        - "{{ app_dir }}/monitoring"
+        - "{{ app_dir }}/monitoring/rules"
+        - "{{ app_dir }}/monitoring/grafana/provisioning/datasources"
+      tags: [prepare, certbot, deploy, monitoring]
 
     - name: Create CORE Postgres data directory
       become: true
@@ -93,6 +104,27 @@
         state: directory
         mode: "0755"
       tags: [prepare, deploy]
+
+    - name: Create CORE monitoring data directories
+      become: true
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "0755"
+      loop:
+        - path: "{{ data_dir }}/prometheus"
+          owner: "65534"
+          group: "65534"
+        - path: "{{ data_dir }}/alertmanager"
+          owner: "65534"
+          group: "65534"
+        - path: "{{ data_dir }}/grafana"
+          owner: "472"
+          group: "472"
+      when: inventory_hostname == monitoring_host
+      tags: [prepare, deploy, monitoring]
 
     - name: Render CORE environment file
       template:
@@ -107,6 +139,45 @@
         dest: "{{ app_dir }}/docker-compose.yaml"
         mode: "0644"
       tags: [deploy]
+
+    - name: Copy CORE nginx config
+      copy:
+        src: ../frontend/nginx.conf
+        dest: "{{ app_dir }}/nginx.conf"
+        mode: "0644"
+      tags: [deploy, monitoring]
+
+    - name: Render CORE Prometheus config
+      template:
+        src: templates/prometheus.yml.j2
+        dest: "{{ app_dir }}/monitoring/prometheus.yml"
+        mode: "0644"
+      when: inventory_hostname == monitoring_host
+      tags: [deploy, monitoring]
+
+    - name: Render CORE Alertmanager config
+      template:
+        src: templates/alertmanager.yml.j2
+        dest: "{{ app_dir }}/monitoring/alertmanager.yml"
+        mode: "0644"
+      when: inventory_hostname == monitoring_host
+      tags: [deploy, monitoring]
+
+    - name: Copy CORE Prometheus alert rules
+      copy:
+        src: ../monitoring/rules/
+        dest: "{{ app_dir }}/monitoring/rules/"
+        mode: "0644"
+      when: inventory_hostname == monitoring_host
+      tags: [deploy, monitoring]
+
+    - name: Render CORE Grafana Prometheus datasource
+      template:
+        src: templates/grafana-datasource-prometheus.yml.j2
+        dest: "{{ app_dir }}/monitoring/grafana/provisioning/datasources/prometheus.yml"
+        mode: "0644"
+      when: inventory_hostname == monitoring_host
+      tags: [deploy, monitoring]
 
     - name: Render CORE Cloudflare credentials
       template:
@@ -151,6 +222,12 @@
           echo "certificate_status=present"
           echo "certificate_days_left=$DAYS"
           [ "$DAYS" -lt 30 ] && RENEW=true
+          {% for cert_domain in certificate_domains %}
+          if ! openssl x509 -checkhost {{ cert_domain }} -noout -in "$CERT_PATH" >/dev/null 2>&1; then
+            echo "certificate_missing_domain={{ cert_domain }}"
+            RENEW=true
+          fi
+          {% endfor %}
         fi
 
         if [ "$RENEW" = true ]; then
@@ -256,6 +333,112 @@
         var: core_health.stdout_lines
       when: core_health is defined
       tags: [healthcheck, deploy]
+
+- name: Install node_exporter
+  hosts: core:nodes
+  gather_facts: false
+  become: true
+  vars:
+    node_exporter_version: "1.8.2"
+    node_exporter_archive: "node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    node_exporter_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/{{ node_exporter_archive }}"
+    monitoring_host: "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
+    monitoring_host_ip: "{{ hostvars[monitoring_host].ansible_host }}"
+
+  tasks:
+    - name: Create node_exporter system user
+      user:
+        name: node_exporter
+        shell: /usr/sbin/nologin
+        system: true
+        create_home: false
+      tags: [monitoring, node_exporter]
+
+    - name: Download node_exporter archive
+      get_url:
+        url: "{{ node_exporter_url }}"
+        dest: "/tmp/{{ node_exporter_archive }}"
+        mode: "0644"
+      tags: [monitoring, node_exporter]
+
+    - name: Extract node_exporter archive
+      unarchive:
+        src: "/tmp/{{ node_exporter_archive }}"
+        dest: /tmp
+        remote_src: true
+      tags: [monitoring, node_exporter]
+
+    - name: Install node_exporter binary
+      copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+        dest: /usr/local/bin/node_exporter
+        owner: node_exporter
+        group: node_exporter
+        mode: "0755"
+        remote_src: true
+      notify: Restart node_exporter
+      tags: [monitoring, node_exporter]
+
+    - name: Install node_exporter systemd service
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          User=node_exporter
+          Group=node_exporter
+          Type=simple
+          ExecStart=/usr/local/bin/node_exporter
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart node_exporter
+      tags: [monitoring, node_exporter]
+
+    - name: Enable and start node_exporter
+      systemd:
+        name: node_exporter
+        enabled: true
+        state: started
+        daemon_reload: true
+      tags: [monitoring, node_exporter]
+
+    - name: Allow Prometheus host to scrape node_exporter when UFW exists
+      shell: |
+        if command -v ufw >/dev/null 2>&1; then
+          ufw allow from {{ monitoring_host_ip }} to any port 9100 proto tcp
+        else
+          echo "ufw_status=missing"
+        fi
+      register: node_exporter_ufw
+      changed_when: "'Rule added' in node_exporter_ufw.stdout or 'Rules updated' in node_exporter_ufw.stdout"
+      tags: [monitoring, node_exporter, firewall]
+
+    - name: Allow local Docker bridge to scrape master node_exporter when UFW exists
+      shell: |
+        if command -v ufw >/dev/null 2>&1; then
+          ufw allow from 172.16.0.0/12 to any port 9100 proto tcp
+        else
+          echo "ufw_status=missing"
+        fi
+      register: node_exporter_docker_ufw
+      changed_when: "'Rule added' in node_exporter_docker_ufw.stdout or 'Rules updated' in node_exporter_docker_ufw.stdout"
+      when: inventory_hostname == monitoring_host
+      tags: [monitoring, node_exporter, firewall]
+
+  handlers:
+    - name: Restart node_exporter
+      systemd:
+        name: node_exporter
+        state: restarted
+        daemon_reload: true
 
 - name: Deploy NODES (Hysteria)
   hosts: nodes

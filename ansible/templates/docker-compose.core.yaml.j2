@@ -47,6 +47,7 @@ services:
             - "443:443"
         volumes:
             - /etc/letsencrypt:/etc/letsencrypt:ro
+            - "{{ app_dir }}/nginx.conf:/etc/nginx/conf.d/default.conf:ro"
         depends_on:
             - backend
         networks:
@@ -58,6 +59,82 @@ services:
                 max-size: "3m"
                 max-file: "2"
 
+{% if inventory_hostname == monitoring_host %}
+    prometheus:
+        image: prom/prometheus:v2.55.1
+        container_name: prometheus
+        command:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--storage.tsdb.retention.time=30d"
+            - "--web.enable-lifecycle"
+        ports:
+            - "127.0.0.1:9090:9090"
+        volumes:
+            - "{{ app_dir }}/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+            - "{{ app_dir }}/monitoring/rules:/etc/prometheus/rules:ro"
+            - "{{ data_dir }}/prometheus:/prometheus"
+        networks:
+            - vpn_net
+        restart: unless-stopped
+        depends_on:
+            - alertmanager
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"
+
+    alertmanager:
+        image: prom/alertmanager:v0.27.0
+        container_name: alertmanager
+        command:
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--storage.path=/alertmanager"
+        ports:
+            - "127.0.0.1:9093:9093"
+        volumes:
+            - "{{ app_dir }}/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"
+            - "{{ data_dir }}/alertmanager:/alertmanager"
+        networks:
+            - vpn_net
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"
+
+    grafana:
+        image: grafana/grafana:12.0.2
+        container_name: grafana
+        env_file:
+            - .env
+        environment:
+            - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+            - GF_USERS_ALLOW_SIGN_UP=false
+            - GF_SERVER_DOMAIN=grafana.{{ service_domain }}
+            - GF_SERVER_ROOT_URL=https://grafana.{{ service_domain }}
+        expose:
+            - "3000"
+        volumes:
+            - "{{ data_dir }}/grafana:/var/lib/grafana"
+            - "{{ app_dir }}/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro"
+        depends_on:
+            - prometheus
+        networks:
+            - vpn_net
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "3m"
+                max-file: "2"
+
+{% endif %}
 networks:
     vpn_net:
         driver: bridge

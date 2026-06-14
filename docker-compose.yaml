@@ -78,6 +78,56 @@ services:
         networks:
             - vpn_net
 
+    prometheus:
+        image: prom/prometheus:v2.55.1
+        container_name: prometheus
+        command:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--storage.tsdb.retention.time=30d"
+            - "--web.enable-lifecycle"
+        ports:
+            - "127.0.0.1:9090:9090"
+        volumes:
+            - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+            - ./monitoring/rules:/etc/prometheus/rules:ro
+            - prometheus_data:/prometheus
+        depends_on:
+            - alertmanager
+        networks:
+            - vpn_net
+
+    alertmanager:
+        image: prom/alertmanager:v0.27.0
+        container_name: alertmanager
+        command:
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--storage.path=/alertmanager"
+        ports:
+            - "127.0.0.1:9093:9093"
+        volumes:
+            - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+            - alertmanager_data:/alertmanager
+        networks:
+            - vpn_net
+
+    grafana:
+        image: grafana/grafana:12.0.2
+        container_name: grafana
+        environment:
+            - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+            - GF_USERS_ALLOW_SIGN_UP=false
+        ports:
+            - "127.0.0.1:3000:3000"
+        volumes:
+            - grafana_data:/var/lib/grafana
+            - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+        depends_on:
+            - prometheus
+        networks:
+            - vpn_net
+
 networks:
     vpn_net:
         driver: bridge
@@ -85,3 +135,6 @@ networks:
 volumes:
     pgdata:
     node_modules:
+    prometheus_data:
+    alertmanager_data:
+    grafana_data:

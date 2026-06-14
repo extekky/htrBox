@@ -68,16 +68,15 @@ all:
           data_dir: /home/root/htrBox-data
           secrets_dir: /home/root/.secrets
 
-        # Имя-псевдоним сервера (придумываем сами, любое слово).
-        slave:
-          # КЛЮЧЕВОЕ СЛОВО: ansible_host
-          ansible_host: 81.26.184.82
-          # КЛЮЧЕВОЕ СЛОВО: ansible_user
-          ansible_user: stas
-          # Пользовательские переменные.
-          app_dir: /home/stas/htrBox
-          data_dir: /home/stas/htrBox-data
-          secrets_dir: /home/stas/.secrets
+        # slave:
+        #   # КЛЮЧЕВОЕ СЛОВО: ansible_host
+        #   ansible_host: 81.26.184.82
+        #   # КЛЮЧЕВОЕ СЛОВО: ansible_user
+        #   ansible_user: stas
+        #   # Пользовательские переменные.
+        #   app_dir: /home/stas/htrBox
+        #   data_dir: /home/stas/htrBox-data
+        #   secrets_dir: /home/stas/.secrets
 
     # -------------------------------------------------------
     #  ГРУППА: nodes (виртуальные серверы в разных странах)
