@@ -1,0 +1,8 @@
+# ------------------------------------------------------
+#  group_vars/core.yml
+#  Переменные только для хостов группы "core".
+# ------------------------------------------------------
+
+app_dir: /home/stas/htrBox
+data_dir: /home/stas/htrBox-data
+secrets_dir: /home/stas/.secrets

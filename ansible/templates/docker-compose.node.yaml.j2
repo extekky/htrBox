@@ -4,7 +4,7 @@
 
 services:
     hysteria:
-        image: tobyxdd/hysteria:v2.7.0
+        image: tobyxdd/hysteria:v2.10.0
         container_name: hysteria
         env_file:
             - .env
@@ -14,9 +14,9 @@ services:
             - "/etc/letsencrypt/live/{{ vps_domain }}/privkey.pem:/etc/hysteria/certs/server.key:ro"
         command: server -c /etc/hysteria/config.yaml --disable-update-check
         ports:
-            - "{{ vpn_port }}:{{ vpn_port }}/udp"
-            - "{{ vpn_port }}:{{ vpn_port }}/tcp"
-            - "8080:8080"
+            - "0.0.0.0:{{ vpn_port }}:{{ vpn_port }}/udp"
+            - "0.0.0.0:{{ vpn_port }}:{{ vpn_port }}/tcp"
+            - "0.0.0.0:8080:8080"
         restart: unless-stopped
 
         logging:

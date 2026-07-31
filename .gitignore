@@ -29,3 +29,4 @@ prod
 # Other files and directories to ignore
 # -------------------------------------------------------------
 backups
+ansible_old

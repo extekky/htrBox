@@ -1,0 +1,63 @@
+#!/bin/bash
+set -euo pipefail
+
+# domain folder for the letsencrypt certificate
+CERT_PATH="/etc/letsencrypt/live/{{ cert_primary_domain }}/fullchain.pem"
+RENEW=false
+
+echo "Checking certificate for domain {{ cert_primary_domain }} at $CERT_PATH"
+
+if [[ ! -f "$CERT_PATH" ]]; then
+    echo "certificate_status=missing"
+    RENEW=true
+else
+    # Используем openssl для вывода даты в формате (Jul 31 03:37:40 2026 GMT)
+    EXPIRY_SEC=$(date -d "$(openssl x509 -enddate -noout -in "$CERT_PATH" | cut -d= -f2)" +%s)
+    CURRENT_SEC=$(date +%s)
+
+    if [[ $EXPIRY_SEC -lt $CURRENT_SEC ]]; then
+        echo "certificate_status=expired"
+        RENEW=true
+    else
+        # Арифметика bash для подсчета дней
+        (( DAYS = (EXPIRY_SEC - CURRENT_SEC) / 86400 )) # 86400 секунд в дне
+        echo "certificate_status=present"
+        echo "certificate_days_left=$DAYS"
+
+        if (( DAYS < 30 )); then
+            echo "certificate expiring soon (less than 30 days) -> we will renew it"
+            RENEW=true
+        fi
+    fi
+
+    {% for cert_domain in cert_domains %}
+    if ! openssl x509 -checkhost {{ cert_domain }} -noout -in "$CERT_PATH" >/dev/null 2>&1; then
+        echo "certificate_missing_domain={{ cert_domain }}"
+        RENEW=true
+    fi
+    {% endfor %}
+fi
+
+if [[ "$RENEW" == true ]]; then
+    echo "Starting certificate issuance/renewal"
+    echo "    Primary Domain : {{ cert_primary_domain }}"
+    echo "    All Domains    : {{ cert_domains | join(', ') }}"
+
+    apt-get update -qq
+    apt-get install -y -qq certbot python3-certbot-dns-cloudflare
+
+    certbot certonly \
+        --dns-cloudflare \
+        --dns-cloudflare-credentials "{{ cert_cloudflare_ini }}" \
+        {% for cert_domain in cert_domains -%}
+        -d "{{ cert_domain }}" \
+        {% endfor -%}
+        --email "{{ email }}" \
+        --agree-tos \
+        --no-eff-email \
+        --non-interactive
+
+    echo "certificate_action=issue"
+else
+    echo "certificate_action=skip"
+fi

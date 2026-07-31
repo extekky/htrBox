@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Build & Deploy
 
 on:
@@ -7,7 +6,12 @@ on:
       target:
         description: 'Куда деплоить'
         type: choice
-        options: [all, yc, vps, vps-se, vps-nl, vps-ge, vps-pl]
+
+        # Соответствие реальным группам/хостам в ansible/inventory.yml:
+        #   core  -> group "core"  (host: master)    -> deploy-core.yml
+        #   nodes -> group "nodes" (все vps_*)       -> deploy-nodes.yml
+        #   vps-* -> конкретный хост внутри nodes    -> deploy-nodes.yml --limit
+        options: [all, core, nodes, vps-se, vps-ge, vps-pl]
         default: all
       tags:
         description: 'Что делать на серверах'
@@ -37,9 +41,10 @@ jobs:
   build:
     name: Build & Push Docker images
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'push' ||
-      github.event.inputs.skip_build == 'false'
+    
+    # Триггер сейчас только workflow_dispatch, поэтому проверка github.event_name == 'push'
+    # была мёртвым кодом — убрана.
+    if: github.event.inputs.skip_build != 'true'
 
     # outputs джоба экспортирует переменную image_tag наружу, чтобы следующие 
     # джобы (например, deploy) могли знать, какой тег образа был собран. 
@@ -64,18 +69,18 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }} # логин того, кто запустил workflow
-
-          # автоматически создаётся GitHub для каждого запуска, не нужно хранить вручную. 
-          # Права на push в GHCR включены по умолчанию.
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & push backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend # Директория, которую Docker видит как build context
-          file: ./backend/Dockerfile # Путь к Dockerfile относительно корня репозитория
-          push: true # После сборки сразу пушит в registry
+          # Директория, которую Docker видит как build context
+          context: ./backend 
+          # Путь к Dockerfile относительно корня репозитория
+          file: ./backend/Dockerfile 
+          # После сборки сразу пушит в registry
+          push: true 
           tags: |
             ghcr.io/${{ github.repository_owner }}/htrbox-backend:${{ steps.tag.outputs.sha }}
             ghcr.io/${{ github.repository_owner }}/htrbox-backend:latest
@@ -103,13 +108,23 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Установить Ansible
-        run: pip install ansible
+        run: pip install "ansible-core>=2.16,<2.18"
+
+      # ВАЖНО: deploy-core.yml использует модули community.docker.* —
+      # без этой коллекции playbook падает с "couldn't resolve module/action".
+      - name: Установить Ansible-коллекции
+        run: ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Настроить SSH ключ
+        # ВАЖНО: ansible/group_vars/all.yml задаёт ansible_ssh_private_key_file: ~/.ssh/id_rsa
+        # для ВСЕХ хостов. Эта group_var имеет более высокий приоритет, чем --private-key
+        # на командной строке, поэтому ключ нужно класть именно сюда, иначе Ansible
+        # проигнорирует --private-key и попытается использовать несуществующий ~/.ssh/id_rsa.
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+          chmod 700 ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
       - name: Deploy
         env:
@@ -126,6 +141,11 @@ jobs:
           ADMIN_PASSWORD:    ${{ secrets.ADMIN_PASSWORD }}
           CF_API_TOKEN:      ${{ secrets.CF_API_TOKEN }}
           EMAIL:             ${{ secrets.EMAIL }}
+          GRAFANA_ADMIN_USER:     ${{ secrets.GRAFANA_ADMIN_USER }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:       ${{ secrets.TELEGRAM_CHAT_ID }}
+          MONITORING_HOST:        ${{ secrets.MONITORING_HOST }}
           GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR:      ${{ github.actor }}
           GHCR_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
@@ -151,24 +171,43 @@ jobs:
             TAGS="--tags $INPUT_TAGS"
           fi
 
-          LIMIT=""
-          case "$INPUT_TARGET" in
-            all) LIMIT="" ;;
-            yc) LIMIT="--limit yc" ;;
-            vps) LIMIT="--limit vps" ;;
-            vps-se) LIMIT="--limit vps_se" ;;
-            vps-nl) LIMIT="--limit vps_nl" ;;
-            vps-ge) LIMIT="--limit vps_ge" ;;
-            vps-pl) LIMIT="--limit vps_pl" ;;
-            *) echo "Unknown target: $INPUT_TARGET"; exit 1 ;;
-          esac
-
           echo "Deploy target: $INPUT_TARGET"
           echo "Deploy tags: $INPUT_TAGS"
           echo "Deploy image tag: $IMAGE_TAG"
           echo "Deploy verbosity: $INPUT_VERBOSITY"
 
-          ansible-playbook ansible/deploy.yml \
-            -i ansible/inventory.yml \
-            --private-key ~/.ssh/deploy_key \
-            $VERBOSITY $TAGS $LIMIT
+          # --private-key не передаём: ключ уже лежит в ~/.ssh/id_rsa, том самом пути,
+          # который прописан как ansible_ssh_private_key_file в group_vars/all.yml.
+          run_core() {
+            local limit="${1:-}"
+            ansible-playbook ansible/deploy-core.yml \
+              -i ansible/inventory.yml \
+              $VERBOSITY $TAGS $limit
+          }
+
+          run_nodes() {
+            local limit="${1:-}"
+            ansible-playbook ansible/deploy-nodes.yml \
+              -i ansible/inventory.yml \
+              $VERBOSITY $TAGS $limit
+          }
+
+          case "$INPUT_TARGET" in
+            all)
+              run_core
+              run_nodes
+              ;;
+            core)
+              run_core
+              ;;
+            nodes)
+              run_nodes
+              ;;
+            vps-se) run_nodes "--limit vps_se" ;;
+            vps-ge) run_nodes "--limit vps_ge" ;;
+            vps-pl) run_nodes "--limit vps_pl" ;;
+            *)
+              echo "Unknown target: $INPUT_TARGET"
+              exit 1
+              ;;
+          esac

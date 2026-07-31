@@ -1,0 +1,250 @@
+#                        ДЕПЛОЙ VPN-НОД (HYSTERIA)
+#
+# ЧТО ДЕЛАЕТ ЭТОТ ПЛЕЙБУК:
+#  1. Автоматизирует полную развертку VPN-нод (vps_se, vps_ge, vps_pl)
+#  2. Готовит файловую структуру (папки для конфигураций и секретов)
+#  3. Рендерит конфигурационные файлы (.env, docker-compose, hysteria config)
+#  4. Выпускает/обновляет SSL-сертификаты Let's Encrypt через Cloudflare DNS API
+#     (логика вынесена в tasks/issue-certificate.yml, общий файл с deploy-core.yml)
+#  5. Проверяет, свободен ли VPN-порт перед запуском (или занят уже работающим Hysteria)
+#  6. Запускает контейнер через docker-compose v2 и удаляет старые (dangling) образы
+#  7. Вторым play в этом же файле устанавливает node_exporter на все node-хосты
+#     (логика вынесена в tasks/install-node-exporter.yml, общий файл с deploy-core.yml)
+#
+# ПЕРЕМЕННЫЕ:
+# Общие для core и nodes — в group_vars/all.yml
+# Специфичные для nodes (ansible_user: root, app_dir, secrets_dir, vpn_port) —
+# в group_vars/nodes.yml
+# Домен каждой ноды (vps_domain) задаётся отдельно в inventory.yml на хост
+# Секреты (пароли, токены) читаются из переменных окружения при запуске,
+# см. блок vars в начале первого play.
+#
+# ВСЕ ИСПОЛЬЗУЕМЫЕ ТЕГИ (TAGS) И КАК ИХ ЗАПУСКАТЬ:
+# Вы можете запускать отдельные части плейбука с помощью флага `--tags "tag_name"`
+# > [always]        - Выполняется ВСЕГДА. Показывает информацию о целевом хосте.
+# > [prepare]       - Подготовительный этап. Создает нужные директории,
+#                     проверяет статус Docker и доступность VPN-порта.
+# > [env]           - Рендерит только основной файл окружения (.env) для Hysteria.
+# > [certbot]       - Создает конфиг Cloudflare и вызывает процесс выпуска SSL-сертификата.
+# > [status]        - Проверка состояния: статус Docker и список запущенных контейнеров.
+# > [logs]          - Выводит в консоль последние 30 строк логов контейнера hysteria.
+# > [deploy]        - ОСНОВНОЙ ТЕГ. Включает полный цикл развертывания (подготовка,
+#                     генерация конфигов, запуск docker-compose, очистка старых images).
+# > [node_exporter] - Только установка/обновление node_exporter, без остального деплоя.
+#
+# ПРИМЕРЫ КОМАНД ДЛЯ ЗАПУСКА:
+# Полная развертка всех нод:
+#   ~$ ansible-playbook -i inventory.yml deploy-nodes.yml --tags deploy
+# Только на конкретной ноде:
+#   ~$ ansible-playbook -i inventory.yml deploy-nodes.yml --tags deploy --limit vps_se
+# Только выпустить сертификаты:
+#   ~$ ansible-playbook -i inventory.yml deploy-nodes.yml --tags certbot
+# Посмотреть логи Hysteria:
+#   ~$ ansible-playbook -i inventory.yml deploy-nodes.yml --tags logs
+# Пересоздать только конфигурационные файлы и .env:
+#   ~$ ansible-playbook -i inventory.yml deploy-nodes.yml --tags env
+
+---
+- name: Deploy NODES (Hysteria)
+  hosts: nodes
+  gather_facts: false
+  vars:
+    hysteria_auth:      "{{ lookup('env', 'HYSTERIA_AUTH') }}"
+    cf_api_token:       "{{ lookup('env', 'CF_API_TOKEN') }}"
+    email:              "{{ lookup('env', 'EMAIL') }}"
+    monitoring_host:    "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
+    monitoring_host_ip: "{{ hostvars[monitoring_host].ansible_host }}"
+
+  tasks:
+    - name: Show NODE deployment target
+      debug:
+        msg: >-
+          Node target={{ inventory_hostname }}
+          host={{ ansible_host }}
+          domain={{ vps_domain }}
+          vpn_port={{ vpn_port }}
+      tags: [always]
+
+    - name: Create NODE directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "{{ app_dir }}/hysteria"
+        - "{{ secrets_dir }}"
+      tags: [prepare, certbot, deploy]
+    
+    - name: Ensure official Docker CE is installed
+      become: true
+      import_tasks: tasks/install-docker.yml
+      tags: [prepare, docker, deploy]
+
+    - name: Render NODE environment file
+      template:
+        src: templates/servers.env.j2
+        dest: "{{ app_dir }}/.env"
+        mode: "0600"
+      tags: [env, deploy]
+
+    - name: Render NODE Hysteria config
+      template:
+        src: templates/hysteria.config.yaml.j2
+        dest: "{{ app_dir }}/hysteria/config.yaml"
+        mode: "0644"
+      tags: [deploy]
+
+    - name: Render NODE docker-compose.yaml
+      template:
+        src: templates/docker-compose.node.yaml.j2
+        dest: "{{ app_dir }}/docker-compose.yaml"
+        mode: "0644"
+      tags: [deploy]
+
+    - name: Render NODE Cloudflare credentials
+      template:
+        src: templates/cloudflare.ini.j2
+        dest: "{{ secrets_dir }}/cloudflare-node.ini"
+        mode: "0600"
+      tags: [certbot, deploy]
+
+    - name: Check Docker on NODE
+      shell: |
+        set -e
+        if command -v docker >/dev/null 2>&1; then
+          docker --version
+        else
+          echo "docker_status=missing"
+          exit 1
+        fi
+        systemctl is-active docker
+    
+      # systemctl is-active docker вращает 0, если сервис активен, 
+      # и 3, если неактивен как код возврата в переменную окружения $? 
+      # (что вызывает ошибку в Ansible)
+      # 
+      # Если docker не установлен, скрипт упадёт с rc=1 из-за exit 1, 
+      # и по умолчанию весь playbook на этом хосте остановится. 
+
+      register: node_docker
+      changed_when: false
+      tags: [prepare, status, deploy]
+
+    - name: Print NODE Docker status
+      debug:
+        var: node_docker.stdout_lines
+      when: node_docker is defined
+      tags: [prepare, status, deploy]
+
+    - name: Check NODE VPN port availability
+      shell: |
+        set -e
+        VPN_PORT="{{ vpn_port }}"
+        echo "vpn_port=$VPN_PORT"
+
+        if ! command -v ss >/dev/null 2>&1; then
+          echo "vpn_port_check_status=missing_ss"
+          exit 1
+        fi
+
+        if docker ps \
+          --filter name='^/hysteria$' \
+          --format '{{ "{{" }}.Ports{{ "}}" }}' \
+          | grep -Eq "(0\.0\.0\.0|::):${VPN_PORT}->|:${VPN_PORT}->"; then
+          echo "vpn_port_status=used_by_existing_hysteria"
+          exit 0
+        fi
+
+        TCP_LISTENERS="$(ss -H -ltnp "sport = :${VPN_PORT}" 2>/dev/null || true)"
+        UDP_LISTENERS="$(ss -H -lunp "sport = :${VPN_PORT}" 2>/dev/null || true)"
+
+        if [ -z "$TCP_LISTENERS" ] && [ -z "$UDP_LISTENERS" ]; then
+          echo "vpn_port_status=free"
+          exit 0
+        fi
+
+        echo "vpn_port_status=busy"
+        [ -n "$TCP_LISTENERS" ] && printf 'tcp_listeners:\n%s\n' "$TCP_LISTENERS"
+        [ -n "$UDP_LISTENERS" ] && printf 'udp_listeners:\n%s\n' "$UDP_LISTENERS"
+        exit 1
+      register: node_vpn_port_check
+      changed_when: false
+      tags: [prepare, deploy]
+
+    - name: Print NODE VPN port availability
+      debug:
+        var: node_vpn_port_check.stdout_lines
+      when: node_vpn_port_check is defined
+      tags: [prepare, deploy]
+
+    - name: Check or issue NODE certificate
+      vars:
+        cert_primary_domain: "{{ vps_domain }}"
+        cert_domains: ["{{ vps_domain }}"]
+        cert_cloudflare_ini: "{{ secrets_dir }}/cloudflare-node.ini"
+      import_tasks: tasks/issue-certificate.yml
+      tags: [certbot, deploy]
+
+    - name: Pull and start Hysteria
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        services:
+          - hysteria
+        state: present
+        pull: always
+        recreate: always
+      register: node_compose
+      tags: [deploy]
+
+    - name: Show NODE compose output
+      debug:
+        var: node_compose.actions
+      when: node_compose is defined
+      tags: [deploy]
+
+    - name: Remove unused NODE docker images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: "true"
+      tags: [deploy]
+
+    - name: Show NODE container status
+      debug:
+        var: node_compose.containers
+      when: node_compose is defined
+      tags: [status, deploy]
+
+    - name: Show NODE recent logs
+      shell: |
+        docker logs hysteria --tail=30 2>&1 || true
+      register: node_logs
+      changed_when: false
+      tags: [logs]
+
+    - name: Print NODE recent logs
+      debug:
+        var: node_logs.stdout_lines
+      when: node_logs is defined
+      tags: [logs]
+
+
+- name: Install node_exporter on NODES
+  hosts: nodes
+  gather_facts: false
+  become: true
+  vars:
+    node_exporter_version: "1.8.2"
+    monitoring_host:    "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
+    monitoring_host_ip: "{{ hostvars[monitoring_host].ansible_host }}"
+
+  tasks:
+    - import_tasks: tasks/install-node-exporter.yml
+      tags: [node_exporter]
+
+  handlers:
+    - name: Restart node_exporter
+      systemd:
+        name: node_exporter
+        state: restarted
+        daemon_reload: true

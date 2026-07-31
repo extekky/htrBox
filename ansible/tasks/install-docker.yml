@@ -1,0 +1,156 @@
+# ------------------------------------------------------
+#  tasks/install-docker.yml
+#
+#  Гарантирует наличие официального Docker CE (не docker.io
+#  из Ubuntu-репозитория) с плагинами compose и buildx.
+#
+#  Причина: пакет docker.io из Ubuntu jammy/universe не тянет
+#  docker-compose-plugin, и community.docker.docker_compose_v2
+#  падает с "Docker CLI does not have the compose plugin
+#  installed". Официальный репозиторий Docker несёт плагин
+#  compose "из коробки" вместе с docker-ce-cli.
+#
+#  Идемпотентен: если docker-ce уже установлен из офиц.
+#  репозитория, ничего не делает при повторном запуске.
+#
+#  Подключается через import_tasks из deploy-nodes.yml
+#  (и, при необходимости, deploy-core.yml).
+# ------------------------------------------------------
+
+- name: Gather minimal facts for Docker install
+  setup:
+    gather_subset:
+      - distribution
+      - architecture
+  tags: [prepare, docker, deploy]
+
+- name: Check if docker-ce is already installed
+  command: dpkg-query -W -f='${Status}' docker-ce
+  register: docker_ce_check
+  changed_when: false
+  failed_when: false
+  tags: [prepare, docker, deploy]
+
+- name: Set fact whether official Docker CE is present
+  set_fact:
+    docker_ce_installed: "{{ 'install ok installed' in docker_ce_check.stdout }}"
+  tags: [prepare, docker, deploy]
+
+- name: Stop docker services before removing unofficial packages (best-effort)
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - docker.socket
+    - docker.service
+    - containerd.service
+  failed_when: false
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Remove unofficial docker.io and related packages
+  apt:
+    name:
+      - docker.io
+      - docker-doc
+      - docker-compose
+      - podman-docker
+      - containerd
+      - runc
+    state: absent
+    purge: false
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Install prerequisites for Docker apt repository
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Ensure keyrings directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Download Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+    force: true
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Add Docker apt repository
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    uris: https://download.docker.com/linux/ubuntu
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: stable
+    architectures: "{{ ansible_facts['architecture'] | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }}"
+    signed_by: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+    install_python_debian: true
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Install Docker CE and compose plugin
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  when: not docker_ce_installed
+  tags: [prepare, docker, deploy]
+
+- name: Reload systemd daemon (in case unit files changed)
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags: [prepare, docker, deploy]
+
+- name: Reset failed state for docker units
+  ansible.builtin.command: systemctl reset-failed docker.socket docker.service
+  changed_when: false
+  failed_when: false
+  tags: [prepare, docker, deploy]
+
+- name: Ensure Docker socket is enabled and started
+  ansible.builtin.systemd:
+    name: docker.socket
+    state: started
+    enabled: true
+  tags: [prepare, docker, deploy]
+
+- name: Ensure Docker service is enabled and running
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+  tags: [prepare, docker, deploy]
+
+- name: Verify docker compose plugin is available
+  command: docker compose version
+  register: docker_compose_check
+  changed_when: false
+  tags: [prepare, docker, deploy]
+
+- name: Print Docker installation status
+  debug:
+    msg:
+      - "docker_ce_installed_before_run={{ docker_ce_installed }}"
+      - "docker_compose_version={{ docker_compose_check.stdout }}"
+  tags: [prepare, docker, deploy]
