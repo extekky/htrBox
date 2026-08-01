@@ -14,9 +14,9 @@ on:
         options: [all, core, nodes, vps-se, vps-ge, vps-pl]
         default: all
       tags:
-        description: 'Что делать на серверах'
+        description: 'Какие теги запускать в Ansible'
         type: choice
-        options: [all, prepare, certbot, deploy, status, logs, healthcheck]
+        options: [all, prepare, certbot, deploy, status, healthcheck, build]
         default: deploy
       verbosity:
         description: 'Уровень логов'
@@ -100,8 +100,19 @@ jobs:
     name: Deploy via Ansible
     runs-on: ubuntu-latest
     needs: build
+
+    # always()               — говорит github actions вычислять этот if даже 
+    #                         если предыдущие джобы (в данном случае build) 
+    #                         упали или были пропущены
+    # github.event.inputs.tags != 'build'
+    #                        — проверяет, что в поле tags при запуске воркфлоу 
+    #                         НЕ выбрано значение 'build'
+    # needs.build.result == 'success' || needs.build.result == 'skipped'
+    #                         — проверяет, что джоба build либо успешно завершилась,
+    #                         либо была пропущена (skip_build=true)
     if: |
       always() &&
+      github.event.inputs.tags != 'build' &&
       (needs.build.result == 'success' || needs.build.result == 'skipped')
 
     steps:
@@ -126,7 +137,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Deploy
+      - name: Run Deploy Script
         env:
           BUILD_RESULT:      ${{ needs.build.result }}
           BUILT_IMAGE_TAG:   ${{ needs.build.outputs.image_tag }}
@@ -151,63 +162,4 @@ jobs:
           GHCR_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
           GHCR_USERNAME:     ${{ github.actor }}
           GHCR_OWNER:        ${{ github.repository_owner }}
-        run: |
-          set -euo pipefail
-
-          if [ "$BUILD_RESULT" = "success" ]; then
-            IMAGE_TAG="$BUILT_IMAGE_TAG"
-          else
-            IMAGE_TAG="${INPUT_IMAGE_TAG:-latest}"
-          fi
-          export IMAGE_TAG
-
-          VERBOSITY=""
-          if [ "$INPUT_VERBOSITY" = "verbose" ]; then
-            VERBOSITY="-vvv"
-          fi
-
-          TAGS=""
-          if [ "$INPUT_TAGS" != "all" ]; then
-            TAGS="--tags $INPUT_TAGS"
-          fi
-
-          echo "Deploy target: $INPUT_TARGET"
-          echo "Deploy tags: $INPUT_TAGS"
-          echo "Deploy image tag: $IMAGE_TAG"
-          echo "Deploy verbosity: $INPUT_VERBOSITY"
-
-          # --private-key не передаём: ключ уже лежит в ~/.ssh/id_rsa, том самом пути,
-          # который прописан как ansible_ssh_private_key_file в group_vars/all.yml.
-          run_core() {
-            local limit="${1:-}"
-            ansible-playbook ansible/deploy-core.yml \
-              -i ansible/inventory.yml \
-              $VERBOSITY $TAGS $limit
-          }
-
-          run_nodes() {
-            local limit="${1:-}"
-            ansible-playbook ansible/deploy-nodes.yml \
-              -i ansible/inventory.yml \
-              $VERBOSITY $TAGS $limit
-          }
-
-          case "$INPUT_TARGET" in
-            all)
-              run_core
-              run_nodes
-              ;;
-            core)
-              run_core
-              ;;
-            nodes)
-              run_nodes
-              ;;
-            vps-se) run_nodes "--limit vps_se" ;;
-            vps-ge) run_nodes "--limit vps_ge" ;;
-            vps-pl) run_nodes "--limit vps_pl" ;;
-            *)
-              echo "Unknown target: $INPUT_TARGET"
-              exit 1
-              ;;
-          esac
+        run: ./scripts/deploy.sh

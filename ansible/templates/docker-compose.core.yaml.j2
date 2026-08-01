@@ -29,7 +29,7 @@ services:
         depends_on:
             - postgres
         ports:
-            - "127.0.0.1:8000:8000"
+            - "8000:8000"
         networks:
             - vpn_net
         restart: unless-stopped
@@ -77,8 +77,8 @@ services:
         networks:
             - vpn_net
         restart: unless-stopped
-        depends_on:
-            - alertmanager
+        # depends_on:
+        #     - alertmanager
         extra_hosts:
             - "host.docker.internal:host-gateway"
         logging:
@@ -87,25 +87,25 @@ services:
                 max-size: "3m"
                 max-file: "2"
 
-    alertmanager:
-        image: prom/alertmanager:v0.27.0
-        container_name: alertmanager
-        command:
-            - "--config.file=/etc/alertmanager/alertmanager.yml"
-            - "--storage.path=/alertmanager"
-        ports:
-            - "127.0.0.1:9093:9093"
-        volumes:
-            - "{{ app_dir }}/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"
-            - "{{ data_dir }}/alertmanager:/alertmanager"
-        networks:
-            - vpn_net
-        restart: unless-stopped
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "3m"
-                max-file: "2"
+    # alertmanager:
+    #     image: prom/alertmanager:v0.27.0
+    #     container_name: alertmanager
+    #     command:
+    #         - "--config.file=/etc/alertmanager/alertmanager.yml"
+    #         - "--storage.path=/alertmanager"
+    #     ports:
+    #         - "127.0.0.1:9093:9093"
+    #     volumes:
+    #         - "{{ app_dir }}/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro"
+    #         - "{{ data_dir }}/alertmanager:/alertmanager"
+    #     networks:
+    #         - vpn_net
+    #     restart: unless-stopped
+    #     logging:
+    #         driver: "json-file"
+    #         options:
+    #             max-size: "3m"
+    #             max-file: "2"
 
     grafana:
         image: grafana/grafana:12.0.2
