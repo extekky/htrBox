@@ -36,11 +36,7 @@ import {
   getSubscriptionValue,
   getExpiryPct,
 } from "@/lib/utils";
-import {
-  getResolvedUserStatuses,
-  getSchoolPrivilegeNote,
-  getStatusPayload,
-} from "@/lib/userStatuses";
+import { getResolvedUserStatuses, getStatusPayload } from "@/lib/userStatuses";
 import { styles, colorScheme } from "@/styles";
 
 const s = styles.profilePage;
@@ -144,7 +140,6 @@ export function ProfilePage() {
   const userStatuses = getResolvedUserStatuses(statusPayload);
   const selectedStatus =
     userStatuses.find((status) => status.key === selectedStatusKey) ?? null;
-  const schoolPrivilegeNote = getSchoolPrivilegeNote(statusPayload);
 
   // Данные плитки «Подписка» (текст, юниты, цвет)
   const subscriptionValue = getSubscriptionValue(
@@ -217,14 +212,6 @@ export function ProfilePage() {
             </div>
           </Card>
 
-          <NotifyBanner
-            bannerId="school-user-free"
-            visible={!!schoolPrivilegeNote}
-            icon={GraduationCap}
-            title="Бесплатный доступ!"
-            description={schoolPrivilegeNote ?? undefined}
-            variant="purple"
-          />
           {/* -- Статистика: трафик + подписка ------------------- */}
           <div className={s.statsGrid}>
             {/* Плитка трафика */}
@@ -275,15 +262,15 @@ export function ProfilePage() {
 
           {/* -- Баннер: подписка есть, но аккаунт не активирован -- */}
           <NotifyBanner
-            bannerId="inactive-user"
-            visible={profile.allowed && !profile.active}
+            bannerId="maintenance-notice"
+            visible={true}
             icon={AlertTriangle}
-            title="Сервис стал платным"
+            title="Ведутся технические работы"
             description={
-              `Для продолжения работы оформите подписку у администратора.\n` +
-              `Стабильность работы не гарантируется — возможны перебои.`
+              `На этой неделе сервис может работать нестабильно — проводятся технические работы. ` +
+              `Приносим извинения за возможные неудобства.`
             }
-            variant="warning"
+            variant="danger"
           />
 
           {/* -- Онбординг-гайд — показываем пока нет даты истечения -- */}
