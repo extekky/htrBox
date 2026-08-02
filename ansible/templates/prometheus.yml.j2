@@ -1,39 +1,49 @@
+# Глобальные настройки Prometheus:
+# - scrape_interval     — как часто Prometheus опрашивает таргеты
+# - evaluation_interval — как часто пересчитываются alerting/recording rules
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
-rule_files:
-  - /etc/prometheus/rules/*.yml
-
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-            - alertmanager:9093
-
 scrape_configs:
+  # Самоскрейп: Prometheus мониторит сам себя, чтобы видеть свою
+  # доступность и внутренние метрики (память, число серий и т.д.)
   - job_name: prometheus
     static_configs:
       - targets:
           - localhost:9090
 
+  # Job для сбора метрик node_exporter со всех хостов инфраструктуры.
+  # Список таргетов формируется динамически из инвентаря Ansible.
   - job_name: node
     static_configs:
+      # Первый таргет — node_exporter на текущем хосте (том, где рендерится
+      # этот шаблон). host.docker.internal используется, потому что
+      # Prometheus запущен в контейнере и обращается к экспортеру на хосте.
       - targets:
           - host.docker.internal:9100
         labels:
           host: {{ inventory_hostname }}
-{% for host in groups['core'] | default([]) %}
-{% if host != inventory_hostname %}
+
+      # Добавляем в таргеты остальные хосты из группы core (кроме самого
+      # себя, чтобы не задублировать первый таргет выше). Это позволяет
+      # core-серверу видеть node_exporter других core-нод, если их
+      # несколько.
+      {% for host in groups['core'] | default([]) %}
+      {% if host != inventory_hostname %}
       - targets:
           - {{ hostvars[host].ansible_host }}:9100
         labels:
           host: {{ host }}
-{% endif %}
-{% endfor %}
-{% for host in groups['nodes'] | default([]) %}
+      {% endif %}
+      {% endfor %}
+
+      # Добавляем в таргеты все хосты из группы nodes — то есть все VPN-ноды,
+      # чтобы с core-сервера можно было мониторить node_exporter каждой
+      # ноды по её ansible_host из инвентаря.
+      {% for host in groups['nodes'] | default([]) %}
       - targets:
           - {{ hostvars[host].ansible_host }}:9100
         labels:
           host: {{ host }}
-{% endfor %}
+      {% endfor %}

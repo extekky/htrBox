@@ -1,24 +1,26 @@
+# -----------------------------------------------------
+# Это ЗАГЛУШКА для локальной разработки.
+#
+# В продакшене этот файл не используется в исходном виде: при деплое
+# Ansible рендерит ansible/templates/prometheus.yml.j2 (с полным списком
+# таргетов, собранным из inventory.yml) и кладёт результат по этому же
+# пути на сервере, перезаписывая версию из репозитория.
+# -----------------------------------------------------
+
 global:
   scrape_interval: 30s
   evaluation_interval: 30s
 
-rule_files:
-  - /etc/prometheus/rules/*.yml
-
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-            - alertmanager:9093
-
 scrape_configs:
+  # Самоскрейп: Prometheus мониторит сам себя.
   - job_name: prometheus
     static_configs:
       - targets:
           - localhost:9090
 
+  # Локально видим только node_exporter текущей машины.
   - job_name: node
     static_configs:
       - targets:
           # Render real hosts from ansible/templates/prometheus.yml.j2 in production.
-          - host.docker.internal:9100
+          - host.docker.internal:910

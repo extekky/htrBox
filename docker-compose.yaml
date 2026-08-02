@@ -90,24 +90,7 @@ services:
             - "127.0.0.1:9090:9090"
         volumes:
             - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-            - ./monitoring/rules:/etc/prometheus/rules:ro
             - prometheus_data:/prometheus
-        depends_on:
-            - alertmanager
-        networks:
-            - vpn_net
-
-    alertmanager:
-        image: prom/alertmanager:v0.27.0
-        container_name: alertmanager
-        command:
-            - "--config.file=/etc/alertmanager/alertmanager.yml"
-            - "--storage.path=/alertmanager"
-        ports:
-            - "127.0.0.1:9093:9093"
-        volumes:
-            - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-            - alertmanager_data:/alertmanager
         networks:
             - vpn_net
 

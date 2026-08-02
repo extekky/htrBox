@@ -2,7 +2,7 @@
 #
 # ЧТО ДЕЛАЕТ ЭТОТ ПЛЕЙБУК:
 #  1. Автоматизирует полную развертку core сервера: frontend, backend,
-#     postgreSQL, а также стек мониторинга (prometheus, grafana, alertmanager)
+#     postgreSQL, а также стек мониторинга (prometheus, grafana)
 #  2. Проверяет наличие всех критически важных переменных и секретов из ENV
 #  3. Готовит файловую структуру (папки для конфигураций, секретов и данных БД/мониторинга)
 #  4. Рендерит конфигурационные файлы (.env, docker-compose, prometheus, nginx и т.д.)
@@ -74,12 +74,10 @@
     admin_password:     "{{ lookup('env', 'ADMIN_PASSWORD') }}"
     postgres_password:  "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
 
-    # monitoring and alerting
+    # monitoring
     monitoring_host:    "{{ lookup('env', 'MONITORING_HOST')    | default('master', true) }}"
     grafana_admin_user: "{{ lookup('env', 'GRAFANA_ADMIN_USER') | default('admin', true) }}"
     grafana_admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') }}"
-    telegram_chat_id:   "{{ lookup('env', 'TELEGRAM_CHAT_ID') }}"
-    telegram_bot_token: "{{ lookup('env', 'TELEGRAM_BOT_TOKEN') }}"
     
     # Для ghcr_username и ghcr_token — два уровня fallback:
     # сначала кастомная переменная, если не задана — стандартная
@@ -163,9 +161,6 @@
         - path: "{{ data_dir }}/prometheus"
           owner: "65534"
           group: "65534"
-        # - path: "{{ data_dir }}/alertmanager"
-        #   owner: "65534"
-        #   group: "65534"
         - path: "{{ data_dir }}/grafana"
           owner: "472"
           group: "472"
@@ -197,22 +192,6 @@
       template:
         src: templates/prometheus.yml.j2
         dest: "{{ app_dir }}/monitoring/prometheus.yml"
-        mode: "0644"
-      when: inventory_hostname == monitoring_host
-      tags: [deploy, monitoring]
-
-    # - name: Render CORE Alertmanager config
-    #   template:
-    #     src: templates/alertmanager.yml.j2
-    #     dest: "{{ app_dir }}/monitoring/alertmanager.yml"
-    #     mode: "0644"
-    #   when: inventory_hostname == monitoring_host
-    #   tags: [deploy, monitoring]
-
-    - name: Copy CORE Prometheus alert rules
-      copy:
-        src: ../monitoring/rules/
-        dest: "{{ app_dir }}/monitoring/rules/"
         mode: "0644"
       when: inventory_hostname == monitoring_host
       tags: [deploy, monitoring]
@@ -260,17 +239,6 @@
         cert_cloudflare_ini: "{{ secrets_dir }}/cloudflare-core.ini"
       import_tasks: tasks/issue-certificate.yml
       tags: [certbot, deploy]
-
-    # - name: Check GHCR credentials
-    #   assert:
-    #     that:
-    #       - ghcr_username | length > 0
-    #       - ghcr_token    | length > 0
-    #     fail_msg: >-
-    #       GHCR credentials are missing. Export the following variables:
-    #        - GHCR_USERNAME
-    #        - GHCR_TOKEN
-    #   tags: [deploy]
 
     - name: Login CORE host to GHCR
       community.docker.docker_login:
@@ -323,30 +291,6 @@
         var: core_health.stdout_lines
       when: core_health is defined
       tags: [healthcheck, deploy]
-
-    # - name: Check CORE monitoring endpoints
-    #   shell: |
-    #     set -e
-    #     curl -fsS http://127.0.0.1:9090/-/ready
-    #     curl -fsS http://127.0.0.1:9090/api/v1/targets
-    #     curl -fsS http://127.0.0.1:9093/-/ready
-    #     curl -fsS https://grafana.{{ service_domain }}/api/health
-    #   register: monitoring_health
-    #   changed_when: false
-    #   retries: 10
-    #   delay: 3
-    #   until: monitoring_health.rc == 0
-    #   when: inventory_hostname == monitoring_host
-    #   tags: [healthcheck, deploy, monitoring]
-
-    # - name: Print CORE monitoring health
-    #   debug:
-    #     var: monitoring_health.stdout_lines
-    #   when:
-    #     - inventory_hostname == monitoring_host
-    #     - monitoring_health is defined
-    #   tags: [healthcheck, deploy, monitoring]
-
 
 - name: Install node_exporter on CORE
   hosts: core
