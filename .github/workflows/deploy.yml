@@ -1,165 +1,63 @@
-name: Build & Deploy
+name: Build & Push
 
 on:
-  workflow_dispatch:
-    inputs:
-      target:
-        description: 'Куда деплоить'
-        type: choice
-
-        # Соответствие реальным группам/хостам в ansible/inventory.yml:
-        #   core  -> group "core"  (host: master)    -> deploy-core.yml
-        #   nodes -> group "nodes" (все vps_*)       -> deploy-nodes.yml
-        #   vps-* -> конкретный хост внутри nodes    -> deploy-nodes.yml --limit
-        options: [all, core, nodes, vps-se, vps-ge, vps-pl]
-        default: all
-      tags:
-        description: 'Какие теги запускать в Ansible'
-        type: choice
-        options: [all, prepare, certbot, deploy, status, healthcheck, build]
-        default: deploy
-      verbosity:
-        description: 'Уровень логов'
-        type: choice
-        options: [normal, verbose]
-        default: normal
-      skip_build:
-        description: 'Пропустить сборку образов'
-        type: boolean
-        default: false
-      image_tag:
-        description: 'Тег образа при skip_build=true'
-        required: false
-        default: latest
+    workflow_dispatch:
+    # push:
+    #     branches: [main]
 
 permissions:
-  contents: read
-  packages: write
+    contents: read
+    packages: write
 
 jobs:
+    build:
+        name: Build & Push Docker images
+        runs-on: ubuntu-latest
 
-  build:
-    name: Build & Push Docker images
-    runs-on: ubuntu-latest
-    
-    # Триггер сейчас только workflow_dispatch, поэтому проверка github.event_name == 'push'
-    # была мёртвым кодом — убрана.
-    if: github.event.inputs.skip_build != 'true'
+        # outputs джоба экспортирует переменную image_tag наружу — пригодится,
+        # если после сборки нужно узнать тег образа не заходя в логи раннера.
+        outputs:
+            image_tag: ${{ steps.tag.outputs.sha }}
 
-    # outputs джоба экспортирует переменную image_tag наружу, чтобы следующие 
-    # джобы (например, deploy) могли знать, какой тег образа был собран. 
-    # Значение берётся из шага tag.
-    outputs:
-      image_tag: ${{ steps.tag.outputs.sha }}
+        steps:
+            # Клонирует репозиторий на раннер. Без этого Git-история и файлы недоступны.
+            - uses: actions/checkout@v4
 
-    steps:
+            - name: Установить тег образа (короткий SHA)
+              id: tag
+              # `git rev-parse` --short HEAD -> возвращает первые 7 символов текущего коммита.
+              # Запись в $GITHUB_OUTPUT — стандартный способ передать значение из шага в другие
+              # шаги и в outputs джобы.
+              run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      # Клонирует репозиторий на раннер. Без этого Git-история и файлы недоступны.
-      - uses: actions/checkout@v4
+            # GitHub Container Registry
+            - name: Login ghcr.io
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Установить тег образа (короткий SHA)
-        id: tag
-        # `git rev-parse` --short HEAD -> возвращает первые 7 символов текущего коммита.
-        # Запись в $GITHUB_OUTPUT — стандартный способ передать значение из шага в другие
-        # шаги и в outputs джобы.
-        run: echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            - name: Build & push backend
+              uses: docker/build-push-action@v5
+              with:
+                  # Директория, которую Docker видит как build context
+                  context: ./backend
+                  # Путь к Dockerfile относительно корня репозитория
+                  file: ./backend/Dockerfile
+                  # После сборки сразу пушит в registry
+                  push: true
+                  tags: |
+                      ghcr.io/${{ github.repository_owner }}/htrbox-backend:${{ steps.tag.outputs.sha }}
+                      ghcr.io/${{ github.repository_owner }}/htrbox-backend:latest
 
-      # GitHub Container Registry
-      - name: Login ghcr.io
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & push backend
-        uses: docker/build-push-action@v5
-        with:
-          # Директория, которую Docker видит как build context
-          context: ./backend 
-          # Путь к Dockerfile относительно корня репозитория
-          file: ./backend/Dockerfile 
-          # После сборки сразу пушит в registry
-          push: true 
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/htrbox-backend:${{ steps.tag.outputs.sha }}
-            ghcr.io/${{ github.repository_owner }}/htrbox-backend:latest
-
-      - name: Build & push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./frontend/Dockerfile
-          target: prod
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/htrbox-frontend:${{ steps.tag.outputs.sha }}
-            ghcr.io/${{ github.repository_owner }}/htrbox-frontend:latest
-
-  deploy:
-    name: Deploy via Ansible
-    runs-on: ubuntu-latest
-    needs: build
-
-    # always()               — говорит github actions вычислять этот if даже 
-    #                         если предыдущие джобы (в данном случае build) 
-    #                         упали или были пропущены
-    # github.event.inputs.tags != 'build'
-    #                        — проверяет, что в поле tags при запуске воркфлоу 
-    #                         НЕ выбрано значение 'build'
-    # needs.build.result == 'success' || needs.build.result == 'skipped'
-    #                         — проверяет, что джоба build либо успешно завершилась,
-    #                         либо была пропущена (skip_build=true)
-    if: |
-      always() &&
-      github.event.inputs.tags != 'build' &&
-      (needs.build.result == 'success' || needs.build.result == 'skipped')
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Установить Ansible
-        run: pip install "ansible-core>=2.16,<2.18"
-
-      # ВАЖНО: deploy-core.yml использует модули community.docker.* —
-      # без этой коллекции playbook падает с "couldn't resolve module/action".
-      - name: Установить Ansible-коллекции
-        run: ansible-galaxy collection install -r ansible/requirements.yml
-
-      - name: Настроить SSH ключ
-        # ВАЖНО: ansible/group_vars/all.yml задаёт ansible_ssh_private_key_file: ~/.ssh/id_rsa
-        # для ВСЕХ хостов. Эта group_var имеет более высокий приоритет, чем --private-key
-        # на командной строке, поэтому ключ нужно класть именно сюда, иначе Ansible
-        # проигнорирует --private-key и попытается использовать несуществующий ~/.ssh/id_rsa.
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Run Deploy Script
-        env:
-          BUILD_RESULT:      ${{ needs.build.result }}
-          BUILT_IMAGE_TAG:   ${{ needs.build.outputs.image_tag }}
-          INPUT_IMAGE_TAG:   ${{ github.event.inputs.image_tag || 'latest' }}
-          INPUT_TARGET:      ${{ github.event.inputs.target || 'all' }}
-          INPUT_TAGS:        ${{ github.event.inputs.tags || 'deploy' }}
-          INPUT_VERBOSITY:   ${{ github.event.inputs.verbosity || 'normal' }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          JWT_SECRET:        ${{ secrets.JWT_SECRET }}
-          HYSTERIA_AUTH:     ${{ secrets.HYSTERIA_AUTH }}
-          ADMIN_USERNAME:    ${{ secrets.ADMIN_USERNAME }}
-          ADMIN_PASSWORD:    ${{ secrets.ADMIN_PASSWORD }}
-          CF_API_TOKEN:      ${{ secrets.CF_API_TOKEN }}
-          EMAIL:             ${{ secrets.EMAIL }}
-          GRAFANA_ADMIN_USER:     ${{ secrets.GRAFANA_ADMIN_USER }}
-          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
-          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:       ${{ secrets.TELEGRAM_CHAT_ID }}
-          MONITORING_HOST:        ${{ secrets.MONITORING_HOST }}
-          GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR:      ${{ github.actor }}
-          GHCR_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
-          GHCR_USERNAME:     ${{ github.actor }}
-          GHCR_OWNER:        ${{ github.repository_owner }}
-        run: ./scripts/deploy.sh
+            - name: Build & push frontend
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./frontend/Dockerfile
+                  target: prod
+                  push: true
+                  tags: |
+                      ghcr.io/${{ github.repository_owner }}/htrbox-frontend:${{ steps.tag.outputs.sha }}
+                      ghcr.io/${{ github.repository_owner }}/htrbox-frontend:latest

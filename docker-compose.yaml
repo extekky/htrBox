@@ -1,12 +1,10 @@
-# ---------------------------------------------
-#  Local development
+# Local development
 #
-#  Frontend: Vite dev server on :5173 (hot reload)
-#  Backend:  FastAPI on :8000
-#  Hysteria: self-signed certs (hysteria/certs/)
+# Frontend: Vite dev server on :5173 (hot reload)
+# Backend:  FastAPI on :8000
+# Hysteria: self-signed certs (hysteria/certs/)
 #
-#  Proxy /api/ -> backend setup in vite.config.ts
-# ---------------------------------------------
+# Proxy /api/ -> backend setup in vite.config.ts
 
 services:
     postgres:
@@ -21,7 +19,11 @@ services:
         ports:
             - "5432:5432"
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+                ]
             interval: 300s
             timeout: 5s
             retries: 5
@@ -56,7 +58,7 @@ services:
         volumes:
             # для разработки, чтобы изменения в коде фронтенда сразу отражались в контейнере
             - ./frontend:/app/frontend
-            - node_modules:/app/frontend/node_modules 
+            - node_modules:/app/frontend/node_modules
         depends_on:
             - backend
         networks:

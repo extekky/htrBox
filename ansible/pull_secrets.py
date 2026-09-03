@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Скрипт тянет секреты из из cloud.ru secret management
-и записи их в yaml файл для последующего include_vars в ansible
+Скрипт тянет секреты из из cloud.ru secret management и 
+записи их в yaml файл для последующего include_vars в ansible
 
 Запускается из корня проекта ansible playbook (delegate_to: localhost),
 читает ключи доступа из ansible/.env для создания access_token, пишет 

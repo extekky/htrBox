@@ -2,42 +2,33 @@
 
 Этот файл — небольшая документация по Ansible-части проекта.
 
-## Структура директории
+## TLDR;
 
+Деплой на CORE сервер
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements-ansible.txt
+ansible-galaxy collection install -r ansible/requirements.yml
+ansible-playbook ansible/deploy-core.yml \
+  -i ansible/inventory.yml \
+  --limit "master:localhost" \
+  --tags deploy \
+  -v
 ```
-.
-├── deploy-core.yml
-├── deploy-nodes.yml
-├── group_vars
-│   ├── all.yml
-│   ├── core.yml
-│   └── nodes.yml
-├── inventory.yml
-├── pull_secrets.py
-├── README.md
-├── requirements.yml
-├── restore-db.yml
-├── tasks
-│   ├── install-docker.yml
-│   ├── install-node-exporter.yml
-│   └── issue-certificate.yml
-└── templates
-    ├── cloudflare.ini.j2
-    ├── docker-compose.core.yaml.j2
-    ├── docker-compose.node.yaml.j2
-    ├── grafana-datasource-prometheus.yml.j2
-    ├── hysteria.config.yaml.j2
-    ├── infra.env.j2
-    ├── issue-certificate.sh.j2
-    ├── prometheus.yml.j2
-    └── servers.env.j2
-```
+
+Что здесь происходит:
+
+- `ansible/deploy-core.yml` — playbook для развёртывания core сервера.
+- `-i ansible/inventory.yml` — путь до инвентаря.
+- `--limit "master:loalhost"` — ограничиваем выполнение конкретным хостом/группой (см ниже).
+- `--tags deploy` — выполняем только таски, помеченные тегом `deploy`.
+- `-v` — verbose mode, подробный вывод для отладки.
 
 ## Основные playbook'и
 
 1. `deploy-core.yml` — playbook для выкладки обновлений на core-сервер, который обрабатывает авторизацию клиентов и выполняет остальную рутинную работу.
 2. `deploy-nodes.yml` — playbook для обновления нод, которые через SNAT позволяют пользователям выходить в интернет под IP default gateway интерфейса (по сути, основная задача любого VPN-сервера).
-3. `restore-db.yml` — playbook, который восстанавливает базу данных из backup'а.
 
 ## Файлы и директории, специфичные для Ansible
 
@@ -47,9 +38,9 @@
 4. `templates` — директория с Jinja2-шаблонами (`.j2`), на основе которых генерируются конфигурационные и прочие файлы, подставляя значения из переменных Ansible.
 5. `requirements.yml` — список внешних ролей и коллекций, которые нужно установить перед первым запуском:
 
-    ```bash
-    ansible-galaxy install -r requirements.yml
-    ```
+```bash
+ansible-galaxy install -r requirements.yml
+```
 
 6. `pull_secrets.py` — скрипт, который тянет секреты из Cloud.ru Secret Manager и пишет их в YAML-файл для `include_vars`. Подробно описан ниже, в разделе про секреты.
 
@@ -94,36 +85,6 @@ python pull_secrets.py --output /tmp/test_secrets.yml
 cat /tmp/test_secrets.yml
 rm /tmp/test_secrets.yml
 ```
-
-## Пример локального деплоя ноды
-
-Ниже — пример запуска деплоя ноды через `ansible-playbook` локально, без вызова GitHub Workflow Dispatch.
-
-> Секреты из Cloud.ru пока подключены только к `deploy-core.yml`. Для `deploy-nodes.yml` секреты по-прежнему передаются вручную через `export`, как показано ниже.
-
-Из корня проекта (`/Users/stas/projects/htrBox`) выполняем:
-
-```bash
-true \
-&& export HYSTERIA_AUTH="" \
-&& export CF_API_TOKEN="" \
-&& export EMAIL="" \
-&& ansible-playbook ansible/deploy-nodes.yml \
-  -i ansible/inventory.yml \
-  --limit vps_se \
-  --tags deploy \
-  -v
-```
-
-Вместо пустых значений в `export` должны стоять актуальные секреты.
-
-Что здесь происходит:
-
-- `ansible/deploy-nodes.yml` — playbook для развёртывания ноды.
-- `-i ansible/inventory.yml` — путь до инвентаря.
-- `--limit vps_se` — ограничиваем выполнение конкретным хостом/группой (в данном случае — нодой в Швеции).
-- `--tags deploy` — выполняем только таски, помеченные тегом `deploy`.
-- `-v` — verbose mode, подробный вывод для отладки. При необходимости можно увеличить детализацию до `-vvv`.
 
 ### Dry-run перед реальным запуском
 
