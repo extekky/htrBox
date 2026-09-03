@@ -1,18 +1,18 @@
-#                   ДЕПЛОЙ CORE СЕРВЕРА И СИСТЕМЫ МОНИТОРИНГА 
+# ДЕПЛОЙ CORE СЕРВЕРА И СИСТЕМЫ МОНИТОРИНГА
 #
 # ЧТО ДЕЛАЕТ ЭТОТ ПЛЕЙБУК:
-#  1. Автоматизирует полную развертку core сервера: frontend, backend,
-#     postgreSQL, а также стек мониторинга (prometheus, grafana)
-#  2. Проверяет наличие всех критически важных переменных и секретов из ENV
-#  3. Готовит файловую структуру (папки для конфигураций, секретов и данных БД/мониторинга)
-#  4. Рендерит конфигурационные файлы (.env, docker-compose, prometheus, nginx и т.д.)
-#  5. Выпускает/обновляет SSL-сертификаты Let's Encrypt через Cloudflare DNS API
-#     (логика вынесена в tasks/issue-certificate.yml, общий файл с deploy-nodes.yml)
-#  6. Авторизуется в GHCR (GitHub Container Registry) и стягивает свежие Docker образы
-#  7. Запускает контейнеры через docker-compose v2 и удаляет старые (dangling) образы
-#  8. Healthcheck бэкенда через HTTP-запросы
-#  9. Вторым play в этом же файле устанавливает node_exporter на все core-хосты
-#     (логика вынесена в tasks/install-node-exporter.yml, общий файл с deploy-nodes.yml)
+#   1. Автоматизирует полную развертку core сервера: frontend, backend,
+#      postgreSQL, а также стек мониторинга: prometheus, grafana
+#   2. Проверяет наличие всех критически важных переменных и секретов из ENV
+#   3. Готовит файловую структуру (папки для конфигураций, секретов и данных БД/мониторинга)
+#   4. Рендерит конфигурационные файлы (.env, docker-compose, prometheus, nginx и т.д.)
+#   5. Выпускает/обновляет SSL-сертификаты Let's Encrypt через Cloudflare DNS API
+#      (логика вынесена в tasks/issue-certificate.yml, общий файл с deploy-nodes.yml)
+#   6. Авторизуется в GHCR (GitHub Container Registry) и стягивает свежие Docker образы
+#   7. Запускает контейнеры через docker-compose v2 и удаляет старые (dangling) образы
+#   8. Healthcheck бэкенда через HTTP-запросы
+#   9. Вторым play в этом же файле устанавливает node_exporter на все core-хосты
+#      (логика вынесена в tasks/install-node-exporter.yml, общий файл с deploy-nodes.yml)
 #
 # ПЕРЕМЕННЫЕ:
 # Общие для core и nodes — в group_vars/all.yml
@@ -22,22 +22,22 @@
 #
 # ВСЕ ИСПОЛЬЗУЕМЫЕ ТЕГИ (TAGS) И КАК ИХ ЗАПУСКАТЬ:
 # Вы можете запускать отдельные части плейбука с помощью флага `--tags "tag_name"`
-# > [always]      - Выполняется ВСЕГДА. Показывает информацию о целевом хосте.
-# > [prepare]     - Подготовительный этап. Проверяет переменные окружения,
-#                   устанавливает Docker (если его ещё нет), создает нужные
-#                   директории и проверяет статус Docker.
-# > [docker]      - Только установка/обновление Docker CE, без остального деплоя.
-# > [env]         - Рендерит только основной файл окружения (.env) для приложений.
-# > [certbot]     - Создает конфиг Cloudflare и вызывает процесс выпуска SSL-сертификата.
-# > [monitoring]  - Все, что связано с мониторингом: создает папки с правильными
-#                   UID/GID (Prometheus/Grafana), рендерит конфиги мониторинга
-#                   и устанавливает node_exporter.
-# > [status]      - Проверка состояния: статус Docker и список запущенных контейнеров.
-# > [healthcheck] - Проверяет доступность эндпоинта /health бэкенда (до 10 попыток).
-# > [deploy]      - ОСНОВНОЙ ТЕГ. Включает полный цикл развертывания (подготовка,
-#                   генерация конфигов, логин в registry, запуск docker-compose,
-#                   очистка старых images и healthcheck).
-# > [node_exporter] - Только установка/обновление node_exporter, без остального деплоя.
+#   > [always]      - Выполняется ВСЕГДА. Показывает информацию о целевом хосте.
+#   > [prepare]     - Подготовительный этап. Проверяет переменные окружения,
+#                     устанавливает Docker (если его ещё нет), создает нужные
+#                     директории и проверяет статус Docker.
+#   > [docker]      - Только установка/обновление Docker CE, без остального деплоя.
+#   > [env]         - Рендерит только основной файл окружения (.env) для приложений.
+#   > [certbot]     - Создает конфиг Cloudflare и вызывает процесс выпуска SSL-сертификата.
+#   > [monitoring]  - Все, что связано с мониторингом: создает папки с правильными
+#                     UID/GID (Prometheus/Grafana), рендерит конфиги мониторинга
+#                     и устанавливает node_exporter.
+#   > [status]      - Проверка состояния: статус Docker и список запущенных контейнеров.
+#   > [healthcheck] - Проверяет доступность эндпоинта /health бэкенда (до 10 попыток).
+#   > [deploy]      - ОСНОВНОЙ ТЕГ. Включает полный цикл развертывания (подготовка,
+#                     генерация конфигов, логин в registry, запуск docker-compose,
+#                     очистка старых images и healthcheck).
+#   > [node_exporter] - Только установка/обновление node_exporter, без остального деплоя.
 #
 # ПРИМЕРЫ КОМАНД ДЛЯ ЗАПУСКА:
 # Полная развертка core:
@@ -52,39 +52,71 @@
 #   ~$ ansible-playbook -i inventory.yml deploy-core.yml --tags "env, monitoring"
 
 ---
+- name: Pull secrets from Cloud.ru Secret Manager
+  hosts: localhost
+  gather_facts: false
+  vars:
+    secrets_file: "{{ playbook_dir }}/../secrets.yml"
+
+  tasks:
+    - block:
+        - name: Run pull_secrets.py
+          command:
+            cmd: "python3 {{ playbook_dir }}/pull_secrets.py --output {{ secrets_file }}"
+          changed_when: false
+          no_log: true
+
+        - name: Load secrets into localhost vars
+          include_vars:
+            file: "{{ secrets_file }}"
+          no_log: true
+
+      always:
+        - name: Remove secrets.yml after loading
+          file:
+            path: "{{ secrets_file }}"
+            state: absent
+
+      tags: [always]
+
 - name: Deploy CORE (frontend + backend + postgres)
   hosts: core
   gather_facts: false
   vars:
     # -------------------------------------------------------
-    #  lookup('env', 'VAR_NAME') — читает переменную окружения
-    #  с машины, ОТКУДА запускается Ansible.
-    #  Секреты передаются через env: вручную в терминале
-    #  (export POSTGRES_PASSWORD=...) либо автоматически
-    #  из GitHub Actions secrets.
+    #  hostvars['localhost']['VAR_NAME'] — читает секрет,
+    #  который уже был получен из Cloud.ru Secret Manager
+    #  play'ем "Pull secrets from Cloud.ru Secret Manager"
+    #  (выполняется раньше, на localhost, и кладёт значения
+    #  в переменные хоста через include_vars).
+    #
+    #  lookup('env', 'VAR_NAME') остаётся только там, где
+    #  переменная — НЕ секрет из облака, а обычный конфиг
+    #  (например IMAGE_TAG или дефолтные имена хостов).
     # -------------------------------------------------------
-    
+
     # main secrets for core deployment
-    email:              "{{ lookup('env', 'EMAIL') }}"
-    image_tag:          "{{ lookup('env', 'IMAGE_TAG')  | default('latest', true) }}"
-    jwt_secret:         "{{ lookup('env', 'JWT_SECRET') }}"
-    cf_api_token:       "{{ lookup('env', 'CF_API_TOKEN') }}"
-    hysteria_auth:      "{{ lookup('env', 'HYSTERIA_AUTH') }}"
-    admin_username:     "{{ lookup('env', 'ADMIN_USERNAME') }}"
-    admin_password:     "{{ lookup('env', 'ADMIN_PASSWORD') }}"
-    postgres_password:  "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
+    email: "{{ hostvars['localhost']['EMAIL'] }}"
+    image_tag: "{{ lookup('env', 'IMAGE_TAG')  | default('latest', true) }}"
+    jwt_secret: "{{ hostvars['localhost']['JWT_SECRET'] }}"
+    cf_api_token: "{{ hostvars['localhost']['CF_API_TOKEN'] }}"
+    hysteria_auth: "{{ hostvars['localhost']['HYSTERIA_AUTH'] }}"
+    admin_username: "{{ hostvars['localhost']['ADMIN_USERNAME'] }}"
+    admin_password: "{{ hostvars['localhost']['ADMIN_PASSWORD'] }}"
+    postgres_password: "{{ hostvars['localhost']['POSTGRES_PASSWORD'] }}"
 
     # monitoring
-    monitoring_host:    "{{ lookup('env', 'MONITORING_HOST')    | default('master', true) }}"
+    monitoring_host: "{{ lookup('env', 'MONITORING_HOST')    | default('master', true) }}"
     grafana_admin_user: "{{ lookup('env', 'GRAFANA_ADMIN_USER') | default('admin', true) }}"
-    grafana_admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') }}"
-    
-    # Для ghcr_username и ghcr_token — два уровня fallback:
-    # сначала кастомная переменная, если не задана — стандартная
-    # переменная GitHub Actions (проставляется автоматически)
-    ghcr_owner:        "{{ lookup('env', 'GHCR_OWNER')    | default('extekky', true) | lower }}"
-    ghcr_username:     "{{ lookup('env', 'GHCR_USERNAME') | default(lookup('env', 'GITHUB_ACTOR'), true) }}"
-    ghcr_token:        "{{ lookup('env', 'GHCR_TOKEN')    | default(lookup('env', 'GITHUB_TOKEN'), true) }}"
+    grafana_admin_password: "{{ hostvars['localhost']['GRAFANA_ADMIN_PASSWORD'] }}"
+
+    # ghcr_owner — не секрет, обычный конфиг с дефолтом, остаётся через env.
+    # ghcr_username и ghcr_token теперь тоже хранятся в Cloud.ru,
+    # поэтому фоллбек на GITHUB_ACTOR/GITHUB_TOKEN больше не нужен.
+    ghcr_owner: "{{ lookup('env', 'GHCR_OWNER') | default('extekky', true) | lower }}"
+    ghcr_username: "{{ hostvars['localhost']['GHCR_USERNAME'] }}"
+    ghcr_token: "{{ hostvars['localhost']['GHCR_TOKEN'] }}"
+
     certificate_domains:
       - "{{ service_domain }}"
       - "www.{{ service_domain }}"
@@ -298,7 +330,7 @@
   become: true
   vars:
     node_exporter_version: "1.8.2"
-    monitoring_host:    "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
+    monitoring_host: "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
     monitoring_host_ip: "{{ hostvars[monitoring_host].ansible_host }}"
 
   tasks:

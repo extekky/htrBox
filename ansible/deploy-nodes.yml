@@ -1,15 +1,15 @@
-#                        ДЕПЛОЙ VPN-НОД (HYSTERIA)
+# ДЕПЛОЙ VPN-НОД (HYSTERIA)
 #
 # ЧТО ДЕЛАЕТ ЭТОТ ПЛЕЙБУК:
-#  1. Автоматизирует полную развертку VPN-нод (vps_se, vps_ge, vps_pl)
-#  2. Готовит файловую структуру (папки для конфигураций и секретов)
-#  3. Рендерит конфигурационные файлы (.env, docker-compose, hysteria config)
-#  4. Выпускает/обновляет SSL-сертификаты Let's Encrypt через Cloudflare DNS API
-#     (логика вынесена в tasks/issue-certificate.yml, общий файл с deploy-core.yml)
-#  5. Проверяет, свободен ли VPN-порт перед запуском (или занят уже работающим Hysteria)
-#  6. Запускает контейнер через docker-compose v2 и удаляет старые (dangling) образы
-#  7. Вторым play в этом же файле устанавливает node_exporter на все node-хосты
-#     (логика вынесена в tasks/install-node-exporter.yml, общий файл с deploy-core.yml)
+#   1. Автоматизирует полную развертку VPN-нод
+#   2. Готовит файловую структуру (папки для конфигураций и секретов)
+#   3. Рендерит конфигурационные файлы (.env, docker-compose, hysteria config)
+#   4. Выпускает/обновляет SSL-сертификаты Let's Encrypt через Cloudflare DNS API
+#      (логика вынесена в tasks/issue-certificate.yml, общий файл с deploy-core.yml)
+#   5. Проверяет, свободен ли VPN-порт перед запуском (или занят уже работающим Hysteria)
+#   6. Запускает контейнер через docker-compose v2 и удаляет старые (dangling) образы
+#   7. Вторым play в этом же файле устанавливает node_exporter на все node-хосты
+#      (логика вынесена в tasks/install-node-exporter.yml, общий файл с deploy-core.yml)
 #
 # ПЕРЕМЕННЫЕ:
 # Общие для core и nodes — в group_vars/all.yml
@@ -21,16 +21,16 @@
 #
 # ВСЕ ИСПОЛЬЗУЕМЫЕ ТЕГИ (TAGS) И КАК ИХ ЗАПУСКАТЬ:
 # Вы можете запускать отдельные части плейбука с помощью флага `--tags "tag_name"`
-# > [always]        - Выполняется ВСЕГДА. Показывает информацию о целевом хосте.
-# > [prepare]       - Подготовительный этап. Создает нужные директории,
-#                     проверяет статус Docker и доступность VPN-порта.
-# > [env]           - Рендерит только основной файл окружения (.env) для Hysteria.
-# > [certbot]       - Создает конфиг Cloudflare и вызывает процесс выпуска SSL-сертификата.
-# > [status]        - Проверка состояния: статус Docker и список запущенных контейнеров.
-# > [logs]          - Выводит в консоль последние 30 строк логов контейнера hysteria.
-# > [deploy]        - ОСНОВНОЙ ТЕГ. Включает полный цикл развертывания (подготовка,
-#                     генерация конфигов, запуск docker-compose, очистка старых images).
-# > [node_exporter] - Только установка/обновление node_exporter, без остального деплоя.
+#   > [always]        - Выполняется ВСЕГДА. Показывает информацию о целевом хосте.
+#   > [prepare]       - Подготовительный этап. Создает нужные директории,
+#                       проверяет статус Docker и доступность VPN-порта.
+#   > [env]           - Рендерит только основной файл окружения (.env) для Hysteria.
+#   > [certbot]       - Создает конфиг Cloudflare и вызывает процесс выпуска SSL-сертификата.
+#   > [status]        - Проверка состояния: статус Docker и список запущенных контейнеров.
+#   > [logs]          - Выводит в консоль последние 30 строк логов контейнера hysteria.
+#   > [deploy]        - ОСНОВНОЙ ТЕГ. Включает полный цикл развертывания (подготовка,
+#                       генерация конфигов, запуск docker-compose, очистка старых images).
+#   > [node_exporter] - Только установка/обновление node_exporter, без остального деплоя.
 #
 # ПРИМЕРЫ КОМАНД ДЛЯ ЗАПУСКА:
 # Полная развертка всех нод:
@@ -45,13 +45,40 @@
 #   ~$ ansible-playbook -i inventory.yml deploy-nodes.yml --tags env
 
 ---
+- name: Pull secrets from Cloud.ru Secret Manager
+  hosts: localhost
+  gather_facts: false
+  vars:
+    secrets_file: "{{ playbook_dir }}/../secrets.yml"
+
+  tasks:
+    - block:
+        - name: Run pull_secrets.py
+          command:
+            cmd: "python3 {{ playbook_dir }}/pull_secrets.py --output {{ secrets_file }}"
+          changed_when: false
+          no_log: true
+
+        - name: Load secrets into localhost vars
+          include_vars:
+            file: "{{ secrets_file }}"
+            no_log: true
+      always:
+        - name: Remove secrets.yml after loading
+          file:
+            path: "{{ secrets_file }}"
+            state: absent
+
+  tags: [always]
+
+
 - name: Deploy NODES (Hysteria)
   hosts: nodes
   gather_facts: false
   vars:
-    hysteria_auth:      "{{ lookup('env', 'HYSTERIA_AUTH') }}"
-    cf_api_token:       "{{ lookup('env', 'CF_API_TOKEN') }}"
-    email:              "{{ lookup('env', 'EMAIL') }}"
+    hysteria_auth:      "{{ hostvars['localhost']['HYSTERIA_AUTH'] }}"
+    cf_api_token:       "{{ hostvars['localhost']['CF_API_TOKEN'] }}"
+    email:              "{{ hostvars['localhost']['EMAIL'] }}"
     monitoring_host:    "{{ lookup('env', 'MONITORING_HOST') | default('master', true) }}"
     monitoring_host_ip: "{{ hostvars[monitoring_host].ansible_host }}"
 
