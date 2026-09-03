@@ -1,38 +1,35 @@
-# ------------------------------------------------------
-#  tasks/issue-certificate.yml
+# Общая логика выпуска/обновления Let's Encrypt сертификата
+# через certbot + Cloudflare DNS. Подключается через
+# import_tasks из deploy-core.yml и deploy-nodes.yml.
 #
-#  Общая логика выпуска/обновления Let's Encrypt сертификата
-#  через certbot + Cloudflare DNS. Подключается через
-#  import_tasks из deploy-core.yml и deploy-nodes.yml,
-#  чтобы не дублировать один и тот же bash в двух местах.
+# Плейбук, который подключает этот файл, должен задать:
+#   - cert_primary_domain — домен, по которому проверяем
+#                           путь до сертификата
+#                           (core: service_domain, node: vps_domain)
+#   - cert_domains        — список ВСЕХ доменов, которые
+#                           должны быть в сертификате
+#                           (core: несколько поддоменов,
+#                           node: один — [vps_domain])
+#   - cert_cloudflare_ini — путь к cloudflare ini на сервере
+#                           (core: cloudflare-core.ini,
+#                           node: cloudflare-node.ini)
+#   - email               — контактный email для Let's Encrypt
 #
-#  Плейбук, который подключает этот файл, должен задать:
-#    - cert_primary_domain   — домен, по которому проверяем
-#                              путь до сертификата
-#                              (core: service_domain, node: vps_domain)
-#    - cert_domains          — список ВСЕХ доменов, которые
-#                              должны быть в сертификате
-#                              (core: несколько поддоменов,
-#                              node: один — [vps_domain])
-#    - cert_cloudflare_ini   — путь к cloudflare ini на сервере
-#                              (core: cloudflare-core.ini,
-#                              node: cloudflare-node.ini)
-#    - email                 — контактный email для Let's Encrypt
+# Продление сертификатов между деплоями делает certbot сам
+# (свой systemd timer). Этот таск нужен только на момент
+# деплоя — чтобы гарантировать наличие валидного сертификата
+# под нужные домены до старта сервисов.
 #
-#  Продление сертификатов между деплоями делает certbot сам
-#  (свой systemd timer). Этот таск нужен только на момент
-#  деплоя — чтобы гарантировать наличие валидного сертификата
-#  под нужные домены до старта сервисов.
-#
-#  Результат сохраняется в переменную "issue_certificate_result"
-#  (register ниже) — плейбук может её напечатать через debug.
-# ------------------------------------------------------
+# Результат сохраняется в переменную "issue_certificate_result"
+# (register ниже) — плейбук может её напечатать через debug.
 
 - name: Render certificate script for {{ cert_primary_domain }}
   template:
-    src: issue-certificate.sh.j2
-    dest: /tmp/issue-certificate-{{ cert_primary_domain }}.sh
-    mode: "0700"
+      # Рендерим скрипт, который проверяет наличие сертификата и при необходимости
+      # вызывает certbot для его выпуска. Скрипт будет выполнен в следующем таске.
+      src: issue-certificate.sh.j2
+      dest: /tmp/issue-certificate-{{ cert_primary_domain }}.sh
+      mode: "0700"
 
 - name: Check or issue certificate for {{ cert_primary_domain }}
   command: /tmp/issue-certificate-{{ cert_primary_domain }}.sh
@@ -41,10 +38,10 @@
 
 - name: Clean up certificate script for {{ cert_primary_domain }}
   file:
-    path: /tmp/issue-certificate-{{ cert_primary_domain }}.sh
-    state: absent
+      path: /tmp/issue-certificate-{{ cert_primary_domain }}.sh
+      state: absent
 
 - name: Show certificate result for {{ cert_primary_domain }}
   debug:
-    var: issue_certificate_result.stdout_lines
+      var: issue_certificate_result.stdout_lines
   when: issue_certificate_result is defined

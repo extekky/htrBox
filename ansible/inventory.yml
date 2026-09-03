@@ -1,46 +1,39 @@
-# ------------------------------------------------------
-#  ANSIBLE INVENTORY FILE (inventory.yml)
+# ANSIBLE INVENTORY FILE (inventory.yml)
 #
-#  Только серверы и группы. Переменные живут в group_vars.
-#  Ansible подхватывает их автоматически по имени группы.
-# ------------------------------------------------------
+# Только серверы и группы. Переменные живут в group_vars.
+# Ansible подхватывает их автоматически по имени группы.
 
 all:
-  children:
+    children:
+        # -------------------------------------------------------
+        #  ГРУППА: core (backend, frontend, db)
+        # -------------------------------------------------------
+        core:
+            hosts:
+                master:
+                    ansible_host: 176.123.167.120
+                    ansible_user: stas
+                    ansible_become_method: sudo
 
-    # -------------------------------------------------------
-    #  ГРУППА: core (backend, frontend, db)
-    # -------------------------------------------------------
+        # -------------------------------------------------------
+        #  ГРУППА: nodes (виртуальные серверы в разных странах)
+        #  Общие настройки — в group_vars/nodes.yml.
+        #  Здесь только то, что уникально для каждого хоста.
+        # -------------------------------------------------------
+        nodes:
+            hosts:
+                vps_se:
+                    ansible_host: 193.25.216.190
+                    vps_domain: se.stdoq.ru
 
-    core:
-      hosts:
+                vps_ge:
+                    ansible_host: 2.26.99.243
+                    vps_domain: ge.stdoq.ru
 
-        master:
-          ansible_host: 81.26.191.103
-          ansible_user: stas
-          ansible_become_method: sudo
+                vps_pl:
+                    ansible_host: 2.26.5.104
+                    vps_domain: pl.stdoq.ru
 
-        # slave:
-        #   ansible_host: 81.26.184.82
-        #   ansible_user: stas
-
-    # -------------------------------------------------------
-    #  ГРУППА: nodes (виртуальные серверы в разных странах)
-    #  Общие настройки — в group_vars/nodes.yml.
-    #  Здесь только то, что уникально для каждого хоста.
-    # -------------------------------------------------------
-
-    nodes:
-      hosts:
-
-        vps_se:
-          ansible_host: 193.25.216.190
-          vps_domain: se.stdoq.ru
-
-        vps_ge:
-          ansible_host: 2.26.99.243
-          vps_domain: ge.stdoq.ru
-
-        vps_pl:
-          ansible_host: 2.26.5.104
-          vps_domain: pl.stdoq.ru
+                vps_itgarage:
+                    ansible_host: 2.26.29.180
+                    vps_domain: itgarage.stdoq.ru

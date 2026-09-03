@@ -1,9 +1,6 @@
-# Глобальные настройки Prometheus:
-# - scrape_interval     — как часто Prometheus опрашивает таргеты
-# - evaluation_interval — как часто пересчитываются alerting/recording rules
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 15s     # частота опроса таргетов
+  evaluation_interval: 15s # частота перечитываний правил alerting/recording
 
 scrape_configs:
   # Самоскрейп: Prometheus мониторит сам себя, чтобы видеть свою
