@@ -58,11 +58,6 @@ export function ServerRow({ server, onEdit, onDelete }: ServerRowProps) {
         </div>
       </td>
 
-      {/* Протокол */}
-      <td className={s.tdCell}>
-        <span className={s.protocolBadge}>{server.protocol}</span>
-      </td>
-
       {/* Дата обновления */}
       <td className={cn(s.tdCell, s.updatedAt)}>
         {formatDateTime(server.updated_at)}
