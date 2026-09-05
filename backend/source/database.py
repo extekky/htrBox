@@ -14,6 +14,17 @@ Schema overview:
   refresh_tokens - Active JWT refresh tokens (enables server-side revocation)
   maintenance_state - Small key/value state for recurring maintenance tasks
 
+Referential integrity:
+  traffic_last.username    -> users.username     ON DELETE CASCADE
+  traffic_last.server_id   -> servers.id         ON DELETE CASCADE
+  traffic_5m.username      -> users.username     ON DELETE CASCADE
+  traffic_5m.server_id     -> servers.id         ON DELETE CASCADE
+  refresh_tokens.username  -> users.username     ON DELETE CASCADE
+
+  Deleting a user or a server automatically removes all dependent traffic
+  rows and refresh tokens in the same transaction — no manual cleanup
+  DELETEs needed in application code before removing a user/server.
+
 --------------------------------------------------------------------
  Security note: hyPassword stored as plaintext — intentional design
 --------------------------------------------------------------------
@@ -76,6 +87,7 @@ def init_pool() -> None:
     Create the connection pool. Must be called once before get_db() is used.
     Called from init_db() which runs at application startup.
     """
+    logger.info("Initializing PostgreSQL connection pool")
     global _pool
     if _pool is not None:
         return
@@ -120,16 +132,19 @@ def get_db() -> Generator[psycopg2.extensions.connection, None, None]:
 
 def init_db() -> None:
     """
-    Create the connection pool, create all tables if they don't exist,
-    and seed the initial admin. Called once at application startup.
+    Create the connection pool, create all tables (with foreign keys and
+    cascading deletes) if they don't exist, and seed the initial admin.
+    Called once at application startup.
     """
     logger.info("Initializing PostgreSQL database")
 
     init_pool()
 
     with get_db() as conn:
+        # Parent tables first — traffic_* and refresh_tokens reference these.
         _create_users_table(conn)
         _create_servers_table(conn)
+        # Child tables — declare FKs inline since parents already exist.
         _create_traffic_tables(conn)
         _create_refresh_tokens_table(conn)
         _create_maintenance_state_table(conn)
@@ -186,8 +201,10 @@ def _create_traffic_tables(conn: psycopg2.extensions.connection) -> None:
     with conn.cursor() as cur:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS traffic_last (
-                username     TEXT NOT NULL,
-                server_id    TEXT NOT NULL,
+                username     TEXT NOT NULL
+                    REFERENCES users(username) ON DELETE CASCADE,
+                server_id    TEXT NOT NULL
+                    REFERENCES servers(id) ON DELETE CASCADE,
                 last_total   DOUBLE PRECISION NOT NULL DEFAULT 0,
                 last_updated TIMESTAMPTZ DEFAULT NOW(),
                 PRIMARY KEY (username, server_id)
@@ -197,8 +214,10 @@ def _create_traffic_tables(conn: psycopg2.extensions.connection) -> None:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS traffic_5m (
                 id          SERIAL PRIMARY KEY,
-                username    TEXT    NOT NULL,
-                server_id   TEXT    NOT NULL,
+                username    TEXT NOT NULL
+                    REFERENCES users(username) ON DELETE CASCADE,
+                server_id   TEXT NOT NULL
+                    REFERENCES servers(id) ON DELETE CASCADE,
                 bucket_time TIMESTAMPTZ NOT NULL,
                 delta_gb    DOUBLE PRECISION NOT NULL,
                 UNIQUE(username, server_id, bucket_time)
@@ -215,7 +234,8 @@ def _create_refresh_tokens_table(conn: psycopg2.extensions.connection) -> None:
         cur.execute("""
             CREATE TABLE IF NOT EXISTS refresh_tokens (
                 token      TEXT PRIMARY KEY,
-                username   TEXT NOT NULL,
+                username   TEXT NOT NULL
+                    REFERENCES users(username) ON DELETE CASCADE,
                 expires_at TIMESTAMPTZ NOT NULL,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
@@ -238,88 +258,6 @@ def _create_maintenance_state_table(conn: psycopg2.extensions.connection) -> Non
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
-
-
-# ---------------------------------------------------------------------------
-# Schema migrations
-# ---------------------------------------------------------------------------
-
-def _migrate_column_types(conn: psycopg2.extensions.connection) -> None:
-    """
-    Upgrade column types on existing databases without dropping data.
-
-    Checks the actual column type via information_schema before attempting
-    ALTER — so on a fresh or already-migrated database the function is silent.
-    Only logs at INFO when a column is actually changed.
-
-    Migrations applied:
-      users.usedTraffic       REAL -> DOUBLE PRECISION
-      users.expires_at        TEXT -> TIMESTAMPTZ
-      traffic_last.last_total REAL -> DOUBLE PRECISION
-      traffic_5m.delta_gb     REAL -> DOUBLE PRECISION
-      refresh_tokens.expires_at TEXT -> TIMESTAMPTZ
-    """
-    # PostgreSQL data_type values as reported by information_schema.columns
-    _PG_TYPE_MAP = {
-        "DOUBLE PRECISION": "double precision",
-        "TIMESTAMPTZ":      "timestamp with time zone",
-    }
-
-    migrations = [
-        # (table, column, new_type, using_cast)
-        ("users",          '"usedTraffic"', "DOUBLE PRECISION", '"usedTraffic"::double precision'),
-        ("users",          "expires_at",    "TIMESTAMPTZ",      "expires_at::timestamptz"),
-        ("traffic_last",   "last_total",    "DOUBLE PRECISION", "last_total::double precision"),
-        ("traffic_5m",     "delta_gb",      "DOUBLE PRECISION", "delta_gb::double precision"),
-        ("refresh_tokens", "expires_at",    "TIMESTAMPTZ",      "expires_at::timestamptz"),
-    ]
-
-    for table, column, new_type, using in migrations:
-        bare_column = column.strip('"')
-        try:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT data_type FROM information_schema.columns
-                    WHERE table_name = %s AND column_name = %s
-                    """,
-                    (table, bare_column),
-                )
-                row = cur.fetchone()
-
-            if row is None:
-                logger.debug("Migration skipped: table %s not found yet", table)
-                continue
-
-            current_type = row[0]
-            expected_type = _PG_TYPE_MAP[new_type]
-
-            if current_type == expected_type:
-                logger.debug("Migration not needed: %s.%s is already %s", table, bare_column, current_type)
-                continue
-
-            with conn.cursor() as cur:
-                cur.execute(
-                    f"ALTER TABLE {table} ALTER COLUMN {column} TYPE {new_type} USING {using}"
-                )
-            logger.info("Migration applied: %s.%s  %s -> %s", table, bare_column, current_type, new_type)
-
-        except Exception as e:
-            conn.rollback()
-            logger.warning("Migration failed for %s.%s: %s", table, bare_column, e)
-
-
-def _migrate_user_status_fields(conn: psycopg2.extensions.connection) -> None:
-    """
-    Keep only status-related fields required by the current product model.
-    """
-    with conn.cursor() as cur:
-        cur.execute(
-            """
-            ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS statuses TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
-            """
-        )
 
 
 # ---------------------------------------------------------------------------
