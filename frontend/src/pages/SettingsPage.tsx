@@ -77,10 +77,9 @@ function HysteriaSection({ username }: { username: string }) {
             <Key size={18} />
           </div>
           <div className={s.sectionInfo}>
-            <CardTitle className={s.sectionTitle}>Hysteria VPN ключ</CardTitle>
+            <CardTitle className={s.sectionTitle}>VPN ссылка</CardTitle>
             <CardDescription className={s.sectionDescription}>
-              Ключ используется в VPN-клиенте для подключения. После
-              перегенерации текущие VPN ключи станут недействительными.
+              После перегенерации текущие ссылки станут недействительными.
             </CardDescription>
           </div>
         </CardHeader>
@@ -205,10 +204,11 @@ function AccountPasswordSection({
             <ShieldCheck size={18} />
           </div>
           <div className={s.sectionInfo}>
-            <CardTitle className={s.sectionTitle}>Пароль аккаунта</CardTitle>
+            <CardTitle className={s.sectionTitle}>
+              Пароль для входа в личный кабинет
+            </CardTitle>
             <CardDescription className={s.sectionDescription}>
-              Пароль для входа в личный кабинет. После смены все активные сессии
-              будут отозваны.
+              После смены все активные сессии будут отозваны.
             </CardDescription>
           </div>
         </CardHeader>
@@ -322,9 +322,6 @@ export function SettingsPage() {
           {/* Заголовок страницы */}
           <div className={s.header}>
             <h1 className={s.title}>Настройки</h1>
-            <p className={s.subtitle}>
-              Управление паролем аккаунта и ключами VPN-подключения
-            </p>
           </div>
 
           {/* Секция: Hysteria VPN */}

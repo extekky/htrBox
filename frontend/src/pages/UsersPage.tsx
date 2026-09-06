@@ -33,7 +33,6 @@ export function UserManage() {
         <div className={s.header}>
           <div>
             <h1 className={s.title}>Пользователи</h1>
-            <p className={s.subtitle}>Управление аккаунтами</p>
           </div>
 
           <button

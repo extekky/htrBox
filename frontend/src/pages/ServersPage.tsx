@@ -31,7 +31,6 @@ export function ServersPage() {
         <div className={s.header}>
           <div>
             <h1 className={s.title}>Серверы</h1>
-            <p className={s.subtitle}>Управление серверами</p>
           </div>
 
           <button

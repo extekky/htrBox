@@ -160,8 +160,6 @@ export function ServerTable({ onEdit }: ServerTableProps) {
       {/* Шапка с заголовком и счётчиком */}
       <CardContent className={s.headCard}>
         <div className={s.headInner}>
-          <span className={s.title}>VPN-серверы</span>
-          <span className={s.counter}>{renderCounter()}</span>
         </div>
       </CardContent>
 

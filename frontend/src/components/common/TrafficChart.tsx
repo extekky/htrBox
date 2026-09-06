@@ -319,11 +319,12 @@ export function TrafficChart({ username }: TrafficChartProps = {}) {
               formatTraffic(totalGb)
             )}
           </p>
-          <p className={s.subtitle}>
+          {isLoading && <p className={s.subtitle}>Обновляем данные</p>}
+          {/* <p className={s.subtitle}>
             {isLoading
               ? "Обновляем данные"
               : `${chartData.length} точек`}
-          </p>
+          </p> */}
         </div>
 
         <div

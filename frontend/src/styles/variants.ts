@@ -17,7 +17,7 @@
 
 export const colorScheme = {
   warning: {
-    bg: "bg-amber-500/12",
+    bg: "bg-amber-500/18",
     border: "border-amber-500/24",
     text: "text-amber-700",
     textMuted: "text-amber-700/72",
@@ -25,7 +25,7 @@ export const colorScheme = {
     hover: "hover:bg-amber-500/20",
   },
   danger: {
-    bg: "bg-destructive/12",
+    bg: "bg-destructive/18",
     border: "border-destructive/24",
     text: "text-destructive",
     textMuted: "text-destructive/72",
@@ -33,7 +33,7 @@ export const colorScheme = {
     hover: "hover:bg-destructive/18",
   },
   success: {
-    bg: "bg-emerald-500/12",
+    bg: "bg-emerald-500/18",
     border: "border-emerald-500/24",
     text: "text-emerald-700",
     textMuted: "text-emerald-700/72",
@@ -41,7 +41,7 @@ export const colorScheme = {
     hover: "hover:bg-emerald-500/18",
   },
   info: {
-    bg: "bg-blue-500/12",
+    bg: "bg-blue-500/18",
     border: "border-blue-500/24",
     text: "text-blue-700",
     textMuted: "text-blue-700/72",
@@ -49,7 +49,7 @@ export const colorScheme = {
     hover: "hover:bg-blue-500/18",
   },
   primary: {
-    bg: "bg-primary/12",
+    bg: "bg-primary/15",
     border: "border-primary/24",
     text: "text-primary",
     textMuted: "text-primary/74",
@@ -65,7 +65,7 @@ export const colorScheme = {
     hover: "hover:bg-muted",
   },
   purple: {
-    bg: "bg-purple-500/12",
+    bg: "bg-purple-500/18",
     border: "border-purple-500/24",
     text: "text-purple-700/70",
     textMuted: "text-purple-700/72",
@@ -73,7 +73,7 @@ export const colorScheme = {
     hover: "hover:bg-purple-500/18",
   },
   cyan: {
-    bg: "bg-cyan-500/12",
+    bg: "bg-cyan-500/18",
     border: "border-cyan-500/24",
     text: "text-cyan-700",
     textMuted: "text-cyan-700/72",
@@ -81,7 +81,7 @@ export const colorScheme = {
     hover: "hover:bg-cyan-500/18",
   },
   rose: {
-    bg: "bg-rose-500/12",
+    bg: "bg-rose-500/18",
     border: "border-rose-500/24",
     text: "text-rose-700",
     textMuted: "text-rose-700/72",

@@ -99,9 +99,9 @@ const PLATFORMS: Platform[] = [
     id: "ios",
     name: "iPhone",
     Icon: IconApple,
-    clientName: "Streisand",
+    clientName: "Happ",
     clientDescription: "Стабильный клиент для iOS с простым импортом из буфера",
-    downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
+    downloadUrl: "https://apps.apple.com/am/app/happ-proxy-utility/id6504287215",
     downloadLabel: "App Store",
     importAction: "Import from Clipboard",
     connectAction: "Откройте профиль и включите VPN",
@@ -122,9 +122,9 @@ const PLATFORMS: Platform[] = [
     id: "macos",
     name: "macOS",
     Icon: IconApple,
-    clientName: "Streisand",
+    clientName: "Happ",
     clientDescription: "Нативное приложение из App Store для macOS",
-    downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
+    downloadUrl: "https://apps.apple.com/am/app/happ-proxy-utility/id6504287215",
     downloadLabel: "Mac App Store",
     importAction: "Import from Clipboard",
     connectAction: "Активируйте профиль в списке подключений",
@@ -336,7 +336,7 @@ export function Guide() {
               rel="noopener noreferrer"
               className={s.primaryActionButton}
             >
-              <span>Написать в Telegram</span>
+              <span>telegram</span>
             </a>
           </InfoBlock>
         </Step>
@@ -445,9 +445,6 @@ export function Guide() {
                     Откройте сайт или видео для быстрой проверки.
                   </li>
                 </ul>
-                <p className={s.successRow}>
-                  Если всё подключилось — настройка завершена.
-                </p>
               </InfoBlock>
             </Step>
 
@@ -464,8 +461,11 @@ export function Guide() {
                   <li className={s.infoListItem}>
                     Перекопируйте ключ в профиле и импортируйте заново.
                   </li>
+                  <li className={s.infoListItem}> 
+                    Попробуйте выбрать другой сервер.
+                  </li>
                   <li className={s.infoListItem}>
-                    Проверьте, что аккаунт активен и выбран рабочий сервер.
+                    Проверьте, что аккаунт активен.
                   </li>
                   <li className={s.infoListItem}>
                     Перезапустите клиент и попробуйте подключиться снова.

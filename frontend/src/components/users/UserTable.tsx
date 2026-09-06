@@ -278,9 +278,9 @@ export function UserTable({ onEdit }: UserTableProps) {
                   aria-label="Выбрать всех пользователей"
                 />
               </th>
-              <Th>Пользователь</Th>
+              <Th>Пользователи</Th>
               <Th>Трафик</Th>
-              <Th className={s.thStatus}>Статус</Th>
+              <Th className={s.thStatus}>Статусы</Th>
               <Th>Истекает</Th>
               <Th className={s.thActions}>Действия</Th>
             </tr>

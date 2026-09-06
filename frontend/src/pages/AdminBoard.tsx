@@ -116,7 +116,6 @@ export function AdminBoard() {
         <div className={s.header}>
           <div>
             <h1 className={s.title}>Дашборд</h1>
-            <p className={s.subtitle}>Обзор системы в реальном времени</p>
           </div>
         </div>
 
@@ -145,12 +144,11 @@ export function AdminBoard() {
             <KpiCard
               label="Всего"
               value={totalUsers}
-              sub="аккаунтов"
               icon={Users}
               accent="blue"
             />
             <KpiCard
-              label="Активных"
+              label="Активны"
               value={activeUsers}
               sub="с подпиской"
               icon={Wifi}
@@ -184,7 +182,7 @@ export function AdminBoard() {
               accent="blue"
             />
             <KpiCard
-              label="Активных"
+              label="Активны"
               value={activeServers}
               icon={Server}
               accent="green"
@@ -192,7 +190,6 @@ export function AdminBoard() {
             <KpiCard
               label="Онлайн"
               value={onlineCount}
-              sub="сейчас"
               icon={Activity}
               accent={onlineCount > 0 ? "purple" : "default"}
             />

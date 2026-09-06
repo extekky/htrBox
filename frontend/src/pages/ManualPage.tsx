@@ -270,10 +270,6 @@ export function ManualPage() {
                   description="Срок действия подписки закончился или не установлен. Свяжитесь с поддержкой и оплатите подписку."
                   color="amber"
                 />
-
-                <Note>
-                  Активация после оплаты — обычно в течение нескольких часов.
-                </Note>
               </div>
             </Section>
 
@@ -344,9 +340,8 @@ export function ManualPage() {
                     {/* Фичи тарифа */}
                     <div className={s.paymentFeatures}>
                       {[
-                        "Hysteria2 протокол",
                         "Трафик не ограничен",
-                        "1 устройство",
+                        "До 3x устройств",
                       ].map((feature) => (
                         <div key={feature} className={s.paymentFeature}>
                           <CheckCircle2
@@ -394,13 +389,12 @@ export function ManualPage() {
                   rel="noopener noreferrer"
                   className={styles.guide.primaryActionButton}
                 >
-                  <span>Написать в Telegram</span>
+                  <span>telegram</span>
                 </a>
-
-                <Note variant="amber">
+                <p className={s.textMuted}>
                   Ответ в течение дня. Укажите ваш логин при обращении — это
                   ускорит ответ.
-                </Note>
+                </p>
               </div>
             </Section>
           </div>
