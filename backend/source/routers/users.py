@@ -74,7 +74,8 @@ def list_users(_: object = Depends(require_admin)):
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
             cur.execute(
-                'SELECT username, role, allowed, "usedTraffic", active, expires_at, statuses, created_at, note FROM users'
+                'SELECT username, role, allowed, "usedTraffic", active, expires_at, statuses, created_at, note '
+                "FROM users ORDER BY created_at DESC, username ASC"
             )
             rows = cur.fetchall()
 
