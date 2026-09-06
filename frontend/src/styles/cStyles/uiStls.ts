@@ -250,7 +250,7 @@ export const modal = {
 
 export const card = {
   // Корневой контейнер — поверхность + радиус + glass-утилита
-  root: `${surface.card} ${radius.lg} glass`,
+  root: `${surface.card} ${radius.md} glass`,
 
   // Шапка — вертикальный стек с gap и padding
   header: `flex flex-col ${spacing.inlineGapSm} ${spacing.cardPadding}`,

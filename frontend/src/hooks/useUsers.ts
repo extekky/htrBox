@@ -17,6 +17,7 @@ import { kickUsers, resetTraffic } from "@/api/hysteria";
 
 import type {
   UserResponse,
+  UserSessionInfo,
   CreateUserRequest,
   UpdateUserRequest,
   SetRoleRequest,
@@ -39,7 +40,7 @@ export const USER_KEYS = {
 
 /**
  * Загружает полный список пользователей (только для администраторов).
- * Сортируется по имени пользователя для единообразного отображения в таблицах.
+ * Backend отдаёт новых пользователей первыми.
  */
 export function useUsers() {
   return useQuery<UserResponse[]>({
@@ -56,7 +57,7 @@ export function useUsers() {
 export function useMe() {
   const token = useAuthStore((state) => state.token);
 
-  return useQuery<UserResponse>({
+  return useQuery<UserSessionInfo>({
     queryKey: USER_KEYS.me,
     queryFn: getMe,
     enabled: !!token,

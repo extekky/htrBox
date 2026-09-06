@@ -5,7 +5,7 @@ import {
   formatTimeComponents,
 } from "@/lib/formatters";
 import type { ExpiryTier } from "@/lib/formatters";
-import type { UserResponse } from "@/api/types";
+import type { UserResponse, UserSessionInfo } from "@/api/types";
 import { colorScheme } from "@/styles";
 
 // -------------------------------------------------------------
@@ -56,7 +56,9 @@ export function useLiveCountdown(iso: string | null | undefined) {
  * Вернуть лейбл и CSS-классы для бейджа статуса аккаунта.
  * Приоритет: заблокирован -> неактивен -> активен.
  */
-export function getAccountStatus(profile: UserResponse) {
+export function getAccountStatus(
+  profile: Pick<UserResponse | UserSessionInfo, "allowed" | "active">,
+) {
   if (!profile.allowed) {
     return {
       label: "Заблокирован",
