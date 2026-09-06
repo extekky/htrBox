@@ -195,9 +195,6 @@ export function RegisterPage() {
         <Link href="/privacy" className={s.legalLink}>
           Данные
         </Link>
-        <Link href="/contacts" className={s.legalLink}>
-          Контакты
-        </Link>
       </div>
     </div>
   );

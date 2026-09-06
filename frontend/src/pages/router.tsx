@@ -12,7 +12,6 @@ import { ManualPage } from "@/pages/ManualPage";
 import { ChekavoPage } from "@/pages/ChekavoPage";
 import { AboutPage } from "@/pages/AboutPage";
 import {
-  ContactsPage,
   OfferPage,
   PrivacyPage,
   RefundPage,
@@ -108,7 +107,7 @@ export function AppRouter() {
       </Route>
     
       <Route path="/privacy" component={PrivacyPage} />
-      <Route path="/contacts" component={ContactsPage} />
+      {/* <Route path="/contacts" component={ContactsPage} /> */}
       <Route path="/service" component={ServicePage} />
       <Route path="/refund" component={RefundPage} />
       <Route path="/offer" component={OfferPage} />

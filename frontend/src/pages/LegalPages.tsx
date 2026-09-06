@@ -80,9 +80,6 @@ function LegalLayout({ title, subtitle, children }: LegalLayoutProps) {
             <Link href="/privacy" className={s.navLink}>
               Данные
             </Link>
-            <Link href="/contacts" className={s.navLink}>
-              Контакты
-            </Link>
           </nav>
         </div>
 
@@ -117,65 +114,6 @@ function FactRow({
         <p className={s.text}>{text}</p>
       </div>
     </Card>
-  );
-}
-
-export function ContactsPage() {
-  return (
-    <LegalLayout
-      title="Контакты и сведения о сервисе"
-      subtitle="Актуальные контакты поддержки HtrBox для вопросов по сервису, оплате, возвратам и персональным данным."
-    >
-      <section className={s.grid}>
-        <FactRow
-          icon={Mail}
-          title="Email"
-          text={
-            <a className={s.inlineLink} href={`mailto:${supportEmail}`}>
-              {supportEmail}
-            </a>
-          }
-        />
-        <FactRow
-          icon={Send}
-          title="Telegram поддержки"
-          text={
-            <a
-              className={s.inlineLink}
-              href={supportTelegramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {supportTelegram}
-            </a>
-          }
-        />
-        <FactRow
-          icon={UserRound}
-          title="Оператор сервиса"
-          text="Владелец сервиса HtrBox."
-        />
-        <FactRow
-          icon={MapPin}
-          title="Адрес"
-          text="Москва, улица Льва Толстого, 16, подъезд 4, «Мулен Руж»"
-        />
-      </section>
-
-      <Card className={s.sectionCard}>
-        <div className={s.sectionHead}>
-          <span className={s.iconWrap}>
-            <Headphones size={16} />
-          </span>
-          <h2 className={s.sectionTitle}>Поддержка</h2>
-        </div>
-        <p className={s.text}>
-          Обращения по работе сервиса, доступу к аккаунту, оплатам, возвратам и
-          удалению аккаунта принимаются через Email и Telegram. Запрос на
-          удаление аккаунта обрабатывается в течение 1 дня.
-        </p>
-      </Card>
-    </LegalLayout>
   );
 }
 

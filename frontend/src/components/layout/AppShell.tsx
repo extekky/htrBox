@@ -188,10 +188,6 @@ function TopHeader() {
                 <FileText size={14} />
                 Оферта
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/contacts")}>
-                <Headphones size={14} />
-                Контакты
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               {/* Пункт выхода — красный, заблокирован во время запроса */}
               <DropdownMenuItem
