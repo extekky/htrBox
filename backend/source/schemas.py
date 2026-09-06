@@ -134,6 +134,7 @@ class UpdateUserRequest(BaseModel):
     active: bool | None = None
     expires_at: datetime | None = None
     statuses: list[UserStatusType] | None = None
+    note: str | None = Field(default=None, max_length=64)
 
     @field_validator("expires_at", mode="before")
     @classmethod
@@ -161,6 +162,8 @@ class UserResponse(BaseModel):
     active: bool
     expires_at: datetime | None
     statuses: list[UserStatusType]
+    created_at: datetime
+    note: str
 
 
 class CreateUserResponse(BaseModel):

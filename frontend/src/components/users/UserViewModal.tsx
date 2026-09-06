@@ -1,19 +1,16 @@
-import {
-  ShieldCheck,
-  ShieldOff,
-  CircleCheck,
-  CircleX,
-  CheckCircle2,
-} from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Modal } from "@/components/ui/Modal";
 import { TrafficChart } from "@/components/common/TrafficChart";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ProgressBar } from "@/components/common/ProgressBar";
+import { useUpdateUser } from "@/hooks/useUsers";
+import { useToast } from "@/hooks/useToast";
 import { pickAvatar } from "@/lib/avatars";
 import {
   toGB,
   formatDate,
+  formatDateTime,
   formatTime,
   formatDaysLeft,
   getExpiryTier,
@@ -24,6 +21,7 @@ import type { UserResponse } from "@/api/types";
 import { styles } from "@/styles";
 
 const s = styles.userViewModal;
+const MAX_NOTE_LENGTH = 64;
 
 interface UserViewModalProps {
   user: UserResponse;
@@ -58,8 +56,40 @@ export function UserViewModal({ user, onClose }: UserViewModalProps) {
   const usedGb = toGB(user.usedTraffic);
   const trafficPct = Math.min(100, (usedGb / DEFAULT_TRAFFIC_LIMIT_GB) * 100);
   const expiryTier = user.expires_at ? getExpiryTier(user.expires_at) : null;
+  const [note, setNote] = useState(user.note ?? "");
+  const [savedNote, setSavedNote] = useState(user.note ?? "");
+  const updateUser = useUpdateUser();
+  const { success, error } = useToast();
+  const noteChanged = note.trim() !== savedNote;
 
   const Avatar = pickAvatar(user.username);
+
+  useEffect(() => {
+    setNote(user.note ?? "");
+    setSavedNote(user.note ?? "");
+  }, [user.note]);
+
+  const handleSaveNote = () => {
+    const nextNote = note.trim();
+    if (nextNote.length > MAX_NOTE_LENGTH) return;
+
+    updateUser.mutate(
+      {
+        username: user.username,
+        data: { note: nextNote },
+      },
+      {
+        onSuccess: () => {
+          setSavedNote(nextNote);
+          setNote(nextNote);
+          success("Заметка сохранена", user.username);
+        },
+        onError: () => {
+          error("Не удалось сохранить заметку", user.username);
+        },
+      },
+    );
+  };
 
   return (
     <Modal
@@ -147,6 +177,35 @@ export function UserViewModal({ user, onClose }: UserViewModalProps) {
               <span className={s.activeFalse}> Неактивна</span>
             )}
           </InfoRow>
+          <InfoRow label="Создан">
+            <span className={s.infoValue}>
+              {formatDateTime(user.created_at)}
+            </span>
+          </InfoRow>
+        </div>
+
+        <div className={s.noteBox}>
+          <div className={s.noteHead}>
+            <span className={s.noteLabel}>Заметка</span>
+            <span className={s.noteCounter}>
+              {note.length}/{MAX_NOTE_LENGTH}
+            </span>
+          </div>
+          <textarea
+            value={note}
+            maxLength={MAX_NOTE_LENGTH}
+            onChange={(event) => setNote(event.target.value)}
+            className={s.noteInput}
+            rows={2}
+          />
+          <button
+            type="button"
+            onClick={handleSaveNote}
+            disabled={!noteChanged || updateUser.isPending}
+            className={s.noteSaveButton}
+          >
+            {updateUser.isPending ? "Сохранение..." : "Сохранить"}
+          </button>
         </div>
 
         {/* График трафика — берётся из TanStack, не подгружается заново */}

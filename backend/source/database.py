@@ -144,6 +144,8 @@ def init_db() -> None:
         # Parent tables first — traffic_* and refresh_tokens reference these.
         _create_users_table(conn)
         _create_servers_table(conn)
+        _migrate_user_created_at(conn)
+        _migrate_user_note(conn)
         # Child tables — declare FKs inline since parents already exist.
         _create_traffic_tables(conn)
         _create_refresh_tokens_table(conn)
@@ -171,7 +173,9 @@ def _create_users_table(conn: psycopg2.extensions.connection) -> None:
                 expires_at    TIMESTAMPTZ DEFAULT NULL,
                 url_token     TEXT DEFAULT NULL,
                 role          TEXT NOT NULL DEFAULT 'user',
-                statuses      TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]
+                statuses      TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+                created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                note          TEXT NOT NULL DEFAULT ''
             )
         """)
 
@@ -257,6 +261,52 @@ def _create_maintenance_state_table(conn: psycopg2.extensions.connection) -> Non
                 value      TEXT NOT NULL,
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
+        """)
+
+
+# ---------------------------------------------------------------------------
+# Lightweight startup migrations
+# ---------------------------------------------------------------------------
+
+def _migrate_user_created_at(conn: psycopg2.extensions.connection) -> None:
+    """
+    Add users.created_at for databases created before the column existed.
+
+    Existing accounts are backfilled to the agreed launch date at 10:00 Moscow
+    time (07:00 UTC). New accounts use NOW() from PostgreSQL, stored as
+    TIMESTAMPTZ in UTC.
+    """
+    with conn.cursor() as cur:
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ
+        """)
+        cur.execute("""
+            UPDATE users
+            SET created_at = TIMESTAMPTZ '2026-09-01 07:00:00+00'
+            WHERE created_at IS NULL
+        """)
+        cur.execute("""
+            ALTER TABLE users
+            ALTER COLUMN created_at SET DEFAULT NOW(),
+            ALTER COLUMN created_at SET NOT NULL
+        """)
+
+
+def _migrate_user_note(conn: psycopg2.extensions.connection) -> None:
+    """Add a short admin-only note to existing user tables."""
+    with conn.cursor() as cur:
+        cur.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS note TEXT NOT NULL DEFAULT ''
+        """)
+        cur.execute("""
+            ALTER TABLE users
+            DROP CONSTRAINT IF EXISTS users_note_length_check
+        """)
+        cur.execute("""
+            ALTER TABLE users
+            ADD CONSTRAINT users_note_length_check CHECK (char_length(note) <= 64)
         """)
 
 

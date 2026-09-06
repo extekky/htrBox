@@ -74,7 +74,7 @@ def list_users(_: object = Depends(require_admin)):
     with get_db() as conn:
         with conn.cursor(cursor_factory=DICT_CURSOR) as cur:
             cur.execute(
-                'SELECT username, role, allowed, "usedTraffic", active, expires_at, statuses FROM users'
+                'SELECT username, role, allowed, "usedTraffic", active, expires_at, statuses, created_at, note FROM users'
             )
             rows = cur.fetchall()
 
@@ -87,6 +87,8 @@ def list_users(_: object = Depends(require_admin)):
             active      = bool(r["active"]),
             expires_at  = r["expires_at"],
             statuses    = r["statuses"] or [],
+            created_at  = r["created_at"],
+            note        = r["note"] or "",
         )
         for r in rows
     ]
@@ -241,6 +243,9 @@ def update_user(
     if "statuses" in sent:
         updates.append("statuses = %s")
         params.append(body.statuses or [])
+    if "note" in sent:
+        updates.append("note = %s")
+        params.append((body.note or "").strip())
 
     try:
         params.append(username)
@@ -259,7 +264,7 @@ def update_user(
                     # Admins can only change their own password, nothing else.
                     non_password_updates = [
                         f
-                        for f in ("allowed", "active", "expires_at", "statuses")
+                        for f in ("allowed", "active", "expires_at", "statuses", "note")
                         if f in sent
                     ]
                     if non_password_updates:
@@ -285,7 +290,7 @@ def update_user(
 
     updated_fields = [
         f
-        for f in ("allowed", "password", "active", "expires_at", "statuses")
+        for f in ("allowed", "password", "active", "expires_at", "statuses", "note")
         if f in sent
     ]
     logger.info("User updated: %r (fields: %s) (by admin %r)", username, updated_fields, admin_row["username"])

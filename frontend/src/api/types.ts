@@ -46,6 +46,8 @@ export interface UserResponse {
   usedTraffic: number;
   expires_at: string | null;
   statuses: UserStatusKey[];
+  created_at: string;
+  note: string;
 }
 
 export interface CreateUserRequest {
@@ -68,6 +70,7 @@ export interface UpdateUserRequest {
   active?: boolean;
   expires_at?: string | null;
   statuses?: UserStatusKey[];
+  note?: string;
 }
 
 export interface SetRoleRequest {
