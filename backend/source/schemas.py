@@ -9,6 +9,7 @@ Centralises all input validation and response shapes so that:
 Sections:
   Auth        - login, token, session responses
   Users       - create, update, register, change-password, regenerate-hy, set-role
+  Payments    - plans, SBP invoice creation, order status
   Servers     - create, update, public and admin response shapes
   Hysteria    - kick, URL generation response
   Traffic     - time-series bucket responses
@@ -197,6 +198,43 @@ class DeleteUserResponse(BaseModel):
 class SetRoleResponse(BaseModel):
     username: str
     role: RoleType
+
+
+# ---------------------------------------------------------------------------
+# Payments
+# ---------------------------------------------------------------------------
+
+PaymentOrderStatus = Literal["pending", "paid", "failed", "expired", "refunded"]
+
+
+class PlanResponse(BaseModel):
+    id: int
+    code: str
+    name: str
+    amount_minor: int
+    currency: Literal["RUB"]
+    period_days: int
+    renewal_window_days: int
+
+
+class CreatePaymentRequest(BaseModel):
+    plan_code: str = Field(default="basic_monthly", min_length=1, max_length=64)
+
+
+class PaymentOrderResponse(BaseModel):
+    id: int
+    order_number: str
+    status: PaymentOrderStatus
+    amount_minor: int
+    currency: Literal["RUB"]
+    payment_page_url: str | None
+    provider_payment_id: str | None
+    expires_at: datetime
+    plan: PlanResponse
+
+
+class LavaWebhookResponse(BaseModel):
+    status: str
 
 
 # ---------------------------------------------------------------------------

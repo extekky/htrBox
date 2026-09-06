@@ -102,6 +102,9 @@
       admin_username: "{{ hostvars['localhost']['ADMIN_USERNAME'] }}"
       admin_password: "{{ hostvars['localhost']['ADMIN_PASSWORD'] }}"
       postgres_password: "{{ hostvars['localhost']['POSTGRES_PASSWORD'] }}"
+      lava_shop_id: "{{ hostvars['localhost']['LAVA_SHOP_ID'] }}"
+      lava_secret_key: "{{ hostvars['localhost']['LAVA_SECRET_KEY'] }}"
+      lava_additional_key: "{{ hostvars['localhost']['LAVA_ADDITIONAL_KEY'] }}"
 
       # monitoring
       monitoring_host: "{{ lookup('env', 'MONITORING_HOST')    | default('master', true) }}"
@@ -136,6 +139,9 @@
                 - admin_username         | length > 0
                 - admin_password         | length > 0
                 - postgres_password      | length > 0
+                - lava_shop_id           | length > 0
+                - lava_secret_key        | length > 0
+                - lava_additional_key    | length > 0
                 - grafana_admin_password | length >= 16
                 - ghcr_username          | length > 0
                 - ghcr_token             | length > 0
@@ -148,6 +154,9 @@
                  - ADMIN_USERNAME 
                  - ADMIN_PASSWORD 
                  - POSTGRES_PASSWORD
+                 - LAVA_SHOP_ID
+                 - LAVA_SECRET_KEY
+                 - LAVA_ADDITIONAL_KEY
                  - GRAFANA_ADMIN_PASSWORD (must be at least 16 characters)
                  - GHCR_USERNAME 
                  - GHCR_TOKEN

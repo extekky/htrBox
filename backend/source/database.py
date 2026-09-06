@@ -9,6 +9,10 @@ Provides:
 Schema overview:
   users          - VPN accounts with auth credentials, subscription state, and role
   servers        - Hysteria server registry (multi-server support)
+  plans          - Subscription plans available for payment
+  payment_orders - Lava invoice attempts for subscription periods
+  sbp_payments   - SBP-specific payment details
+  payment_events - Append-only payment event log
   traffic_last   - Last-seen cumulative byte counters per user per server
   traffic_5m     - 5-minute aggregated traffic buckets for Grafana / analytics
   refresh_tokens - Active JWT refresh tokens (enables server-side revocation)
@@ -146,6 +150,7 @@ def init_db() -> None:
         _create_servers_table(conn)
         _migrate_user_created_at(conn)
         _migrate_user_note(conn)
+        _create_payment_tables(conn)
         # Child tables — declare FKs inline since parents already exist.
         _create_traffic_tables(conn)
         _create_refresh_tokens_table(conn)
@@ -262,6 +267,133 @@ def _create_maintenance_state_table(conn: psycopg2.extensions.connection) -> Non
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """)
+
+
+def _create_payment_tables(conn: psycopg2.extensions.connection) -> None:
+    """
+    Create the Lava/SBP payment model.
+    """
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS plans (
+                id                  BIGSERIAL PRIMARY KEY,
+                code                TEXT NOT NULL UNIQUE,
+                name                TEXT NOT NULL,
+                amount_minor        INTEGER NOT NULL CHECK (amount_minor > 0),
+                currency            CHAR(3) NOT NULL DEFAULT 'RUB' CHECK (currency = 'RUB'),
+                period_days         INTEGER NOT NULL DEFAULT 30,
+                renewal_window_days INTEGER NOT NULL DEFAULT 3,
+                is_active           BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+
+        cur.execute("""
+            INSERT INTO plans (code, name, amount_minor, period_days, renewal_window_days)
+            VALUES ('basic_monthly', 'Базовый (месяц)', 20000, 30, 7)
+            ON CONFLICT (code) DO NOTHING
+        """)
+
+        cur.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_order_status') THEN
+                    CREATE TYPE payment_order_status AS ENUM (
+                        'pending',
+                        'paid',
+                        'failed',
+                        'expired',
+                        'refunded'
+                    );
+                END IF;
+            END
+            $$;
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS payment_orders (
+                id                  BIGSERIAL PRIMARY KEY,
+                username            TEXT REFERENCES users(username) ON DELETE SET NULL,
+                plan_id             BIGINT NOT NULL REFERENCES plans(id),
+
+                amount_minor        INTEGER NOT NULL CHECK (amount_minor > 0),
+                currency            CHAR(3) NOT NULL DEFAULT 'RUB' CHECK (currency = 'RUB'),
+
+                status              payment_order_status NOT NULL DEFAULT 'pending',
+                provider_status_raw TEXT,
+
+                idempotency_key     TEXT NOT NULL UNIQUE,
+                order_number        TEXT NOT NULL UNIQUE,
+
+                provider            TEXT NOT NULL DEFAULT 'lava.ru',
+                provider_payment_id TEXT,
+                payment_page_url    TEXT,
+                custom_fields       JSONB,
+
+                net_amount_minor    INTEGER,
+                provider_fee_minor  INTEGER,
+                provider_fee_rate   NUMERIC(5,4),
+                funds_hold_days     INTEGER,
+                funds_available_at  TIMESTAMPTZ,
+
+                expires_at          TIMESTAMPTZ NOT NULL,
+                paid_at             TIMESTAMPTZ,
+                failed_at           TIMESTAMPTZ,
+                refunded_at         TIMESTAMPTZ,
+
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                CONSTRAINT chk_net_amount_consistent CHECK (
+                    net_amount_minor IS NULL
+                    OR provider_fee_minor = amount_minor - net_amount_minor
+                )
+            )
+        """)
+
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_payment_orders_username ON payment_orders(username)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_payment_orders_status ON payment_orders(status)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_payment_orders_provider_payment_id ON payment_orders(provider_payment_id)")
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_payment_orders_user_pending
+            ON payment_orders(username)
+            WHERE status = 'pending'
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS sbp_payments (
+                id                  BIGSERIAL PRIMARY KEY,
+                payment_order_id    BIGINT NOT NULL UNIQUE REFERENCES payment_orders(id) ON DELETE CASCADE,
+                payer_details       JSONB,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS payment_events (
+                id                  BIGSERIAL PRIMARY KEY,
+                payment_order_id    BIGINT NOT NULL REFERENCES payment_orders(id) ON DELETE CASCADE,
+                provider            TEXT NOT NULL DEFAULT 'lava.ru',
+                provider_invoice_id TEXT NOT NULL,
+                event_type          TEXT NOT NULL,
+                status_from         payment_order_status,
+                status_to           payment_order_status,
+                raw_payload         JSONB,
+                auth_token_valid    BOOLEAN,
+                processed_at        TIMESTAMPTZ,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """)
+
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_events_provider_invoice_status
+            ON payment_events(provider, provider_invoice_id, status_to)
+            WHERE status_to IS NOT NULL
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_payment_events_payment_order_id ON payment_events(payment_order_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_payment_events_created_at ON payment_events(created_at)")
 
 
 # ---------------------------------------------------------------------------

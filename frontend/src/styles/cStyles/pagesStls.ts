@@ -215,6 +215,21 @@ export const profilePage = {
   subValueToneWarning: "text-amber-500",
   subValueToneDanger: colorScheme.danger.text,
 
+  paymentCard:
+    "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 sm:p-5",
+  paymentMain: "flex min-w-0 items-center gap-3",
+  paymentLogo:
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-white p-2 shadow-sm shadow-slate-900/6",
+  paymentLogoImg: "h-full w-full object-contain",
+  paymentText: "min-w-0 space-y-1",
+  paymentTitle: typography.headingMd,
+  paymentHint: `${typography.mutedXs} line-clamp-2`,
+  paymentAction:
+    "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-foreground/88 disabled:cursor-not-allowed disabled:opacity-50",
+  paymentActionIcon: loading.spin,
+  paymentOrder:
+    "mt-1 inline-flex max-w-full items-center rounded-lg border border-border/70 bg-muted px-2 py-1 text-[11px] leading-none text-muted-foreground",
+
   // Карточка подключения — скрывает overflow для разделителя
   connectionCard: "overflow-hidden",
 
@@ -478,8 +493,10 @@ export const legalPage = {
     `border ${colorScheme.primary.border} ${colorScheme.primary.bg} ${colorScheme.primary.text}`,
     "px-3 py-1 text-xs font-semibold",
   ].join(" "),
-  title: "max-w-3xl text-2xl font-bold leading-tight text-foreground tracking-tight sm:text-3xl",
-  subtitle: "max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base",
+  title:
+    "max-w-3xl text-2xl font-bold leading-tight text-foreground tracking-tight sm:text-3xl",
+  subtitle:
+    "max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base",
   meta: "text-xs text-muted-foreground",
 
   grid: "grid grid-cols-1 gap-4 md:grid-cols-2",
@@ -496,7 +513,8 @@ export const legalPage = {
   bulletList: "flex flex-col gap-2",
   bulletItem:
     "rounded-xl border border-border/60 bg-muted/35 px-3 py-2.5 text-sm leading-relaxed text-muted-foreground",
-  inlineLink: "font-medium text-primary hover:text-primary/80 transition-colors",
+  inlineLink:
+    "font-medium text-primary hover:text-primary/80 transition-colors",
 } as const;
 
 // -------------------------------------------------------------

@@ -106,6 +106,43 @@ export interface RegisterResponse {
 }
 
 // -------------------------------------------------------------
+// Платежи
+// -------------------------------------------------------------
+
+export type PaymentOrderStatus =
+  | "pending"
+  | "paid"
+  | "failed"
+  | "expired"
+  | "refunded";
+
+export interface PlanResponse {
+  id: number;
+  code: string;
+  name: string;
+  amount_minor: number;
+  currency: "RUB";
+  period_days: number;
+  renewal_window_days: number;
+}
+
+export interface CreatePaymentRequest {
+  plan_code?: string;
+}
+
+export interface PaymentOrderResponse {
+  id: number;
+  order_number: string;
+  status: PaymentOrderStatus;
+  amount_minor: number;
+  currency: "RUB";
+  payment_page_url: string | null;
+  provider_payment_id: string | null;
+  expires_at: string;
+  plan: PlanResponse;
+}
+
+// -------------------------------------------------------------
 // Серверы
 // -------------------------------------------------------------
 

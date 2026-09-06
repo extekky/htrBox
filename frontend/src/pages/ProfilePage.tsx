@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, Clock, GraduationCap, ServerOff } from "lucide-react";
+import { AlertTriangle, Clock, Loader2, ServerOff } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
@@ -15,6 +15,12 @@ import { StatusChip } from "@/components/common/StatusBadge";
 import { UserStatusList } from "@/components/common/UserStatusList";
 import { pickAvatar } from "@/lib/avatars";
 import { useMe } from "@/hooks/useUsers";
+import {
+  useCreateSbpPayment,
+  useCurrentPaymentOrder,
+  usePaymentPlans,
+} from "@/hooks/usePayments";
+import { useToast } from "@/hooks/useToast";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useServerStore,
@@ -40,6 +46,14 @@ import { getResolvedUserStatuses, getStatusPayload } from "@/lib/userStatuses";
 import { styles, colorScheme } from "@/styles";
 
 const s = styles.profilePage;
+
+function formatRubles(amountMinor: number) {
+  return new Intl.NumberFormat("ru-RU", {
+    style: "currency",
+    currency: "RUB",
+    maximumFractionDigits: 0,
+  }).format(amountMinor / 100);
+}
 
 // -------------------------------------------------------------
 // Состояние загрузки — центрированный спиннер
@@ -84,6 +98,10 @@ function ErrorState() {
 export function ProfilePage() {
   // -- Данные ----------------------------------------------
   const { data: me, isLoading: meLoading, isError: meError } = useMe();
+  const { data: paymentPlans = [] } = usePaymentPlans();
+  const { data: currentPaymentOrder } = useCurrentPaymentOrder();
+  const createSbpPayment = useCreateSbpPayment();
+  const toast = useToast();
   const user = useAuthStore((s) => s.user);
   const selectedServer = useServerStore(selectSelectedServer);
   const setSelectedServer = useServerStore(selectSetSelectedServer);
@@ -140,6 +158,37 @@ export function ProfilePage() {
   const userStatuses = getResolvedUserStatuses(statusPayload);
   const selectedStatus =
     userStatuses.find((status) => status.key === selectedStatusKey) ?? null;
+  const paymentPlan =
+    paymentPlans.find((plan) => plan.code === "basic_monthly") ??
+    paymentPlans[0] ??
+    null;
+  const paymentAmount = paymentPlan
+    ? formatRubles(paymentPlan.amount_minor)
+    : "200 ₽";
+  const paymentPeriodDays = paymentPlan?.period_days ?? 30;
+  const hasPendingPayment = Boolean(currentPaymentOrder?.payment_page_url);
+
+  const handleSbpPayment = async () => {
+    try {
+      const order = hasPendingPayment
+        ? currentPaymentOrder
+        : await createSbpPayment.mutateAsync({
+            plan_code: paymentPlan?.code ?? "basic_monthly",
+          });
+
+      if (!order?.payment_page_url) {
+        toast.error("Оплата недоступна", "Платёжная ссылка не получена");
+        return;
+      }
+
+      window.location.href = order.payment_page_url;
+    } catch (error) {
+      toast.error(
+        "Не удалось создать оплату",
+        error instanceof Error ? error.message : "Попробуйте ещё раз позже",
+      );
+    }
+  };
 
   // Данные плитки «Подписка» (текст, юниты, цвет)
   const subscriptionValue = getSubscriptionValue(
@@ -260,15 +309,50 @@ export function ProfilePage() {
             </Card>
           </div>
 
+          <Card className={s.paymentCard}>
+            <div className={s.paymentMain}>
+              <div className={s.paymentLogo}>
+                <img src="/sbp.svg" alt="СБП" className={s.paymentLogoImg} />
+              </div>
+              <div className={s.paymentText}>
+                <p className={s.paymentTitle}>Оплата через СБП</p>
+                <p className={s.paymentHint}>
+                  {paymentAmount} за {paymentPeriodDays} дней доступа
+                </p>
+                <p className={s.paymentHint}>
+                  Продлить можно не ранее чем за 7 дней до окончания подписки
+                </p>
+                {currentPaymentOrder && (
+                  <p className={s.paymentOrder}>
+                    Счёт {currentPaymentOrder.order_number}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className={s.paymentAction}
+              onClick={handleSbpPayment}
+              disabled={createSbpPayment.isPending}
+            >
+              {createSbpPayment.isPending && (
+                <Loader2 size={16} className={s.paymentActionIcon} />
+              )}
+              {hasPendingPayment ? "Продолжить" : "Оплатить"}
+            </button>
+          </Card>
+
           {/* -- Баннер: подписка есть, но аккаунт не активирован -- */}
+          {/* -- Баннер: оплата по СБП всё ещё тестируется -- */}
           <NotifyBanner
-            bannerId="maintenance-notice"
+            bannerId="sbp-testing-notice"
             visible={true}
             icon={AlertTriangle}
-            title="Ведутся технические работы"
+            title="Оплата по СБП на стадии тестирования"
             description={
-              `На этой неделе сервис может работать нестабильно — проводятся технические работы. ` +
-              `Приносим извинения за возможные неудобства.`
+              `Оплата подписки через СБП сейчас проходит тестирование и может работать нестабильно. ` +
+              `Если оплатить не удалось — напишите в поддержку.`
             }
             variant="danger"
           />

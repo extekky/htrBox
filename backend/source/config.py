@@ -37,6 +37,16 @@ Rate limiting variables (all optional):
 
   RT_<ENDPOINT>_REQ / RT_<ENDPOINT>_WIN — per-endpoint sliding-window caps:
   max REQ requests per WIN seconds.
+
+Lava Business payment variables (optional, required only for SBP payments):
+  LAVA_SHOP_ID              - Lava project/shop UUID
+  LAVA_SECRET_KEY           - Secret key for outgoing API request signatures
+  LAVA_ADDITIONAL_KEY       - Additional key for incoming webhook verification
+  LAVA_HOOK_URL             - Public webhook URL passed to Lava on invoice creation
+  LAVA_SUCCESS_URL          - Optional success redirect URL
+  LAVA_FAIL_URL             - Optional failure redirect URL
+  LAVA_EXPIRE_MINUTES       - Invoice lifetime in minutes (default: 300)
+  LAVA_FUNDS_HOLD_DAYS      - Current Lava hold period for analytics (default: 3)
 """
 
 import os
@@ -241,3 +251,18 @@ LOG_LEVEL = _optional("LOG_LEVEL", "INFO").upper()
 
 # Expose /docs and /redoc only when explicitly enabled.
 DOCS_ENABLED = _optional_bool("DOCS_ENABLED", False)
+
+
+# ---------------------------------------------------------------------------
+# Lava Business / SBP payments
+# ---------------------------------------------------------------------------
+
+LAVA_API_BASE_URL = _optional("LAVA_API_BASE_URL", "https://api.lava.ru/business").rstrip("/")
+LAVA_SHOP_ID = _optional("LAVA_SHOP_ID", "")
+LAVA_SECRET_KEY = _optional("LAVA_SECRET_KEY", "")
+LAVA_ADDITIONAL_KEY = _optional("LAVA_ADDITIONAL_KEY", "")
+LAVA_HOOK_URL = _optional("LAVA_HOOK_URL", "")
+LAVA_SUCCESS_URL = _optional("LAVA_SUCCESS_URL", "")
+LAVA_FAIL_URL = _optional("LAVA_FAIL_URL", "")
+LAVA_EXPIRE_MINUTES = _optional_int("LAVA_EXPIRE_MINUTES", 300)
+LAVA_FUNDS_HOLD_DAYS = _optional_int("LAVA_FUNDS_HOLD_DAYS", 3)

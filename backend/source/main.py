@@ -30,6 +30,7 @@ from maintenance import start_maintenance_worker
 from routers import (
     auth, 
     hysteria, 
+    payments,
     servers, 
     traffic, 
     users,
@@ -175,5 +176,6 @@ def health_check():
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(hysteria.router)
+app.include_router(payments.router)
 app.include_router(servers.router)
 app.include_router(traffic.router)
