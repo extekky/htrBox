@@ -1,17 +1,17 @@
 import type { ComponentType } from "react";
 import {
-  DinoAvatar,
+  CakeAvatar,
   CatAvatar,
-  BunnyAvatar,
-  PandaAvatar,
-  FoxAvatar,
-  OwlAvatar,
-  PenguinAvatar,
+  OrangeAvatar,
+  DonatAvatar,
+  СactusAvatar,
+  CloudAvatar,
+  CapAvatar,
   PuppyAvatar,
-  FrogAvatar,
-  KoalaAvatar,
-  ChickAvatar,
-  UnicornAvatar,
+  ThreadsAvatar,
+  StoneAvatar,
+  MushroomAvatar,
+  SockAvatar,
 } from "@/components/common/Avatars";
 
 // -------------------------------------------------------------
@@ -19,18 +19,18 @@ import {
 // (порядок важен — хэш выбирает по индексу)
 // -------------------------------------------------------------
 export const AVATARS: ComponentType[] = [
-  DinoAvatar,
+  CakeAvatar,
   CatAvatar,
-  BunnyAvatar,
-  PandaAvatar,
-  FoxAvatar,
-  OwlAvatar,
-  PenguinAvatar,
+  OrangeAvatar,
+  DonatAvatar,
+  СactusAvatar,
+  CloudAvatar,
+  CapAvatar,
   PuppyAvatar,
-  FrogAvatar,
-  KoalaAvatar,
-  ChickAvatar,
-  UnicornAvatar,
+  ThreadsAvatar,
+  StoneAvatar,
+  MushroomAvatar,
+  SockAvatar,
 ];
 
 // -------------------------------------------------------------
