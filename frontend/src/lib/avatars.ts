@@ -6,8 +6,8 @@ import {
   DonatAvatar,
   СactusAvatar,
   CloudAvatar,
-  CapAvatar,
-  PuppyAvatar,
+  MoustacheAvatar,
+  PillowAvatar,
   ThreadsAvatar,
   StoneAvatar,
   MushroomAvatar,
@@ -19,16 +19,16 @@ import {
 // (порядок важен — хэш выбирает по индексу)
 // -------------------------------------------------------------
 export const AVATARS: ComponentType[] = [
-  CakeAvatar,
+  MoustacheAvatar,
   CatAvatar,
   OrangeAvatar,
   DonatAvatar,
   СactusAvatar,
   CloudAvatar,
-  CapAvatar,
-  PuppyAvatar,
-  ThreadsAvatar,
+  CakeAvatar,
   StoneAvatar,
+  ThreadsAvatar,
+  PillowAvatar,
   MushroomAvatar,
   SockAvatar,
 ];

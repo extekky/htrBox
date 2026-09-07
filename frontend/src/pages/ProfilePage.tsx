@@ -183,10 +183,17 @@ export function ProfilePage() {
 
       window.location.href = order.payment_page_url;
     } catch (error) {
-      toast.error(
-        "Не удалось создать оплату",
-        error instanceof Error ? error.message : "Попробуйте ещё раз позже",
-      );
+      const rawMessage = error instanceof Error ? error.message : undefined;
+      const friendlyMessage =
+        (rawMessage &&
+          {
+            "Renewal is not available yet": `Оплатить можно не ранее чем за ${
+              paymentPlan?.renewal_window_days ?? "N"
+            } дней до окончания подписки`,
+          }[rawMessage]) ??
+        "Попробуйте ещё раз позже";
+
+      toast.error("Не удалось создать оплату", friendlyMessage);
     }
   };
 
@@ -320,7 +327,9 @@ export function ProfilePage() {
                   {paymentAmount} за {paymentPeriodDays} дней доступа
                 </p>
                 <p className={s.paymentHint}>
-                  Продлить можно не ранее чем за 7 дней до окончания подписки
+                  Оплатить можно не ранее чем за{" "}
+                  {paymentPlan?.renewal_window_days ?? 7} дней до окончания
+                  подписки
                 </p>
                 {currentPaymentOrder && (
                   <p className={s.paymentOrder}>
