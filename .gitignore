@@ -30,7 +30,4 @@ secrets.yml
 
 # Other files and directories to ignore
 # -------------------------------------------------------------
-backups
-ansible_old
 .prettierrc
-.github/workflows/deploy_old.yml
