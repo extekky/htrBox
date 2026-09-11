@@ -62,7 +62,7 @@
             - name: Load secrets into localhost vars
               include_vars:
                   file: "{{ secrets_file }}"
-                  no_log: true
+              no_log: true
         always:
             - name: Remove secrets.yml after loading
               file:

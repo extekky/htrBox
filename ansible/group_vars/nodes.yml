@@ -11,3 +11,6 @@ secrets_dir: /root/.secrets
 
 # Порт для VPN соединения
 vpn_port: 443
+
+# URL для авторизации Hysteria2 на backend
+hysteria_auth_url: "https://{{ service_domain }}/api/auth"

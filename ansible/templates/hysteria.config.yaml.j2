@@ -9,7 +9,7 @@ tls:
 auth:
     type: http
     http:
-        url: "http://{{ service_domain }}:8000/auth"
+        url: "{{ hysteria_auth_url }}"
 
 masquerade:
     type: proxy

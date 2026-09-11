@@ -12,6 +12,8 @@ services:
         networks:
             - vpn_net
         restart: unless-stopped
+        ports:
+            - "127.0.0.1:5432:5432"  # открываем порт на localhost для DATAGRIP по ssh
         logging:
             driver: "json-file"
             options:
@@ -27,8 +29,9 @@ services:
             - DOCKER_ENV=true
         depends_on:
             - postgres
-        ports:
-            - "8000:8000"
+        # frontend(nginx) уже проксирует трафик на backend -> нет необходимости открывать порт наружу
+        ports:  
+            - "127.0.0.1:8000:8000"   # healthcheck 
         networks:
             - vpn_net
         restart: unless-stopped
