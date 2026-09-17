@@ -250,6 +250,7 @@ def _collect_server(server_id: str, totals_gb: dict[str, float], conn) -> None:
 
     with conn.cursor(cursor_factory=_DICT) as cur:
         for username, total_gb in totals_gb.items():
+            cur.execute("SAVEPOINT sp_user_traffic")
             try:
                 cur.execute(
                     "SELECT last_total FROM traffic_last WHERE username = %s AND server_id = %s",
@@ -268,6 +269,7 @@ def _collect_server(server_id: str, totals_gb: dict[str, float], conn) -> None:
                            VALUES (%s, %s, %s, NOW())""",
                         (username, server_id, total_gb),
                     )
+                    cur.execute("RELEASE SAVEPOINT sp_user_traffic")
                     continue
 
                 last_total_gb = float(row["last_total"] or 0.0)
@@ -317,7 +319,10 @@ def _collect_server(server_id: str, totals_gb: dict[str, float], conn) -> None:
                     (username, server_id, total_gb),
                 )
 
+                cur.execute("RELEASE SAVEPOINT sp_user_traffic")
+
             except Exception as e:
+                cur.execute("ROLLBACK TO SAVEPOINT sp_user_traffic")
                 logger.error("DB error for user %r on server %r: %s", username, server_id, e)
 
 
